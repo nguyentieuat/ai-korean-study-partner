@@ -1,0 +1,162 @@
+[
+  {
+    "danh_muc": "Nghe",
+    "cau": "1-4",
+    "dang": "Chọn câu trả lời phù hợp",
+    "dang_kr": "알맞은 답 선택하기",
+    "title": "1~4번: 알맞은 답 선택하기",
+    "lang": "kr",
+    "prompt": "TOPIK I 듣기 문제 1~4번: 알맞은 답 선택하기 형식으로 문제 1개를 생성하세요. 문제와 선택지는 모두 한국어로 작성하며, 짧고 명확해야 합니다. 선택지는 총 4개이며, 정확한 답은 하나뿐입니다. JSON 형식으로 출력하세요: {\"question\": \"질문 내용\", \"options\": {\"A\": \"선택지 A\", \"B\": \"선택지 B\", \"C\": \"선택지 C\", \"D\": \"선택지 D\"}, \"answer\": \"A\"}. 한국어 외 언어(베트남어, 로마자 등)는 포함하지 마세요.",
+    "prompt_vn": "Tạo 1 câu hỏi nghe TOPIK I dạng 'Chọn câu trả lời phù hợp'. Nội dung câu hỏi và các lựa chọn phải bằng tiếng Hàn, ngắn gọn, rõ ràng. Có 4 lựa chọn, chỉ 1 đáp án đúng, xuất ra JSON theo định dạng: {\"question\": \"Câu hỏi ở đây\", \"options\": {\"A\": \"Lựa chọn A\", \"B\": \"Lựa chọn B\", \"C\": \"Lựa chọn C\", \"D\": \"Lựa chọn D\"}, \"answer\": \"A\"}. Không kèm tiếng Việt hay Romanization."
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "5-6",
+    "dang": "Chọn lời nói tiếp theo",
+    "dang_kr": "다음에 할 말을 선택하세요",
+    "title": "5~6번: 다음에 할 말을 선택하세요",
+    "lang": "kr",
+    "prompt": "TOPIK I 듣기 문제 형식으로 '다음에 할 말을 선택하세요' 문제를 생성하세요. 문제는 2문장으로 구성됩니다: 첫 번째 문장은 A가 말한 내용, 두 번째 문장은 B가 이어서 말할 내용입니다. 학생은 B가 말할 알맞은 문장을 4개의 선택지 중에서 고릅니다. JSON 형식으로 출력하세요: {\"question\": \"A 문장 + B 문장 질문\", \"options\": [\"선택지1\", \"선택지2\", \"선택지3\", \"선택지4\"], \"answer\": \"정답\"}. 문제와 선택지는 모두 한국어로 작성하세요.",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I dạng 'Chọn lời nói tiếp theo'. Câu hỏi gồm 2 câu: câu A nói trước, câu B nói tiếp theo. Học sinh chọn câu B đúng trong 4 lựa chọn. Xuất ra JSON: {\"question\": \"Câu A + câu hỏi về câu B\", \"options\": [\"Lựa chọn 1\", \"Lựa chọn 2\", \"Lựa chọn 3\", \"Lựa chọn 4\"], \"answer\": \"Đáp án đúng\"}. Nội dung hoàn toàn bằng tiếng Hàn."
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "7-10",
+    "dang": "Chọn địa điểm",
+    "dang_kr": "장소를 선택하세요",
+    "title": "7~10번: 장소를 선택하세요",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 듣기 문제 형식으로 '장소를 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I theo dạng 'Chọn địa điểm'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "11-14",
+    "dang": "Chọn chủ đề",
+    "dang_kr": "주제를 선택하세요",
+    "title": "11~14번: 주제를 선택하세요",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 듣기 문제 형식으로 '주제를 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I theo dạng 'Chọn chủ đề'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "15-16",
+    "dang": "Chọn tranh",
+    "dang_kr": "그림을 선택하세요",
+    "title": "15~16번: 그림을 선택하세요",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 듣기 문제 형식으로 '그림을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I theo dạng 'Chọn tranh'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "17-21",
+    "dang": "Chọn nội dung đúng",
+    "dang_kr": "내용 중 맞는 것을 선택하세요",
+    "title": "17~21번: 내용 중 맞는 것을 선택하세요",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 듣기 문제 형식으로 '내용 중 맞는 것을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I theo dạng 'Chọn nội dung đúng'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "22-24",
+    "dang": "Chọn suy nghĩ trọng tâm",
+    "dang_kr": "중심 생각을 선택하세요",
+    "title": "22~24번: 중심 생각을 선택하세요",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 듣기 문제 형식으로 '중심 생각을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I theo dạng 'Chọn suy nghĩ trọng tâm'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Nghe",
+    "cau": "25-30",
+    "dang": "Trả lời câu hỏi",
+    "dang_kr": "질문에 직접 대답하세요",
+    "title": "25~30번: 질문에 직접 대답하세요",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 듣기 문제 형식으로 '질문에 직접 대답하세요' 문제를 생성하세요. JSON 형식으로 출력하세요: {question, answer}",
+    "prompt_vn": "Tạo câu hỏi nghe TOPIK I theo dạng 'Trả lời câu hỏi'. Xuất ra định dạng JSON: {question, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "31-33",
+    "dang": "Chủ đề",
+    "dang_kr": "무엇에 대한 이야기입니까?",
+    "title": "31~33번: 무엇에 대한 이야기입니까?",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '이야기 주제를 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Chọn chủ đề câu chuyện'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "34-39",
+    "dang": "Điền chỗ trống",
+    "dang_kr": "( )에 들어갈 알맞은 것을 고르십시오",
+    "title": "34~39번: ( )에 들어갈 알맞은 것을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '빈칸에 알맞은 단어를 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Điền từ thích hợp vào chỗ trống'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "40-42",
+    "dang": "Chọn nội dung không đúng",
+    "dang_kr": "맞지 않는 것을 고르십시오",
+    "title": "40~42번: 맞지 않는 것을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '맞지 않는 내용을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Chọn nội dung không đúng'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "43-45",
+    "dang": "Chọn nội dung đúng",
+    "dang_kr": "같은 내용을 고르십시오",
+    "title": "43~45번: 같은 내용을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '같은 내용을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Chọn nội dung giống nhau'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "46-48",
+    "dang": "Chọn ý chính",
+    "dang_kr": "중심 생각을 고르십시오",
+    "title": "46~48번: 중심 생각을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '중심 생각을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Chọn ý chính'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "49-50,53-56,59-62,65-68",
+    "dang": "Điền + chủ đề",
+    "dang_kr": "(ᄀ)에 들어갈 알맞은 말을 고르십시오 + 내용과 같은 것을 고르십시오",
+    "title": "49~50,53~56,59~62,65~68번: (ᄀ)에 들어갈 알맞은 말을 고르십시오 + 내용과 같은 것을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '빈칸에 들어갈 알맞은 말을 선택하고, 이야기 주제를 고르세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Điền từ thích hợp vào chỗ trống và chọn chủ đề phù hợp'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "63-64",
+    "dang": "Mục đích viết + nội dung",
+    "dang_kr": "왜 이 글을 썼는지 + 같은 내용을 고르십시오",
+    "title": "63~64번: 왜 이 글을 썼는지 + 같은 내용을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '글의 목적을 선택하고, 같은 내용을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Chọn mục đích viết bài và chọn nội dung giống nhau'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  },
+  {
+    "danh_muc": "Đọc",
+    "cau": "69-70",
+    "dang": "Điền + suy luận",
+    "dang_kr": "(ᄀ)에 들어갈 알맞은 말을 고르십시오 + 내용을 통해 알 수 있는 것을 고르십시오",
+    "title": "69~70번: (ᄀ)에 들어갈 알맞은 말을 고르십시오 + 내용을 통해 알 수 있는 것을 고르십시오",
+    "lang": "kr",
+    "prompt": "Level TOPIK I 읽기 문제 형식으로 '빈칸에 들어갈 알맞은 말을 선택하고, 내용을 통해 알 수 있는 것을 선택하세요' 문제를 생성하세요. 선택지는 4개이며, JSON 형식으로 출력하세요: {question, options, answer}",
+    "prompt_vn": "Tạo câu hỏi đọc TOPIK I theo dạng 'Điền từ thích hợp vào chỗ trống và suy luận ra nội dung đúng'. Có 4 lựa chọn, xuất ra định dạng JSON: {question, options, answer}"
+  }
+]

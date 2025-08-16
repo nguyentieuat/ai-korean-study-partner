@@ -17,7 +17,7 @@ def generate_reply(prompt_history: list) -> str:
 
         # prompt_history là danh sách messages dạng dict: [{"role": "user", "content": "..."}, ...]
         data = {
-            "model": "mistralai/mistral-7b-instruct:free",  # hoặc "meta-llama/llama-3-8b-instruct:free"
+            "model": "gpt-4o-mini",  # hoặc "meta-llama/llama-3-8b-instruct:free"
             "messages": prompt_history,
             "temperature": 0.7,
             "max_tokens": 500

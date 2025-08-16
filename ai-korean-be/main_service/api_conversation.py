@@ -74,8 +74,6 @@ def handle_voice():
             print("❌ Lỗi khi gọi TTS:", response_tts.text)
             audio_url = None
 
-
-
         result["tts_audio_url"] = audio_url
 
         return jsonify({

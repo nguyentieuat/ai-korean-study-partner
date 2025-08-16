@@ -26,7 +26,6 @@ def chat():
 def handle_voice():
     data = request.get_json()
     text = data.get("text", "")
-
     try:
         # convert reply to TTS
         audio_bytes = text_to_speech(text)

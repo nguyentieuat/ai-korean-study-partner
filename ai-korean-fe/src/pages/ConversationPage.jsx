@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import "./ConversationPage.css";
 import VoiceRecorder from "../components/VoiceRecorder";
+const backendUrl = import.meta.env.VITE_API_URL;
 
 const TypingIndicator = () => (
   <div className="typing-indicator">
@@ -9,8 +10,6 @@ const TypingIndicator = () => (
     <div className="typing-dot"></div>
   </div>
 );
-
-const backendUrl = import.meta.env.VITE_API_URL;
 
 const ConversationPage = () => {
   const [input, setInput] = useState("");

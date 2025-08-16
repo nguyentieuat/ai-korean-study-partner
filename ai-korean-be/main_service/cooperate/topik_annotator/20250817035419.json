@@ -1,0 +1,18 @@
+{
+  "type": "Nghe_Almat_Dap",
+  "title": "안녕하세요",
+  "question": "안녕하세요",
+  "options": {
+    "A": "안녕하세요",
+    "B": "안녕하세요",
+    "C": "안녕하세요",
+    "D": "안녕하세요"
+  },
+  "answer": "A",
+  "dialogue": [
+    {
+      "speaker": "a",
+      "text": "안녕하세요"
+    }
+  ]
+}
