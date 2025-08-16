@@ -239,31 +239,34 @@ const PronunciationPage = () => {
 
   // Map syllable -> phoneme + avgScore, bỏ qua space
   function mapSyllableToPhonemeScoreWithHangul(text, phonemes) {
+    const phonemesCopy = [...phonemes]; // tất cả phoneme từ server
     const result = [];
-    const phonemesCopy = [...phonemes];
 
-    text.split("").forEach((syllable) => {
+    for (const syllable of text) {
       if (syllable === " ") {
-        result.push({ hangul: " ", phoneme: [], avgScore: 1 });
-        return;
+        result.push({ hangulLetters: [], phonemes: [], avgScore: 1 });
+        continue;
       }
 
       const letters = splitHangulSyllable(syllable); // [초성, 중성, 종성]
-      const mappedLetters = letters.map((letter) => {
-        const p = phonemesCopy.shift();
-        return {
-          hangul: letter,
-          phoneme: p?.phoneme || "?",
-          score: p?.score || 0,
-        };
-      });
+      const syllablePhonemes = [];
 
+      // Lấy tất cả phoneme còn lại trong syllable
+      for (let i = 0; i < letters.length; i++) {
+        if (phonemesCopy.length === 0) break;
+        syllablePhonemes.push(phonemesCopy.shift());
+      }
+
+      // Nếu phoneme còn dư (ví dụ diphthong) -> gộp vào syllable
       const avgScore =
-        mappedLetters.reduce((sum, l) => sum + l.score, 0) /
-        (mappedLetters.length || 1);
+        syllablePhonemes.reduce((sum, p) => sum + (p.score || 0), 0) /
+        (syllablePhonemes.length || 1);
 
-      result.push({ hangulLetters: mappedLetters, avgScore });
-    });
+      // Gắn tất cả chữ cái và toàn bộ phoneme của syllable
+      const hangulLetters = letters.map((l) => ({ hangul: l }));
+
+      result.push({ hangulLetters, phonemes: syllablePhonemes, avgScore });
+    }
 
     return result;
   }
@@ -369,7 +372,7 @@ const PronunciationPage = () => {
               <h6>📊 Kết quả đánh giá:</h6>
               <p>
                 <strong>Điểm trung bình:</strong>{" "}
-                {((evaluation.avg_score ?? 0) * 100).toFixed(0)}%
+                {((evaluation.score ?? 0) * 100).toFixed(0)}%
               </p>
 
               <div
@@ -386,63 +389,67 @@ const PronunciationPage = () => {
                     position: "relative",
                   }}
                 >
-                  {mapSyllableToPhonemeScoreWithHangul(
-                    current.text,
-                    evaluation.detail
-                  ).map((s, idx) => {
-                    const { hangulLetters, avgScore } = s;
+                  {evaluation?.detail &&
+                    mapSyllableToPhonemeScoreWithHangul(
+                      current.text,
+                      evaluation.detail
+                    ).map((s, idx) => {
+                      const { hangulLetters, phonemes, avgScore } = s;
 
-                    let color = "black";
-                    if (hangulLetters.length > 0) {
+                      let color = "black";
                       if (avgScore >= 0.8) color = "green";
                       else if (avgScore >= 0.6) color = "orange";
                       else color = "red";
-                    }
 
-                    return (
-                      <span
-                        key={idx}
-                        style={{
-                          color,
-                          marginRight: "0.05rem",
-                          position: "relative",
-                        }}
-                      >
-                        {hangulLetters.map((l, i) => (
-                          <span
-                            key={i}
-                            style={{ cursor: "pointer" }}
-                            onMouseEnter={() =>
-                              setHoveredWordIndex(`${idx}-${i}`)
-                            }
-                            onMouseLeave={() => setHoveredWordIndex(null)}
-                          >
-                            {l.hangul}
-                            {hoveredWordIndex === `${idx}-${i}` && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "-2rem",
-                                  left: 0,
-                                  background: "white",
-                                  border: "1px solid #ccc",
-                                  padding: "4px 8px",
-                                  borderRadius: "4px",
-                                  fontSize: "0.9rem",
-                                  zIndex: 10,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {`${l.hangul} (${l.phoneme} (${(
-                                  l.score * 100
-                                ).toFixed(0)}%))`}
-                              </div>
-                            )}
-                          </span>
-                        ))}
-                      </span>
-                    );
-                  })}
+                      return (
+                        <span
+                          key={idx}
+                          style={{
+                            color,
+                            marginRight: "0.05rem",
+                            position: "relative",
+                          }}
+                        >
+                          {hangulLetters.map((l, i) => (
+                            <span
+                              key={i}
+                              style={{ cursor: "pointer" }}
+                              onMouseEnter={() => setHoveredWordIndex(idx)}
+                              onMouseLeave={() => setHoveredWordIndex(null)}
+                            >
+                              {l.hangul}
+                            </span>
+                          ))}
+
+                          {/* Tooltip hiển thị toàn bộ phoneme của syllable */}
+                          {hoveredWordIndex === idx && phonemes.length > 0 && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "-2rem",
+                                left: 0,
+                                background: "white",
+                                border: "1px solid #ccc",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                fontSize: "0.9rem",
+                                zIndex: 10,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {phonemes
+                                .map(
+                                  (p, i) =>
+                                    `${hangulLetters[i]?.hangul || "?"} (${
+                                      p.phoneme || "?"
+                                    } (${((p.score ?? 0) * 100).toFixed(0)}%))`
+                                )
+                                .join(" ")}
+                            </div>
+                          )}
+                        </span>
+                      );
+                    })}
                 </div>
               </div>
             </div>
