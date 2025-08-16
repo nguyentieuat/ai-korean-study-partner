@@ -1,0 +1,66 @@
+{
+  "level": 2,
+  "focus": "patch’im đơn",
+  "items": [
+    {
+      "text": "국",
+      "notes": "받침 ㄱ - chặn âm cuối",
+      "ipa": "guk",
+      "audioUrl": "/static/tts_model_first/reply_fa201cec8cec4a3cb8db4c14d7e6488b.mp3"
+    },
+    {
+      "text": "밥",
+      "notes": "받침 ㅂ - môi khép",
+      "ipa": "bap",
+      "audioUrl": "/static/tts_model_first/reply_c92f00bfbffa4299be14e67ef9c0b3da.mp3"
+    },
+    {
+      "text": "눈",
+      "notes": "받침 ㄴ - mũi nhẹ",
+      "ipa": "nun",
+      "audioUrl": "/static/tts_model_first/reply_5c40f76b4af14148bf1e302cf6ed1cb5.mp3"
+    },
+    {
+      "text": "물",
+      "notes": "받침 ㄹ - lưỡi cong",
+      "ipa": "mul",
+      "audioUrl": "/static/tts_model_first/reply_5b65078b20d044ad8b0de81b84b727fe.mp3"
+    },
+    {
+      "text": "밤",
+      "notes": "받침 ㅁ - mũi, môi khép",
+      "ipa": "bam",
+      "audioUrl": "/static/tts_model_first/reply_d1ffa29e4fdd4594a507b80e3ce3790f.mp3"
+    },
+    {
+      "text": "꽃",
+      "notes": "받침 ㅊ - âm gió mạnh",
+      "ipa": "kkoch",
+      "audioUrl": "/static/tts_model_first/reply_80f6e7eb1c96417f991a021f5f45cfcf.mp3"
+    },
+    {
+      "text": "밖",
+      "notes": "받침 ㄲ - âm cứng",
+      "ipa": "bak",
+      "audioUrl": "/static/tts_model_first/reply_7c0f9dd6b72b40eeabcb2edb2e45d9e2.mp3"
+    },
+    {
+      "text": "맛",
+      "notes": "받침 ㅅ - âm nhẹ",
+      "ipa": "mat",
+      "audioUrl": "/static/tts_model_first/reply_1fafb9851ff64cd1aa43b0c514e15c8a.mp3"
+    },
+    {
+      "text": "넋",
+      "notes": "받침 ㄺ - phát âm ㄱ",
+      "ipa": "neok",
+      "audioUrl": "/static/tts_model_first/reply_0b59a6f97f2f47c68236a5c60f34ec4c.mp3"
+    },
+    {
+      "text": "솥",
+      "notes": "받침 ㅌ - âm bật",
+      "ipa": "sot",
+      "audioUrl": "/static/tts_model_first/reply_0d3c581b5c414f06a715bafed3745505.mp3"
+    }
+  ]
+}

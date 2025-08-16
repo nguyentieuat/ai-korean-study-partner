@@ -1,0 +1,20 @@
+montreal-forced-aligner
+pandas
+praatio
+numpy
+flask
+Flask-Cors
+soundfile
+pydub
+ffmpeg
+praat-textgrids
+transformers 
+torchaudio 
+textgrid 
+openai-whisper 
+phonemizer
+
+
+# pip install git+https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner.git
+# conda install -c conda-forge kaldi pynini librosa praatio tqdm requests colorama pyyaml openfst baumwelch ngram
+# pip install git+https://github.com/MontrealCorpusTools/kalpy.git@v1.3.1

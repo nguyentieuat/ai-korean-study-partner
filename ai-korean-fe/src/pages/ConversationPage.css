@@ -1,0 +1,126 @@
+.speaking-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.chat-box {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 300px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: #fafafa;
+  margin-bottom: 16px;
+}
+
+.chat-message {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.chat-message.user {
+  text-align: right;
+  color: #333;
+}
+
+.chat-message.ai {
+  text-align: left;
+  color: #0077cc;
+}
+
+.input-box {
+  display: flex;
+  gap: 8px;
+}
+
+textarea {
+  flex: 1;
+  resize: none;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  height: 80px;
+}
+
+button {
+  padding: 12px 16px;
+  font-size: 16px;
+  border-radius: 6px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  margin-left: 8px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #888;
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0%, 80%, 100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chat-message.user {
+  margin-bottom: 10px;
+}
+
+.highlighted-reply {
+  margin-top: 4px;
+  padding-left: 16px;
+  font-style: italic;
+  color: #4b5563; /* xám nhẹ */
+}
+
+.highlight {
+  background-color: #ffeeba; /* vàng nhạt */
+  color: #c0392b; /* đỏ đậm */
+  font-weight: bold;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+.mode-switch input[type="radio"] {
+  margin-right: 0.25rem;
+}
