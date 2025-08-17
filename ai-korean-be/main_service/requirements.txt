@@ -7,5 +7,3 @@ Flask-Cors
 openai
 openai-whisper
 torch
-gTTS
-montreal-forced-aligner

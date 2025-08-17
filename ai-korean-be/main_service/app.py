@@ -14,5 +14,10 @@ app.register_blueprint(pronunciation_bp)
 app.register_blueprint(topikgenerate_bp)
 app.register_blueprint(cooperate_bp)
 
+# Health check endpoint cho ELB
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok"}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
