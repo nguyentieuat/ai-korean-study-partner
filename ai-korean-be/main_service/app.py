@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from api_conversation import conversation_bp
 from api_pronunciation import pronunciation_bp
@@ -18,6 +18,12 @@ app.register_blueprint(cooperate_bp)
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "ok"}), 200
+
+
+@app.route('/uploads/<type:subFolder>/<path:filename>')
+def serve_file(subFolder, filename):
+    return send_from_directory(f'static/uploads/{subFolder}', filename)
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
