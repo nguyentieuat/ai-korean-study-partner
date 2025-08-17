@@ -20,9 +20,9 @@ def health_check():
     return jsonify({"status": "ok"}), 200
 
 
-@app.route('/uploads/<type:subFolder>/<path:filename>')
+@app.route('/uploads/<path:filename>')
 def serve_file(subFolder, filename):
-    return send_from_directory(f'static/uploads/{subFolder}', filename)
+    return send_from_directory(f'static/uploads/', filename)
 
 
 if __name__ == '__main__':
