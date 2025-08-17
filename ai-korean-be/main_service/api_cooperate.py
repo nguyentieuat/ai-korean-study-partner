@@ -80,34 +80,37 @@ def cooperate_annotator_get():
     offset = int(request.args.get("offset", 0))
     limit = int(request.args.get("limit", 10))
     results = []
-    for root, _, files in os.walk("static", "uploads", "pronun"):
-            for file in files:
-                if file.endswith(".wav"):
-                    # Ví dụ: 223451_가.wav
-                    parts = file.split("_", 1)
-                    if len(parts) == 2:
-                        text = os.path.splitext(parts[1])[0]  # bỏ .wav
-                    else:
-                        text = ""  # nếu không đúng format thì để rỗng
+    folder = os.path.join("static", "uploads", "pronun")
+    if os.path.exists(folder): 
+        for root, _, files in os.walk("static", "uploads", "pronun"):
+                for file in files:
+                    if file.endswith(".wav"):
+                        # Ví dụ: 223451_가.wav
+                        parts = file.split("_", 1)
+                        if len(parts) == 2:
+                            text = os.path.splitext(parts[1])[0]  # bỏ .wav
+                        else:
+                            text = ""  # nếu không đúng format thì để rỗng
 
-                    # Path relative từ static
-                    rel_path = os.path.relpath(os.path.join(root, file), "")
-                    audio_path = f"/{rel_path.replace(os.sep, '/')}"
-                    results.append({
-                        "audio_path": audio_path,
-                        "text_clean": text
-                    })
+                        # Path relative từ static
+                        rel_path = os.path.relpath(os.path.join(root, file), "")
+                        audio_path = f"/{rel_path.replace(os.sep, '/')}"
+                        results.append({
+                            "audio_path": audio_path,
+                            "text_clean": text
+                        })
 
         # Lấy slice theo offset, limit
-    sliced_files = results[offset:offset+limit]
+        sliced_files = results[offset:offset+limit]
 
-    return jsonify({
-        "data": sliced_files,
-        "count": len(results),      # tổng số file có trong hệ thống
-        "offset": offset,
-        "limit": limit,
-        "returned": len(sliced_files) # số file thực sự trả về
-    })
+        return jsonify({
+            "data": sliced_files,
+            "count": len(results),      # tổng số file có trong hệ thống
+            "offset": offset,
+            "limit": limit,
+            "returned": len(sliced_files) # số file thực sự trả về
+        })
+    return jsonify({"error": "Không tìm thấy dữ liệu"}), 404
 
 @cooperate_bp.route('/api/cooperate_topik_annotator', methods=['POST'])
 def cooperate_topik_annotator_save():
