@@ -3,6 +3,7 @@ import WaveSurfer from "wavesurfer.js";
 const backendUrl = import.meta.env.VITE_API_URL;
 
 const VoiceRecorder = ({
+  conversation_id,
   onComplete,
   history,
   setHistory,
@@ -106,14 +107,14 @@ const VoiceRecorder = ({
 
               // Chuyển đổi lịch sử hội thoại để gửi lên server
               const formattedHistory = getFormattedHistoryForServer(newHistory);
-              debugger
+
               // 5. Gửi đến AI server
               const res2 = await fetch(
                 `${backendUrl}/api/korean-speaking-talking`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ history: formattedHistory }),
+                  body: JSON.stringify({ conversation_id: conversation_id,history: formattedHistory }),
                 }
               );
 

@@ -1,10 +1,7 @@
 from flask import Blueprint, jsonify, request
 import requests
-import os, uuid, json
+import os, uuid
 import uuid
-from io import BytesIO
-from werkzeug.datastructures import FileStorage
-from utils.utils import save_audio_upload
 
 topikgenerate_bp = Blueprint('topikgenerate', __name__)
 

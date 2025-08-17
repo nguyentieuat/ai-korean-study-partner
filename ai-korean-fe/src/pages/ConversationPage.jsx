@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import "./ConversationPage.css";
 import VoiceRecorder from "../components/VoiceRecorder";
+import { v4 as uuidv4 } from "uuid";
+
 const backendUrl = import.meta.env.VITE_API_URL;
 
 const TypingIndicator = () => (
@@ -21,6 +23,7 @@ const ConversationPage = () => {
   const [mode, setMode] = useState("text"); // "text" | "voice"
   const [recordTime, setRecordTime] = useState(0);
   const [playingUrl, setPlayingUrl] = useState(null);
+  const [conversationId] = useState(uuidv4());
 
   // Hàm gửi tin nhắn dạng text
   const handleSendText = async () => {
@@ -51,6 +54,7 @@ const ConversationPage = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            conversation_id: conversationId,
             message: input,
             conversation_history: formattedHistory,
           }),
@@ -251,6 +255,7 @@ const ConversationPage = () => {
           </>
         ) : (
           <VoiceRecorder
+            conversation_id={conversationId}
             history={history}
             setHistory={setHistory}
             getFormattedHistoryForServer={getFormattedHistoryForServer}

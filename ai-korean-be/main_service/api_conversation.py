@@ -8,8 +8,14 @@ from utils.utils import save_audio_upload
 
 conversation_bp = Blueprint('conversation', __name__)
 
-
 chat_service_url = 'http://localhost:5001'
+
+def save_conversation(conversation_id, history):
+    """Lưu lịch sử hội thoại ra file JSON"""
+    filepath = os.path.join("cooperate", "conversation", f"{conversation_id}.json")
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
 @conversation_bp.route('/api/korean-speaking-chatting', methods=['POST'])
 def chat():
     data = request.get_json()
@@ -27,6 +33,16 @@ def chat():
                 }
             )
         result = response.json()
+
+        # Lưu lịch sử hội thoại
+        history.append({"role": "user", "content": user_input})
+        history.append({"role": "assistant", "content": result.get("reply", "")})
+        conversation_id = data.get("conversation_id")
+        if not conversation_id:
+            conversation_id = str(uuid.uuid4())
+
+        save_conversation(conversation_id, history)
+
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": f"Lỗi gọi chat_service: {e}"}), 500
@@ -48,6 +64,15 @@ def handle_voice():
                 }
             )
         result = response_chat.json()
+
+         # Lưu lịch sử hội thoại
+        history.append({"role": "user", "content": transcript})
+        history.append({"role": "assistant", "content": result.get("reply", "")})
+        conversation_id = data.get("conversation_id")
+        if not conversation_id:
+            conversation_id = str(uuid.uuid4())
+
+        save_conversation(conversation_id, history)
 
         # convert reply to TTS
         response_tts = requests.post(

@@ -1,8 +1,9 @@
 import React, { useState, useRef } from "react";
+const backendUrl = import.meta.env.VITE_API_URL;
 
 const errorTypes = ["tone", "length", "consonant", "vowel", "stress"];
 
-const VitsPrepPage = ({ name, phone }) => {
+const VitsPrepPage = ({ userInfo }) => {
   const [gender, setGender] = useState("male");
   const [audioFile, setAudioFile] = useState(null);
   const [recording, setRecording] = useState(false);
@@ -18,6 +19,7 @@ const VitsPrepPage = ({ name, phone }) => {
 
   const [allRecords, setAllRecords] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const audioRef = useRef();
   const fileInputRef = useRef();
@@ -144,18 +146,72 @@ const VitsPrepPage = ({ name, phone }) => {
     }
   };
 
-  const handleExportAll = () => {
-    const dataJSON = allRecords.map((r) => ({
+  const handleExportAll = async () => {
+    if (!userInfo.phone.trim()) {
+      alert("Số điện thoại là bắt buộc!");
+      return;
+    }
+
+    setLoading(true); // bật loading
+
+    const recordsMeta = allRecords.map((r, idx) => ({
       gender: r.gender,
       audio_id: r.audioFile?.name
         ? r.audioFile.name.replace(/\.[^/.]+$/, "")
         : "mic_audio_" + Date.now(),
-      audio_path: r.audioURL || (r.audioFile?.name ?? ""),
       text_clean: r.textClean,
       text_phoneme: "",
       annotations: r.annotations,
     }));
-    setExportedData(dataJSON);
+
+    const formData = new FormData();
+    formData.append("annotator_name", userInfo.name || "");
+    formData.append("annotator_phone", userInfo.phone);
+    formData.append("records", JSON.stringify(recordsMeta));
+
+    // Gửi kèm audio file
+    allRecords.forEach((r, idx) => {
+      if (r.audioFile) {
+        formData.append(`audio_${idx}`, r.audioFile);
+      }
+    });
+
+    try {
+      const res = await fetch(`${backendUrl}/api/cooperate_vitspre`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Lưu thành công!");
+        console.log(result);
+
+        // 🔄 Reset toàn bộ form sau khi submit thành công
+        setGender("male");
+        setAudioFile(null);
+        setAudioURL("");
+        setTextClean("");
+        setAnnotations([]);
+        setSelectedCharIndex(null);
+        setSuggestedFix("");
+        setErrorType(errorTypes[0]);
+        setComment("");
+        setExportedData(null);
+        setAllRecords([]);
+        setEditingIndex(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } else {
+        alert("Lỗi: " + result.error);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gọi API:", err);
+      alert("Không thể gửi dữ liệu!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -332,9 +388,40 @@ const VitsPrepPage = ({ name, phone }) => {
         <button className="btn btn-info me-2" onClick={handleAddRecord}>
           {editingIndex !== null ? "Update Record" : "Add Record"}
         </button>
-        <button className="btn btn-success" onClick={handleExportAll}>
-          Submit All
+        <button
+          className="btn btn-success"
+          onClick={handleExportAll}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              Đang gửi...
+              <span
+                style={{
+                  marginLeft: 8,
+                  width: 16,
+                  height: 16,
+                  border: "2px solid #fff",
+                  borderTop: "2px solid transparent",
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+            </>
+          ) : (
+            "Submit All"
+          )}
         </button>
+
+        <style>
+          {`
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  `}
+        </style>
       </div>
 
       {/* Records table */}

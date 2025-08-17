@@ -1,10 +1,6 @@
 from flask import Blueprint, jsonify, request
-from matplotlib.pylab import annotations
-import requests
-import os, uuid, json
+import os, uuid, json,time
 import uuid
-from io import BytesIO
-from werkzeug.datastructures import FileStorage
 from datetime import datetime
 import shutil
 
@@ -18,7 +14,6 @@ cooperate_bp = Blueprint('cooperate', __name__)
 @cooperate_bp.route('/api/cooperate_annotator', methods=['POST'])
 def cooperate_annotator_save():
     data = request.get_json()
-    print(f"[INFO] Nhận dữ liệu từ annotator: {data}")
 
     try:
         annotator_name = data.get("annotator_name")
@@ -32,7 +27,7 @@ def cooperate_annotator_save():
         if os.path.exists(user_file):
             with open(user_file, "r", encoding="utf-8") as f:
                 old_data = json.load(f)
-            total_count = old_data.get("annotation_count", 0) + new_count
+                total_count = old_data.get("annotation_count", 0) + new_count
         else:
             total_count = new_count
 
@@ -50,16 +45,7 @@ def cooperate_annotator_save():
         for ann in annotations:
             audio_path = ann.get("audio_path")
 
-            try:
-                filename = os.path.basename(audio_path)
-                ann_file = os.path.join("cooperate", "annotator", f"{filename}.json")
-                with open(ann_file, "w", encoding="utf-8") as f:
-                    json.dump(ann, f, ensure_ascii=False, indent=2)
-            except Exception as e:
-                print(f"[ERROR] Không lưu được {ann_file}: {e}")
-                break
-
-            # --- Move audio sang folder cooperate/marked/pronun ---
+             # --- Move audio sang folder cooperate/marked/pronun ---
             if audio_path and os.path.exists(audio_path):
                 dest_folder = os.path.join("cooperate", "marked", "pronun")
                 os.makedirs(dest_folder, exist_ok=True)
@@ -68,10 +54,21 @@ def cooperate_annotator_save():
                 dest_path = os.path.join(dest_folder, filename)
                 try:
                     shutil.move(audio_path, dest_path)   # di chuyển file
+                    ann["audio_path"] = dest_path
                     print(f"[INFO] Đã move {audio_path} -> {dest_path}")
                 except Exception as e:
                     print(f"[ERROR] Không move được {audio_path}: {e}")
                     continue
+
+            try:
+                filename = os.path.basename(ann["audio_path"])
+                ann_file = os.path.join("cooperate", "annotator", f"{filename}.json")
+                with open(ann_file, "w", encoding="utf-8") as f:
+                    json.dump(ann, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                print(f"[ERROR] Không lưu được {ann_file}: {e}")
+                break
+
                 
         return jsonify({"message": "Lưu thành công!"}), 200
     except Exception as e:
@@ -121,7 +118,7 @@ def cooperate_topik_annotator_save():
         annotator_name = data.get("annotator_name")
         annotator_phone = data.get("annotator_phone")
         annotations = data.get("annotations", [])
-        print(f"[INFO] annotation 0",  annotations[0])
+ 
         # --- Lưu user info ---
         # Tính số annotation lần này
         new_count = len(annotations)
@@ -132,7 +129,7 @@ def cooperate_topik_annotator_save():
                 
                 with open(user_file, "r", encoding="utf-8") as f:
                     old_data = json.load(f)
-                total_count = old_data.get("annotation_count", 0) + new_count
+                    total_count = old_data.get("annotation_count", 0) + new_count
             else:
                 total_count = new_count
             user_info = {
@@ -159,3 +156,55 @@ def cooperate_topik_annotator_save():
         return jsonify({"message": "Lưu thành công!"}), 200
     except Exception as e:
         return jsonify({"error": f"Lỗi xử lý: {e}"}), 500
+
+@cooperate_bp.route('/api/cooperate_vitspre', methods=['POST'])
+def cooperate_vitspre_save():
+    # Lấy dữ liệu text từ FormData
+    annotator_name = request.form.get("annotator_name") or ""
+    annotator_phone = request.form.get("annotator_phone")
+    records = json.loads(request.form.get("records", "[]"))
+    # --- Lưu user info ---
+    # Tính số annotation lần này
+    new_count = len(records)
+    if new_count > 0:
+        user_file = os.path.join("cooperate", "user", f"{annotator_phone}.json")
+        if os.path.exists(user_file):
+            with open(user_file, "r", encoding="utf-8") as f:
+                old_data = json.load(f)
+                total_count = old_data.get("annotation_count", 0) + new_count
+        else:
+            total_count = new_count
+
+        user_info = {
+            "name": annotator_name,
+            "phone": annotator_phone,
+            "annotation_count": total_count,
+            "last_submit": datetime.now().isoformat()
+        }
+         # Cập nhật số lượng annotation
+        with open(user_file, "w", encoding="utf-8") as f:
+            json.dump(user_info, f, ensure_ascii=False, indent=2)
+
+        # Duyệt qua từng file audio trong request.files
+        print(f"[INFO] Nhận records", records)
+        saved_records = []
+        for i, record in enumerate(records):
+            print(f"[INFO] Xử lý record {i+1}: {record}")
+            file = request.files.get(f"audio_{i}")
+            if file:
+                # Đặt tên file duy nhất
+                filename = f"{uuid.uuid4().hex}_{record.get('text_clean', '')}.wav"
+                audio_path = os.path.join("cooperate", "vitspre", "audio", filename)
+                file.save(audio_path)
+
+                # Cập nhật path vào record
+                record["audio_path"] = audio_path
+
+            saved_records.append(record)
+
+        # Lưu metadata JSON kèm path thật
+        json_path = os.path.join("cooperate", "vitspre", f"vitspre_{int(time.time())}_{record['text_clean']}.json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(saved_records, f, ensure_ascii=False, indent=2)
+
+    return jsonify({"message": "Lưu thành công!", "json_file": json_path}), 200

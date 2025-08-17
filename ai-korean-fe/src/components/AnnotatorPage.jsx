@@ -19,6 +19,7 @@ const AnnotatorPage = ({ userInfo }) => {
   const [submittedData, setSubmittedData] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null); // index row đang edit
   const [prevIndex, setPrevIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // fetch dataset từ API
   useEffect(() => {
@@ -191,7 +192,7 @@ const AnnotatorPage = ({ userInfo }) => {
       annotator_phone: userInfo.phone,
       annotations: finalData,
     };
-
+    setLoading(true); // bật loading
     try {
       const response = await fetch(`${backendUrl}/api/cooperate_annotator`, {
         method: "POST",
@@ -214,6 +215,8 @@ const AnnotatorPage = ({ userInfo }) => {
     } catch (error) {
       console.error("❌ Lỗi khi gửi:", error);
       alert("Có lỗi khi gửi annotations!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -369,8 +372,30 @@ const AnnotatorPage = ({ userInfo }) => {
             + Next Data
           </button>
         )}
-        <button className="btn btn-success" onClick={handleSubmitAll}>
-          Submit All Annotations
+        <button
+          className="btn btn-success"
+          onClick={handleSubmitAll}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              Đang gửi...
+              <span
+                style={{
+                  marginLeft: 8,
+                  width: 16,
+                  height: 16,
+                  border: "2px solid #fff",
+                  borderTop: "2px solid transparent",
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+            </>
+          ) : (
+            "Submit All Annotations"
+          )}
         </button>
       </div>
 
