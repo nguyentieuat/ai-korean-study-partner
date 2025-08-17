@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 import requests
 import os, uuid
 import uuid
+import traceback
 
 topikgenerate_bp = Blueprint('topikgenerate', __name__)
 
@@ -51,4 +52,6 @@ def topik_generate_question():
         return jsonify(result)
 
     except Exception as e:
+        print(e)
+        traceback.print_exc()
         return jsonify({"error": f"Lỗi gọi chat_service: {e}"}), 500

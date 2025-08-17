@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 import requests
 from pathlib import Path
 from datetime import datetime
+import traceback
 
 pronunciation_bp = Blueprint('pronunciation', __name__)
 
@@ -22,6 +23,8 @@ def get_data_by_level(level):
     try:
         level_int = int(level)
     except ValueError:
+        print(e)
+        traceback.print_exc()
         return jsonify({"error": "Cấp độ không hợp lệ"}), 400
     
     data = pronunciation_data.get(level_int)
@@ -53,6 +56,8 @@ def pronunciation_evaluate():
             result = response.json()
             print(f"[INFO] MFA service response: {result}")
         except Exception as e:
+            print(e)
+            traceback.print_exc()
             return jsonify({"error": f"Lỗi gọi mfa_service: {e}"}), 500
         
 
@@ -86,4 +91,6 @@ def pronunciation_evaluate():
                 "audioFile": str(audio_path)
             })
     except ValueError:
+        print(e)
+        traceback.print_exc()
         return jsonify({"error": "Cấp độ không hợp lệ"}), 400

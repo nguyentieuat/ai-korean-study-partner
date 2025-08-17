@@ -4,6 +4,7 @@ import os, uuid, json
 import uuid
 from io import BytesIO
 from werkzeug.datastructures import FileStorage
+import traceback
 from utils.utils import save_audio_upload
 
 conversation_bp = Blueprint('conversation', __name__)
@@ -12,8 +13,10 @@ conversation_bp = Blueprint('conversation', __name__)
 chat_service_url = 'http://13.250.33.57:5001'
 
 def save_conversation(conversation_id, history):
-    """Lưu lịch sử hội thoại ra file JSON"""
-    filepath = os.path.join("cooperate", "conversation", f"{conversation_id}.json")
+    folder = os.path.join("cooperate", "conversation")
+    os.makedirs(folder, exist_ok=True)
+
+    filepath = os.path.join(folder, f"{conversation_id}.json")
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
 
@@ -43,9 +46,10 @@ def chat():
             conversation_id = str(uuid.uuid4())
 
         save_conversation(conversation_id, history)
-
         return jsonify(result)
     except Exception as e:
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return jsonify({"error": f"Lỗi gọi chat_service: {e}"}), 500
 
    
@@ -97,7 +101,6 @@ def handle_voice():
 
             audio_url = f"/static/tts/{filename}"
         else:
-            print("❌ Lỗi khi gọi TTS:", response_tts.text)
             audio_url = None
 
         result["tts_audio_url"] = audio_url
@@ -107,6 +110,8 @@ def handle_voice():
             'tts_audio_url': result["tts_audio_url"]
         })
     except Exception as e:
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
     
 @conversation_bp.route('/api/transcribe', methods=['POST'])
@@ -145,4 +150,6 @@ def transcribe_endpoint():
             'audio_url_goc': audio_url_goc
         })
     except Exception as e:
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
