@@ -6,6 +6,7 @@ import whisper
 import tempfile
 from werkzeug.datastructures import FileStorage
 from pydub import AudioSegment
+import traceback
 
 use_gpu = torch.cuda.is_available()
 model = whisper.load_model("small", device="cuda" if use_gpu else "cpu")
@@ -31,7 +32,8 @@ def transcribe_audio(audio_file: FileStorage):
 
     except Exception as e:
         # Log lỗi để debug
-        print(f"[Transcribe Error] {str(e)}", file=sys.stderr)
+        print(f"Exception: {e}")
+        traceback.print_exc()
         raise RuntimeError("Không thể xử lý audio, vui lòng thử lại.") from e
 
     finally:

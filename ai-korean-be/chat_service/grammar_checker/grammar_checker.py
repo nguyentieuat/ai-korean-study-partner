@@ -32,6 +32,7 @@ def check_grammar(text: str) -> dict:
 
     response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
     result = response.json()
+    print(f"[INFO] Grammar check response: {result}")
 
     if "choices" not in result:
         return {"error": result.get("error", "Unknown error")}

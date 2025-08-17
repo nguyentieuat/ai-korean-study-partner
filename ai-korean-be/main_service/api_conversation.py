@@ -37,6 +37,7 @@ def chat():
                 }
             )
         result = response.json()
+        print("[INFO] Chat service response:", result)
 
         # Lưu lịch sử hội thoại
         history.append({"role": "user", "content": user_input})

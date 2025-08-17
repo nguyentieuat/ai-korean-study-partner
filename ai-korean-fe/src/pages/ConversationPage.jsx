@@ -125,7 +125,11 @@ const ConversationPage = () => {
         if (msg.role === "user" && !msg.waitingReply) return true; // user bình thường
         if (msg.role === "ai") {
           const content = msg.reply || msg.replyTTS || "";
-          return !content.includes("❌");
+          return !(
+            content.includes("❌") ||
+            content.includes("⚠️ 오류") ||
+            content.includes("죄송합니다. 다시 말씀해 주세요.")
+          );
         }
         return false;
       })

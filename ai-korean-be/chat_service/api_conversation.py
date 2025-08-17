@@ -6,6 +6,7 @@ from speech.tts import text_to_speech
 from werkzeug.datastructures import FileStorage
 from speech.transcribe import transcribe_audio
 from utils.utils import process_conversation, save_audio_upload
+import traceback
 
 conversation_bp = Blueprint('conversation', __name__)
 
@@ -20,6 +21,8 @@ def chat():
         result = process_conversation(user_input, history, check_grammar_flag)
         return jsonify(result)
     except Exception as e:
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
     
 @conversation_bp.route('/api/generate_tts', methods=['POST'])
@@ -35,6 +38,8 @@ def handle_voice():
         # Trả bytes trực tiếp
         return Response(audio_bytes, mimetype="audio/mpeg")
     except Exception as e:
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
     
 @conversation_bp.route('/api/transcribe', methods=['POST'])
@@ -49,4 +54,6 @@ def transcribe_endpoint():
         transcript = transcribe_audio(file_storage)
         return jsonify({"transcript": transcript})
     except Exception as e:
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500

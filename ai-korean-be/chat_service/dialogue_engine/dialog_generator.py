@@ -2,6 +2,7 @@ import os
 import requests
 import difflib
 from dotenv import load_dotenv
+import traceback
 
 # === CONFIG ===
 load_dotenv()
@@ -28,9 +29,11 @@ def generate_reply(prompt_history: list) -> str:
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
         else:
-            print("[ERROR]", response.status_code, response.text)
+            print(f"Exception: {e}")
+            traceback.print_exc()
             return "죄송합니다. 답변을 생성하지 못했습니다."
 
     except Exception as e:
-        print("[EXCEPTION]", e)
+        print(f"Exception: {e}")
+        traceback.print_exc()
         return "죄송합니다. 문제가 발생했습니다."
