@@ -10,7 +10,7 @@ topikgenerate_bp = Blueprint('topikgenerate', __name__)
 # tqg_service_url = 'http://localhost:5003'
 # chat_service_url = 'http://localhost:5001'
 tqg_service_url = 'http://54.255.225.190:5003'
-chat_service_url = 'http://13.229.91.69:5001'
+chat_service_url = 'http://13.212.249.253:5001'
 
 @topikgenerate_bp.route('/api/generate_question', methods=['POST'])
 def topik_generate_question():
