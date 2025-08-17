@@ -226,7 +226,7 @@ const AnnotatorPage = ({ userInfo }) => {
 
       <audio
         controls
-        src={`${backendUrl}/${data?.audio_path}`}
+        src={`${backendUrl}${data?.audio_path}`}
         className="mb-3"
       />
 
