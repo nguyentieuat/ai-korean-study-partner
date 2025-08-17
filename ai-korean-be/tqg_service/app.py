@@ -19,6 +19,10 @@ def generate_question():
     except Exception as e:
         return jsonify({"error": f"Invalid request: {str(e)}"}), 400
    
+# Health check endpoint cho ELB
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
     # Chạy tqg service ở cổng 5003
