@@ -14,7 +14,8 @@ for level in range(1, 6):
         data = json.load(f)
         pronunciation_data[level] = data
 
-mfa_service_url = 'http://localhost:5002'
+# mfa_service_url = 'http://localhost:5002'
+mfa_service_url = 'http://13.213.18.34:5002'
 
 @pronunciation_bp.route('/api/pronunciation/<level>', methods=['GET'])
 def get_data_by_level(level):
