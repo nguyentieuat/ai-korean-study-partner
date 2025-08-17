@@ -21,7 +21,7 @@ def health_check():
 
 
 @app.route('/static/<path:filename>')
-def serve_file(subFolder, filename):
+def serve_file(filename):
     return send_from_directory(f'static/', filename)
 
 
