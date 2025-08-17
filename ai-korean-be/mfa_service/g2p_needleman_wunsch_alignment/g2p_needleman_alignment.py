@@ -6,7 +6,7 @@ from .utils import load_mfa_dict, text_to_phonemes_mfa
 
 # --------- 1. Load ASR model once ---------
 use_gpu = torch.cuda.is_available()
-model = whisper.load_model("medium", device="cuda" if use_gpu else "cpu")
+model = whisper.load_model("small", device="cuda" if use_gpu else "cpu")
 if use_gpu:
     model = model.half()
 

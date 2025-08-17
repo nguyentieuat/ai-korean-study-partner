@@ -19,7 +19,7 @@ def topik_generate_question():
     category = data.get("category")
     cau = data.get("cau")
     
-    audio_url = None  # ✅ khởi tạo trước
+    audio_url = None  
 
     try:
         # Gọi TQG service
@@ -45,8 +45,6 @@ def topik_generate_question():
                 with open(path, "wb") as f:
                     f.write(audio_bytes)
                 audio_url = f"/static/tts/{filename}"
-            else:
-                print("❌ Lỗi khi gọi TTS:", response_tts.text)
 
         result["question_audio_url"] = audio_url
         return jsonify(result)
