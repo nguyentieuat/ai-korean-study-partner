@@ -5,3 +5,4 @@ pydub
 ffmpeg
 gtts
 torch
+git+https://github.com/openai/whisper.git

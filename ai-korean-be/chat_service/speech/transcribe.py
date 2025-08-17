@@ -8,7 +8,7 @@ from werkzeug.datastructures import FileStorage
 from pydub import AudioSegment
 
 use_gpu = torch.cuda.is_available()
-model = whisper.load_model("large", device="cuda" if use_gpu else "cpu")
+model = whisper.load_model("medium", device="cuda" if use_gpu else "cpu")
 
 if use_gpu:
     model = model.half()
