@@ -10,7 +10,7 @@ from utils.utils import save_audio_upload
 conversation_bp = Blueprint('conversation', __name__)
 
 # chat_service_url = 'http://localhost:5001'
-chat_service_url = 'http://13.250.33.57:5001'
+chat_service_url = 'http://13.229.91.69:5001'
 
 def save_conversation(conversation_id, history):
     folder = os.path.join("cooperate", "conversation")
