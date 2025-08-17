@@ -77,12 +77,6 @@ const VoiceRecorder = ({
           const transcript = data1.transcript;
           const audio_url_goc = data1.audio_url_goc;
 
-          // 4️⃣ Cập nhật lại user message với transcript thật
-          // Xóa waitingReply ở user message vừa gửi
-          setHistory((prev) =>
-            prev.filter((msg) => msg.id !== userVoiceMsgTemp.id)
-          );
-
           // 2. Tạo tin nhắn người dùng
           const userMessage = {
             role: "user",
@@ -90,34 +84,39 @@ const VoiceRecorder = ({
             audioUrl: audio_url_goc,
           };
 
-          setHistory((prev) => [...prev, userMessage]);
+          // Xóa waitingReply ở user message vừa gửi
+          setHistory((prev) =>
+            prev.filter((msg) => msg.id !== userVoiceMsgTemp.id)
+          );
 
           // 3. Bắn userMessage ra UI và đợi phản hồi AI
           onComplete(async (updateAiMessage) => {
-            // 4. Tạm hiển thị loading message
-            updateAiMessage({
-              role: "ai",
-              reply: "⏳ Đang phản hồi...",
-              typing: true,
-            });
-
             try {
-              const newHistory = [...history, userMessage];
-              setHistory(newHistory);
+              // 3.1 Thêm AI placeholder ngay
+              const aiPlaceholder = {
+                role: "ai",
+                reply: "⏳ Đang phản hồi...",
+                typing: true,
+                id: Date.now(),
+              };
+              setHistory((prev) => [...prev, userMessage, aiPlaceholder]);
 
-              // Chuyển đổi lịch sử hội thoại để gửi lên server
-              const formattedHistory = getFormattedHistoryForServer(newHistory);
-
+              // Chuẩn bị history gửi server
+              const formattedHistory = getFormattedHistoryForServer([
+                ...history,
+                userMessage,
+              ]);
               // 5. Gửi đến AI server
               const res2 = await fetch(
                 `${backendUrl}/api/korean-speaking-talking`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ 
+                  body: JSON.stringify({
                     conversation_id: conversation_id,
                     transcript: transcript,
-                    history: formattedHistory }),
+                    history: formattedHistory,
+                  }),
                 }
               );
 
