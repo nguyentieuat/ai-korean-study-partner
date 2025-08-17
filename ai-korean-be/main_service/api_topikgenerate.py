@@ -10,7 +10,7 @@ topikgenerate_bp = Blueprint('topikgenerate', __name__)
 # tqg_service_url = 'http://localhost:5003'
 # chat_service_url = 'http://localhost:5001'
 tqg_service_url = 'http://54.255.225.190:5003'
-chat_service_url = 'http://13.250.33.57:5001'
+chat_service_url = 'http://13.229.91.69:5001'
 
 @topikgenerate_bp.route('/api/generate_question', methods=['POST'])
 def topik_generate_question():
@@ -28,6 +28,8 @@ def topik_generate_question():
             json={"level": level, "category": category, "cau": cau}
         )
         result = response.json()
+        print("[INFO] TQG service response:", result)
+
         question_text = result.get("question", {}).get("question", "")
         if result["type"].startswith("Nghe"):
             # Gọi TTS service
@@ -35,7 +37,8 @@ def topik_generate_question():
                 f'{chat_service_url}/api/generate_tts',
                 json={"text": question_text}
             )
-        
+            print("[INFO] TTS service response:", response_tts.json())
+
             if response_tts.status_code == 200:
                 audio_bytes = response_tts.content
                 filename = f"question_{uuid.uuid4().hex}.mp3"

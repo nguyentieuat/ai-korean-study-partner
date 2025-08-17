@@ -84,6 +84,7 @@ def handle_voice():
             f'{chat_service_url}/api/generate_tts',
                 json={"text": result['reply']}
             )
+        print("[INFO] TTS service response:", response_tts.json())
         
         if response_tts.status_code == 200:
             # Lấy mảng byte MP3 từ response

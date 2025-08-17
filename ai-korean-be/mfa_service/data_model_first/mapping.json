@@ -1,1027 +1,1027 @@
 [
   {
     "text": "가",
-    "wav": "model_first\\level1_pronunciation_data_0.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_0.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_0.wav",
+    "textgrid": "align_output/level1_pronunciation_data_0.TextGrid"
   },
   {
     "text": "나",
-    "wav": "model_first\\level1_pronunciation_data_1.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_1.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_1.wav",
+    "textgrid": "align_output/level1_pronunciation_data_1.TextGrid"
   },
   {
     "text": "다",
-    "wav": "model_first\\level1_pronunciation_data_2.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_2.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_2.wav",
+    "textgrid": "align_output/level1_pronunciation_data_2.TextGrid"
   },
   {
     "text": "라",
-    "wav": "model_first\\level1_pronunciation_data_3.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_3.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_3.wav",
+    "textgrid": "align_output/level1_pronunciation_data_3.TextGrid"
   },
   {
     "text": "마",
-    "wav": "model_first\\level1_pronunciation_data_4.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_4.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_4.wav",
+    "textgrid": "align_output/level1_pronunciation_data_4.TextGrid"
   },
   {
     "text": "바",
-    "wav": "model_first\\level1_pronunciation_data_5.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_5.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_5.wav",
+    "textgrid": "align_output/level1_pronunciation_data_5.TextGrid"
   },
   {
     "text": "사",
-    "wav": "model_first\\level1_pronunciation_data_6.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_6.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_6.wav",
+    "textgrid": "align_output/level1_pronunciation_data_6.TextGrid"
   },
   {
     "text": "거",
-    "wav": "model_first\\level1_pronunciation_data_7.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_7.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_7.wav",
+    "textgrid": "align_output/level1_pronunciation_data_7.TextGrid"
   },
   {
     "text": "너",
-    "wav": "model_first\\level1_pronunciation_data_8.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_8.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_8.wav",
+    "textgrid": "align_output/level1_pronunciation_data_8.TextGrid"
   },
   {
     "text": "더",
-    "wav": "model_first\\level1_pronunciation_data_9.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_9.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_9.wav",
+    "textgrid": "align_output/level1_pronunciation_data_9.TextGrid"
   },
   {
     "text": "러",
-    "wav": "model_first\\level1_pronunciation_data_10.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_10.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_10.wav",
+    "textgrid": "align_output/level1_pronunciation_data_10.TextGrid"
   },
   {
     "text": "머",
-    "wav": "model_first\\level1_pronunciation_data_11.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_11.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_11.wav",
+    "textgrid": "align_output/level1_pronunciation_data_11.TextGrid"
   },
   {
     "text": "버",
-    "wav": "model_first\\level1_pronunciation_data_12.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_12.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_12.wav",
+    "textgrid": "align_output/level1_pronunciation_data_12.TextGrid"
   },
   {
     "text": "서",
-    "wav": "model_first\\level1_pronunciation_data_13.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_13.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_13.wav",
+    "textgrid": "align_output/level1_pronunciation_data_13.TextGrid"
   },
   {
     "text": "고",
-    "wav": "model_first\\level1_pronunciation_data_14.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_14.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_14.wav",
+    "textgrid": "align_output/level1_pronunciation_data_14.TextGrid"
   },
   {
     "text": "노",
-    "wav": "model_first\\level1_pronunciation_data_15.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_15.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_15.wav",
+    "textgrid": "align_output/level1_pronunciation_data_15.TextGrid"
   },
   {
     "text": "도",
-    "wav": "model_first\\level1_pronunciation_data_16.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_16.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_16.wav",
+    "textgrid": "align_output/level1_pronunciation_data_16.TextGrid"
   },
   {
     "text": "로",
-    "wav": "model_first\\level1_pronunciation_data_17.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_17.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_17.wav",
+    "textgrid": "align_output/level1_pronunciation_data_17.TextGrid"
   },
   {
     "text": "모",
-    "wav": "model_first\\level1_pronunciation_data_18.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_18.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_18.wav",
+    "textgrid": "align_output/level1_pronunciation_data_18.TextGrid"
   },
   {
     "text": "보",
-    "wav": "model_first\\level1_pronunciation_data_19.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_19.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_19.wav",
+    "textgrid": "align_output/level1_pronunciation_data_19.TextGrid"
   },
   {
     "text": "소",
-    "wav": "model_first\\level1_pronunciation_data_20.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_20.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_20.wav",
+    "textgrid": "align_output/level1_pronunciation_data_20.TextGrid"
   },
   {
     "text": "구",
-    "wav": "model_first\\level1_pronunciation_data_21.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_21.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_21.wav",
+    "textgrid": "align_output/level1_pronunciation_data_21.TextGrid"
   },
   {
     "text": "누",
-    "wav": "model_first\\level1_pronunciation_data_22.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_22.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_22.wav",
+    "textgrid": "align_output/level1_pronunciation_data_22.TextGrid"
   },
   {
     "text": "두",
-    "wav": "model_first\\level1_pronunciation_data_23.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_23.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_23.wav",
+    "textgrid": "align_output/level1_pronunciation_data_23.TextGrid"
   },
   {
     "text": "루",
-    "wav": "model_first\\level1_pronunciation_data_24.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_24.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_24.wav",
+    "textgrid": "align_output/level1_pronunciation_data_24.TextGrid"
   },
   {
     "text": "무",
-    "wav": "model_first\\level1_pronunciation_data_25.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_25.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_25.wav",
+    "textgrid": "align_output/level1_pronunciation_data_25.TextGrid"
   },
   {
     "text": "부",
-    "wav": "model_first\\level1_pronunciation_data_26.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_26.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_26.wav",
+    "textgrid": "align_output/level1_pronunciation_data_26.TextGrid"
   },
   {
     "text": "수",
-    "wav": "model_first\\level1_pronunciation_data_27.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_27.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_27.wav",
+    "textgrid": "align_output/level1_pronunciation_data_27.TextGrid"
   },
   {
     "text": "그",
-    "wav": "model_first\\level1_pronunciation_data_28.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_28.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_28.wav",
+    "textgrid": "align_output/level1_pronunciation_data_28.TextGrid"
   },
   {
     "text": "느",
-    "wav": "model_first\\level1_pronunciation_data_29.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_29.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_29.wav",
+    "textgrid": "align_output/level1_pronunciation_data_29.TextGrid"
   },
   {
     "text": "드",
-    "wav": "model_first\\level1_pronunciation_data_30.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_30.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_30.wav",
+    "textgrid": "align_output/level1_pronunciation_data_30.TextGrid"
   },
   {
     "text": "르",
-    "wav": "model_first\\level1_pronunciation_data_31.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_31.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_31.wav",
+    "textgrid": "align_output/level1_pronunciation_data_31.TextGrid"
   },
   {
     "text": "므",
-    "wav": "model_first\\level1_pronunciation_data_32.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_32.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_32.wav",
+    "textgrid": "align_output/level1_pronunciation_data_32.TextGrid"
   },
   {
     "text": "브",
-    "wav": "model_first\\level1_pronunciation_data_33.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_33.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_33.wav",
+    "textgrid": "align_output/level1_pronunciation_data_33.TextGrid"
   },
   {
     "text": "스",
-    "wav": "model_first\\level1_pronunciation_data_34.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_34.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_34.wav",
+    "textgrid": "align_output/level1_pronunciation_data_34.TextGrid"
   },
   {
     "text": "기",
-    "wav": "model_first\\level1_pronunciation_data_35.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_35.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_35.wav",
+    "textgrid": "align_output/level1_pronunciation_data_35.TextGrid"
   },
   {
     "text": "니",
-    "wav": "model_first\\level1_pronunciation_data_36.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_36.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_36.wav",
+    "textgrid": "align_output/level1_pronunciation_data_36.TextGrid"
   },
   {
     "text": "디",
-    "wav": "model_first\\level1_pronunciation_data_37.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_37.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_37.wav",
+    "textgrid": "align_output/level1_pronunciation_data_37.TextGrid"
   },
   {
     "text": "리",
-    "wav": "model_first\\level1_pronunciation_data_38.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_38.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_38.wav",
+    "textgrid": "align_output/level1_pronunciation_data_38.TextGrid"
   },
   {
     "text": "미",
-    "wav": "model_first\\level1_pronunciation_data_39.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_39.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_39.wav",
+    "textgrid": "align_output/level1_pronunciation_data_39.TextGrid"
   },
   {
     "text": "비",
-    "wav": "model_first\\level1_pronunciation_data_40.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_40.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_40.wav",
+    "textgrid": "align_output/level1_pronunciation_data_40.TextGrid"
   },
   {
     "text": "시",
-    "wav": "model_first\\level1_pronunciation_data_41.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_41.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_41.wav",
+    "textgrid": "align_output/level1_pronunciation_data_41.TextGrid"
   },
   {
     "text": "아",
-    "wav": "model_first\\level1_pronunciation_data_42.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_42.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_42.wav",
+    "textgrid": "align_output/level1_pronunciation_data_42.TextGrid"
   },
   {
     "text": "어",
-    "wav": "model_first\\level1_pronunciation_data_43.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_43.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_43.wav",
+    "textgrid": "align_output/level1_pronunciation_data_43.TextGrid"
   },
   {
     "text": "오",
-    "wav": "model_first\\level1_pronunciation_data_44.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_44.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_44.wav",
+    "textgrid": "align_output/level1_pronunciation_data_44.TextGrid"
   },
   {
     "text": "우",
-    "wav": "model_first\\level1_pronunciation_data_45.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_45.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_45.wav",
+    "textgrid": "align_output/level1_pronunciation_data_45.TextGrid"
   },
   {
     "text": "으",
-    "wav": "model_first\\level1_pronunciation_data_46.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_46.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_46.wav",
+    "textgrid": "align_output/level1_pronunciation_data_46.TextGrid"
   },
   {
     "text": "이",
-    "wav": "model_first\\level1_pronunciation_data_47.wav",
-    "textgrid": "align_output\\level1_pronunciation_data_47.TextGrid"
+    "wav": "model_first/level1_pronunciation_data_47.wav",
+    "textgrid": "align_output/level1_pronunciation_data_47.TextGrid"
   },
   {
     "text": "국",
-    "wav": "model_first\\level2_pronunciation_data_0.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_0.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_0.wav",
+    "textgrid": "align_output/level2_pronunciation_data_0.TextGrid"
   },
   {
     "text": "밥",
-    "wav": "model_first\\level2_pronunciation_data_1.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_1.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_1.wav",
+    "textgrid": "align_output/level2_pronunciation_data_1.TextGrid"
   },
   {
     "text": "눈",
-    "wav": "model_first\\level2_pronunciation_data_2.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_2.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_2.wav",
+    "textgrid": "align_output/level2_pronunciation_data_2.TextGrid"
   },
   {
     "text": "물",
-    "wav": "model_first\\level2_pronunciation_data_3.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_3.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_3.wav",
+    "textgrid": "align_output/level2_pronunciation_data_3.TextGrid"
   },
   {
     "text": "밤",
-    "wav": "model_first\\level2_pronunciation_data_4.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_4.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_4.wav",
+    "textgrid": "align_output/level2_pronunciation_data_4.TextGrid"
   },
   {
     "text": "꽃",
-    "wav": "model_first\\level2_pronunciation_data_5.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_5.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_5.wav",
+    "textgrid": "align_output/level2_pronunciation_data_5.TextGrid"
   },
   {
     "text": "밖",
-    "wav": "model_first\\level2_pronunciation_data_6.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_6.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_6.wav",
+    "textgrid": "align_output/level2_pronunciation_data_6.TextGrid"
   },
   {
     "text": "맛",
-    "wav": "model_first\\level2_pronunciation_data_7.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_7.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_7.wav",
+    "textgrid": "align_output/level2_pronunciation_data_7.TextGrid"
   },
   {
     "text": "넋",
-    "wav": "model_first\\level2_pronunciation_data_8.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_8.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_8.wav",
+    "textgrid": "align_output/level2_pronunciation_data_8.TextGrid"
   },
   {
     "text": "솥",
-    "wav": "model_first\\level2_pronunciation_data_9.wav",
-    "textgrid": "align_output\\level2_pronunciation_data_9.TextGrid"
+    "wav": "model_first/level2_pronunciation_data_9.wav",
+    "textgrid": "align_output/level2_pronunciation_data_9.TextGrid"
   },
   {
     "text": "밥",
-    "wav": "model_first\\level3_pronunciation_data_0.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_0.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_0.wav",
+    "textgrid": "align_output/level3_pronunciation_data_0.TextGrid"
   },
   {
     "text": "밖",
-    "wav": "model_first\\level3_pronunciation_data_1.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_1.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_1.wav",
+    "textgrid": "align_output/level3_pronunciation_data_1.TextGrid"
   },
   {
     "text": "꽃",
-    "wav": "model_first\\level3_pronunciation_data_2.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_2.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_2.wav",
+    "textgrid": "align_output/level3_pronunciation_data_2.TextGrid"
   },
   {
     "text": "빵",
-    "wav": "model_first\\level3_pronunciation_data_3.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_3.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_3.wav",
+    "textgrid": "align_output/level3_pronunciation_data_3.TextGrid"
   },
   {
     "text": "팥",
-    "wav": "model_first\\level3_pronunciation_data_4.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_4.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_4.wav",
+    "textgrid": "align_output/level3_pronunciation_data_4.TextGrid"
   },
   {
     "text": "삯",
-    "wav": "model_first\\level3_pronunciation_data_5.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_5.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_5.wav",
+    "textgrid": "align_output/level3_pronunciation_data_5.TextGrid"
   },
   {
     "text": "닭",
-    "wav": "model_first\\level3_pronunciation_data_6.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_6.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_6.wav",
+    "textgrid": "align_output/level3_pronunciation_data_6.TextGrid"
   },
   {
     "text": "떡",
-    "wav": "model_first\\level3_pronunciation_data_7.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_7.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_7.wav",
+    "textgrid": "align_output/level3_pronunciation_data_7.TextGrid"
   },
   {
     "text": "찻",
-    "wav": "model_first\\level3_pronunciation_data_8.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_8.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_8.wav",
+    "textgrid": "align_output/level3_pronunciation_data_8.TextGrid"
   },
   {
     "text": "밖에",
-    "wav": "model_first\\level3_pronunciation_data_9.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_9.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_9.wav",
+    "textgrid": "align_output/level3_pronunciation_data_9.TextGrid"
   },
   {
     "text": "삶",
-    "wav": "model_first\\level3_pronunciation_data_10.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_10.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_10.wav",
+    "textgrid": "align_output/level3_pronunciation_data_10.TextGrid"
   },
   {
     "text": "짬",
-    "wav": "model_first\\level3_pronunciation_data_11.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_11.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_11.wav",
+    "textgrid": "align_output/level3_pronunciation_data_11.TextGrid"
   },
   {
     "text": "껍질",
-    "wav": "model_first\\level3_pronunciation_data_12.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_12.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_12.wav",
+    "textgrid": "align_output/level3_pronunciation_data_12.TextGrid"
   },
   {
     "text": "밖으로",
-    "wav": "model_first\\level3_pronunciation_data_13.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_13.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_13.wav",
+    "textgrid": "align_output/level3_pronunciation_data_13.TextGrid"
   },
   {
     "text": "앞",
-    "wav": "model_first\\level3_pronunciation_data_14.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_14.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_14.wav",
+    "textgrid": "align_output/level3_pronunciation_data_14.TextGrid"
   },
   {
     "text": "깎다",
-    "wav": "model_first\\level3_pronunciation_data_15.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_15.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_15.wav",
+    "textgrid": "align_output/level3_pronunciation_data_15.TextGrid"
   },
   {
     "text": "밟다",
-    "wav": "model_first\\level3_pronunciation_data_16.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_16.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_16.wav",
+    "textgrid": "align_output/level3_pronunciation_data_16.TextGrid"
   },
   {
     "text": "짧다",
-    "wav": "model_first\\level3_pronunciation_data_17.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_17.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_17.wav",
+    "textgrid": "align_output/level3_pronunciation_data_17.TextGrid"
   },
   {
     "text": "쌍둥이",
-    "wav": "model_first\\level3_pronunciation_data_18.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_18.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_18.wav",
+    "textgrid": "align_output/level3_pronunciation_data_18.TextGrid"
   },
   {
     "text": "찢다",
-    "wav": "model_first\\level3_pronunciation_data_19.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_19.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_19.wav",
+    "textgrid": "align_output/level3_pronunciation_data_19.TextGrid"
   },
   {
     "text": "핥다",
-    "wav": "model_first\\level3_pronunciation_data_20.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_20.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_20.wav",
+    "textgrid": "align_output/level3_pronunciation_data_20.TextGrid"
   },
   {
     "text": "쌓다",
-    "wav": "model_first\\level3_pronunciation_data_21.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_21.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_21.wav",
+    "textgrid": "align_output/level3_pronunciation_data_21.TextGrid"
   },
   {
     "text": "잃다",
-    "wav": "model_first\\level3_pronunciation_data_22.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_22.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_22.wav",
+    "textgrid": "align_output/level3_pronunciation_data_22.TextGrid"
   },
   {
     "text": "밖에서",
-    "wav": "model_first\\level3_pronunciation_data_23.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_23.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_23.wav",
+    "textgrid": "align_output/level3_pronunciation_data_23.TextGrid"
   },
   {
     "text": "짖다",
-    "wav": "model_first\\level3_pronunciation_data_24.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_24.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_24.wav",
+    "textgrid": "align_output/level3_pronunciation_data_24.TextGrid"
   },
   {
     "text": "끝",
-    "wav": "model_first\\level3_pronunciation_data_25.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_25.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_25.wav",
+    "textgrid": "align_output/level3_pronunciation_data_25.TextGrid"
   },
   {
     "text": "끓다",
-    "wav": "model_first\\level3_pronunciation_data_26.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_26.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_26.wav",
+    "textgrid": "align_output/level3_pronunciation_data_26.TextGrid"
   },
   {
     "text": "깡",
-    "wav": "model_first\\level3_pronunciation_data_27.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_27.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_27.wav",
+    "textgrid": "align_output/level3_pronunciation_data_27.TextGrid"
   },
   {
     "text": "딱",
-    "wav": "model_first\\level3_pronunciation_data_28.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_28.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_28.wav",
+    "textgrid": "align_output/level3_pronunciation_data_28.TextGrid"
   },
   {
     "text": "밟히다",
-    "wav": "model_first\\level3_pronunciation_data_29.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_29.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_29.wav",
+    "textgrid": "align_output/level3_pronunciation_data_29.TextGrid"
   },
   {
     "text": "걷다",
-    "wav": "model_first\\level3_pronunciation_data_30.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_30.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_30.wav",
+    "textgrid": "align_output/level3_pronunciation_data_30.TextGrid"
   },
   {
     "text": "맡다",
-    "wav": "model_first\\level3_pronunciation_data_31.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_31.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_31.wav",
+    "textgrid": "align_output/level3_pronunciation_data_31.TextGrid"
   },
   {
     "text": "쫓다",
-    "wav": "model_first\\level3_pronunciation_data_32.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_32.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_32.wav",
+    "textgrid": "align_output/level3_pronunciation_data_32.TextGrid"
   },
   {
     "text": "짖는",
-    "wav": "model_first\\level3_pronunciation_data_33.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_33.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_33.wav",
+    "textgrid": "align_output/level3_pronunciation_data_33.TextGrid"
   },
   {
     "text": "쭉",
-    "wav": "model_first\\level3_pronunciation_data_34.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_34.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_34.wav",
+    "textgrid": "align_output/level3_pronunciation_data_34.TextGrid"
   },
   {
     "text": "꺾다",
-    "wav": "model_first\\level3_pronunciation_data_35.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_35.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_35.wav",
+    "textgrid": "align_output/level3_pronunciation_data_35.TextGrid"
   },
   {
     "text": "밭",
-    "wav": "model_first\\level3_pronunciation_data_36.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_36.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_36.wav",
+    "textgrid": "align_output/level3_pronunciation_data_36.TextGrid"
   },
   {
     "text": "닭고기",
-    "wav": "model_first\\level3_pronunciation_data_37.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_37.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_37.wav",
+    "textgrid": "align_output/level3_pronunciation_data_37.TextGrid"
   },
   {
     "text": "넋",
-    "wav": "model_first\\level3_pronunciation_data_38.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_38.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_38.wav",
+    "textgrid": "align_output/level3_pronunciation_data_38.TextGrid"
   },
   {
     "text": "값",
-    "wav": "model_first\\level3_pronunciation_data_39.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_39.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_39.wav",
+    "textgrid": "align_output/level3_pronunciation_data_39.TextGrid"
   },
   {
     "text": "읊다",
-    "wav": "model_first\\level3_pronunciation_data_40.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_40.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_40.wav",
+    "textgrid": "align_output/level3_pronunciation_data_40.TextGrid"
   },
   {
     "text": "꽉",
-    "wav": "model_first\\level3_pronunciation_data_41.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_41.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_41.wav",
+    "textgrid": "align_output/level3_pronunciation_data_41.TextGrid"
   },
   {
     "text": "깃발",
-    "wav": "model_first\\level3_pronunciation_data_42.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_42.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_42.wav",
+    "textgrid": "align_output/level3_pronunciation_data_42.TextGrid"
   },
   {
     "text": "묻다",
-    "wav": "model_first\\level3_pronunciation_data_43.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_43.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_43.wav",
+    "textgrid": "align_output/level3_pronunciation_data_43.TextGrid"
   },
   {
     "text": "짓다",
-    "wav": "model_first\\level3_pronunciation_data_44.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_44.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_44.wav",
+    "textgrid": "align_output/level3_pronunciation_data_44.TextGrid"
   },
   {
     "text": "꽂히다",
-    "wav": "model_first\\level3_pronunciation_data_45.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_45.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_45.wav",
+    "textgrid": "align_output/level3_pronunciation_data_45.TextGrid"
   },
   {
     "text": "앉다",
-    "wav": "model_first\\level3_pronunciation_data_46.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_46.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_46.wav",
+    "textgrid": "align_output/level3_pronunciation_data_46.TextGrid"
   },
   {
     "text": "짧은",
-    "wav": "model_first\\level3_pronunciation_data_47.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_47.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_47.wav",
+    "textgrid": "align_output/level3_pronunciation_data_47.TextGrid"
   },
   {
     "text": "묽다",
-    "wav": "model_first\\level3_pronunciation_data_48.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_48.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_48.wav",
+    "textgrid": "align_output/level3_pronunciation_data_48.TextGrid"
   },
   {
     "text": "읊을",
-    "wav": "model_first\\level3_pronunciation_data_49.wav",
-    "textgrid": "align_output\\level3_pronunciation_data_49.TextGrid"
+    "wav": "model_first/level3_pronunciation_data_49.wav",
+    "textgrid": "align_output/level3_pronunciation_data_49.TextGrid"
   },
   {
     "text": "같이",
-    "wav": "model_first\\level4_pronunciation_data_0.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_0.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_0.wav",
+    "textgrid": "align_output/level4_pronunciation_data_0.TextGrid"
   },
   {
     "text": "학교에",
-    "wav": "model_first\\level4_pronunciation_data_1.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_1.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_1.wav",
+    "textgrid": "align_output/level4_pronunciation_data_1.TextGrid"
   },
   {
     "text": "좋아요",
-    "wav": "model_first\\level4_pronunciation_data_2.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_2.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_2.wav",
+    "textgrid": "align_output/level4_pronunciation_data_2.TextGrid"
   },
   {
     "text": "싫어",
-    "wav": "model_first\\level4_pronunciation_data_3.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_3.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_3.wav",
+    "textgrid": "align_output/level4_pronunciation_data_3.TextGrid"
   },
   {
     "text": "막히다",
-    "wav": "model_first\\level4_pronunciation_data_4.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_4.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_4.wav",
+    "textgrid": "align_output/level4_pronunciation_data_4.TextGrid"
   },
   {
     "text": "놓아",
-    "wav": "model_first\\level4_pronunciation_data_5.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_5.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_5.wav",
+    "textgrid": "align_output/level4_pronunciation_data_5.TextGrid"
   },
   {
     "text": "많이",
-    "wav": "model_first\\level4_pronunciation_data_6.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_6.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_6.wav",
+    "textgrid": "align_output/level4_pronunciation_data_6.TextGrid"
   },
   {
     "text": "좋은",
-    "wav": "model_first\\level4_pronunciation_data_7.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_7.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_7.wav",
+    "textgrid": "align_output/level4_pronunciation_data_7.TextGrid"
   },
   {
     "text": "국물",
-    "wav": "model_first\\level4_pronunciation_data_8.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_8.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_8.wav",
+    "textgrid": "align_output/level4_pronunciation_data_8.TextGrid"
   },
   {
     "text": "읽다",
-    "wav": "model_first\\level4_pronunciation_data_9.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_9.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_9.wav",
+    "textgrid": "align_output/level4_pronunciation_data_9.TextGrid"
   },
   {
     "text": "읽어요",
-    "wav": "model_first\\level4_pronunciation_data_10.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_10.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_10.wav",
+    "textgrid": "align_output/level4_pronunciation_data_10.TextGrid"
   },
   {
     "text": "묻어요",
-    "wav": "model_first\\level4_pronunciation_data_11.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_11.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_11.wav",
+    "textgrid": "align_output/level4_pronunciation_data_11.TextGrid"
   },
   {
     "text": "닫아요",
-    "wav": "model_first\\level4_pronunciation_data_12.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_12.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_12.wav",
+    "textgrid": "align_output/level4_pronunciation_data_12.TextGrid"
   },
   {
     "text": "잡아요",
-    "wav": "model_first\\level4_pronunciation_data_13.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_13.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_13.wav",
+    "textgrid": "align_output/level4_pronunciation_data_13.TextGrid"
   },
   {
     "text": "물어봐요",
-    "wav": "model_first\\level4_pronunciation_data_14.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_14.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_14.wav",
+    "textgrid": "align_output/level4_pronunciation_data_14.TextGrid"
   },
   {
     "text": "합니다",
-    "wav": "model_first\\level4_pronunciation_data_15.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_15.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_15.wav",
+    "textgrid": "align_output/level4_pronunciation_data_15.TextGrid"
   },
   {
     "text": "읽는",
-    "wav": "model_first\\level4_pronunciation_data_16.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_16.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_16.wav",
+    "textgrid": "align_output/level4_pronunciation_data_16.TextGrid"
   },
   {
     "text": "닫는",
-    "wav": "model_first\\level4_pronunciation_data_17.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_17.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_17.wav",
+    "textgrid": "align_output/level4_pronunciation_data_17.TextGrid"
   },
   {
     "text": "맞는",
-    "wav": "model_first\\level4_pronunciation_data_18.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_18.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_18.wav",
+    "textgrid": "align_output/level4_pronunciation_data_18.TextGrid"
   },
   {
     "text": "젊은",
-    "wav": "model_first\\level4_pronunciation_data_19.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_19.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_19.wav",
+    "textgrid": "align_output/level4_pronunciation_data_19.TextGrid"
   },
   {
     "text": "밟는",
-    "wav": "model_first\\level4_pronunciation_data_20.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_20.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_20.wav",
+    "textgrid": "align_output/level4_pronunciation_data_20.TextGrid"
   },
   {
     "text": "읽고",
-    "wav": "model_first\\level4_pronunciation_data_21.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_21.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_21.wav",
+    "textgrid": "align_output/level4_pronunciation_data_21.TextGrid"
   },
   {
     "text": "젊고",
-    "wav": "model_first\\level4_pronunciation_data_22.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_22.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_22.wav",
+    "textgrid": "align_output/level4_pronunciation_data_22.TextGrid"
   },
   {
     "text": "살다",
-    "wav": "model_first\\level4_pronunciation_data_23.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_23.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_23.wav",
+    "textgrid": "align_output/level4_pronunciation_data_23.TextGrid"
   },
   {
     "text": "알다",
-    "wav": "model_first\\level4_pronunciation_data_24.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_24.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_24.wav",
+    "textgrid": "align_output/level4_pronunciation_data_24.TextGrid"
   },
   {
     "text": "이름이 뭐예요?",
-    "wav": "model_first\\level4_pronunciation_data_25.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_25.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_25.wav",
+    "textgrid": "align_output/level4_pronunciation_data_25.TextGrid"
   },
   {
     "text": "어디 가요?",
-    "wav": "model_first\\level4_pronunciation_data_26.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_26.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_26.wav",
+    "textgrid": "align_output/level4_pronunciation_data_26.TextGrid"
   },
   {
     "text": "뭐 해요?",
-    "wav": "model_first\\level4_pronunciation_data_27.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_27.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_27.wav",
+    "textgrid": "align_output/level4_pronunciation_data_27.TextGrid"
   },
   {
     "text": "좋게",
-    "wav": "model_first\\level4_pronunciation_data_28.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_28.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_28.wav",
+    "textgrid": "align_output/level4_pronunciation_data_28.TextGrid"
   },
   {
     "text": "축하해요",
-    "wav": "model_first\\level4_pronunciation_data_29.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_29.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_29.wav",
+    "textgrid": "align_output/level4_pronunciation_data_29.TextGrid"
   },
   {
     "text": "많다",
-    "wav": "model_first\\level4_pronunciation_data_30.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_30.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_30.wav",
+    "textgrid": "align_output/level4_pronunciation_data_30.TextGrid"
   },
   {
     "text": "괜찮아요",
-    "wav": "model_first\\level4_pronunciation_data_31.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_31.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_31.wav",
+    "textgrid": "align_output/level4_pronunciation_data_31.TextGrid"
   },
   {
     "text": "같은",
-    "wav": "model_first\\level4_pronunciation_data_32.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_32.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_32.wav",
+    "textgrid": "align_output/level4_pronunciation_data_32.TextGrid"
   },
   {
     "text": "붙이다",
-    "wav": "model_first\\level4_pronunciation_data_33.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_33.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_33.wav",
+    "textgrid": "align_output/level4_pronunciation_data_33.TextGrid"
   },
   {
     "text": "놓고",
-    "wav": "model_first\\level4_pronunciation_data_34.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_34.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_34.wav",
+    "textgrid": "align_output/level4_pronunciation_data_34.TextGrid"
   },
   {
     "text": "앉다",
-    "wav": "model_first\\level4_pronunciation_data_35.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_35.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_35.wav",
+    "textgrid": "align_output/level4_pronunciation_data_35.TextGrid"
   },
   {
     "text": "있다",
-    "wav": "model_first\\level4_pronunciation_data_36.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_36.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_36.wav",
+    "textgrid": "align_output/level4_pronunciation_data_36.TextGrid"
   },
   {
     "text": "없다",
-    "wav": "model_first\\level4_pronunciation_data_37.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_37.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_37.wav",
+    "textgrid": "align_output/level4_pronunciation_data_37.TextGrid"
   },
   {
     "text": "맞다",
-    "wav": "model_first\\level4_pronunciation_data_38.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_38.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_38.wav",
+    "textgrid": "align_output/level4_pronunciation_data_38.TextGrid"
   },
   {
     "text": "앉아요",
-    "wav": "model_first\\level4_pronunciation_data_39.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_39.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_39.wav",
+    "textgrid": "align_output/level4_pronunciation_data_39.TextGrid"
   },
   {
     "text": "읽어요",
-    "wav": "model_first\\level4_pronunciation_data_40.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_40.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_40.wav",
+    "textgrid": "align_output/level4_pronunciation_data_40.TextGrid"
   },
   {
     "text": "묻는다",
-    "wav": "model_first\\level4_pronunciation_data_41.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_41.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_41.wav",
+    "textgrid": "align_output/level4_pronunciation_data_41.TextGrid"
   },
   {
     "text": "답니다",
-    "wav": "model_first\\level4_pronunciation_data_42.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_42.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_42.wav",
+    "textgrid": "align_output/level4_pronunciation_data_42.TextGrid"
   },
   {
     "text": "먹는",
-    "wav": "model_first\\level4_pronunciation_data_43.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_43.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_43.wav",
+    "textgrid": "align_output/level4_pronunciation_data_43.TextGrid"
   },
   {
     "text": "씻는",
-    "wav": "model_first\\level4_pronunciation_data_44.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_44.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_44.wav",
+    "textgrid": "align_output/level4_pronunciation_data_44.TextGrid"
   },
   {
     "text": "짓는",
-    "wav": "model_first\\level4_pronunciation_data_45.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_45.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_45.wav",
+    "textgrid": "align_output/level4_pronunciation_data_45.TextGrid"
   },
   {
     "text": "쌓는",
-    "wav": "model_first\\level4_pronunciation_data_46.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_46.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_46.wav",
+    "textgrid": "align_output/level4_pronunciation_data_46.TextGrid"
   },
   {
     "text": "맞아요",
-    "wav": "model_first\\level4_pronunciation_data_47.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_47.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_47.wav",
+    "textgrid": "align_output/level4_pronunciation_data_47.TextGrid"
   },
   {
     "text": "젖어요",
-    "wav": "model_first\\level4_pronunciation_data_48.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_48.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_48.wav",
+    "textgrid": "align_output/level4_pronunciation_data_48.TextGrid"
   },
   {
     "text": "놨어요",
-    "wav": "model_first\\level4_pronunciation_data_49.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_49.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_49.wav",
+    "textgrid": "align_output/level4_pronunciation_data_49.TextGrid"
   },
   {
     "text": "왔어요",
-    "wav": "model_first\\level4_pronunciation_data_50.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_50.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_50.wav",
+    "textgrid": "align_output/level4_pronunciation_data_50.TextGrid"
   },
   {
     "text": "괜찮습니다",
-    "wav": "model_first\\level4_pronunciation_data_51.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_51.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_51.wav",
+    "textgrid": "align_output/level4_pronunciation_data_51.TextGrid"
   },
   {
     "text": "걷는",
-    "wav": "model_first\\level4_pronunciation_data_52.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_52.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_52.wav",
+    "textgrid": "align_output/level4_pronunciation_data_52.TextGrid"
   },
   {
     "text": "벗는",
-    "wav": "model_first\\level4_pronunciation_data_53.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_53.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_53.wav",
+    "textgrid": "align_output/level4_pronunciation_data_53.TextGrid"
   },
   {
     "text": "쫓는",
-    "wav": "model_first\\level4_pronunciation_data_54.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_54.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_54.wav",
+    "textgrid": "align_output/level4_pronunciation_data_54.TextGrid"
   },
   {
     "text": "잡는",
-    "wav": "model_first\\level4_pronunciation_data_55.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_55.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_55.wav",
+    "textgrid": "align_output/level4_pronunciation_data_55.TextGrid"
   },
   {
     "text": "엎는",
-    "wav": "model_first\\level4_pronunciation_data_56.wav",
-    "textgrid": "align_output\\level4_pronunciation_data_56.TextGrid"
+    "wav": "model_first/level4_pronunciation_data_56.wav",
+    "textgrid": "align_output/level4_pronunciation_data_56.TextGrid"
   },
   {
     "text": "정말 고마워요.",
-    "wav": "model_first\\level5_pronunciation_data_0.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_0.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_0.wav",
+    "textgrid": "align_output/level5_pronunciation_data_0.TextGrid"
   },
   {
     "text": "밥 먹었어요?",
-    "wav": "model_first\\level5_pronunciation_data_1.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_1.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_1.wav",
+    "textgrid": "align_output/level5_pronunciation_data_1.TextGrid"
   },
   {
     "text": "진짜 예쁘다!",
-    "wav": "model_first\\level5_pronunciation_data_2.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_2.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_2.wav",
+    "textgrid": "align_output/level5_pronunciation_data_2.TextGrid"
   },
   {
     "text": "알겠어요.",
-    "wav": "model_first\\level5_pronunciation_data_3.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_3.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_3.wav",
+    "textgrid": "align_output/level5_pronunciation_data_3.TextGrid"
   },
   {
     "text": "괜찮아요?",
-    "wav": "model_first\\level5_pronunciation_data_4.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_4.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_4.wav",
+    "textgrid": "align_output/level5_pronunciation_data_4.TextGrid"
   },
   {
     "text": "그거 정말 맛있었어요.",
-    "wav": "model_first\\level5_pronunciation_data_5.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_5.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_5.wav",
+    "textgrid": "align_output/level5_pronunciation_data_5.TextGrid"
   },
   {
     "text": "진짜요?",
-    "wav": "model_first\\level5_pronunciation_data_6.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_6.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_6.wav",
+    "textgrid": "align_output/level5_pronunciation_data_6.TextGrid"
   },
   {
     "text": "잘 지냈어요?",
-    "wav": "model_first\\level5_pronunciation_data_7.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_7.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_7.wav",
+    "textgrid": "align_output/level5_pronunciation_data_7.TextGrid"
   },
   {
     "text": "뭐라고요?",
-    "wav": "model_first\\level5_pronunciation_data_8.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_8.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_8.wav",
+    "textgrid": "align_output/level5_pronunciation_data_8.TextGrid"
   },
   {
     "text": "좋은 하루 보내세요.",
-    "wav": "model_first\\level5_pronunciation_data_9.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_9.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_9.wav",
+    "textgrid": "align_output/level5_pronunciation_data_9.TextGrid"
   },
   {
     "text": "어디 가요?",
-    "wav": "model_first\\level5_pronunciation_data_10.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_10.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_10.wav",
+    "textgrid": "align_output/level5_pronunciation_data_10.TextGrid"
   },
   {
     "text": "이게 뭐예요?",
-    "wav": "model_first\\level5_pronunciation_data_11.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_11.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_11.wav",
+    "textgrid": "align_output/level5_pronunciation_data_11.TextGrid"
   },
   {
     "text": "대박!",
-    "wav": "model_first\\level5_pronunciation_data_12.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_12.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_12.wav",
+    "textgrid": "align_output/level5_pronunciation_data_12.TextGrid"
   },
   {
     "text": "피곤해 죽겠어요.",
-    "wav": "model_first\\level5_pronunciation_data_13.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_13.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_13.wav",
+    "textgrid": "align_output/level5_pronunciation_data_13.TextGrid"
   },
   {
     "text": "늦어서 죄송해요.",
-    "wav": "model_first\\level5_pronunciation_data_14.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_14.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_14.wav",
+    "textgrid": "align_output/level5_pronunciation_data_14.TextGrid"
   },
   {
     "text": "안녕하세요?",
-    "wav": "model_first\\level5_pronunciation_data_15.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_15.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_15.wav",
+    "textgrid": "align_output/level5_pronunciation_data_15.TextGrid"
   },
   {
     "text": "잘 부탁드립니다.",
-    "wav": "model_first\\level5_pronunciation_data_16.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_16.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_16.wav",
+    "textgrid": "align_output/level5_pronunciation_data_16.TextGrid"
   },
   {
     "text": "안 돼!",
-    "wav": "model_first\\level5_pronunciation_data_17.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_17.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_17.wav",
+    "textgrid": "align_output/level5_pronunciation_data_17.TextGrid"
   },
   {
     "text": "정말요?",
-    "wav": "model_first\\level5_pronunciation_data_18.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_18.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_18.wav",
+    "textgrid": "align_output/level5_pronunciation_data_18.TextGrid"
   },
   {
     "text": "아, 그래요?",
-    "wav": "model_first\\level5_pronunciation_data_19.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_19.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_19.wav",
+    "textgrid": "align_output/level5_pronunciation_data_19.TextGrid"
   },
   {
     "text": "어떻게 알았어요?",
-    "wav": "model_first\\level5_pronunciation_data_20.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_20.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_20.wav",
+    "textgrid": "align_output/level5_pronunciation_data_20.TextGrid"
   },
   {
     "text": "헐~",
-    "wav": "model_first\\level5_pronunciation_data_21.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_21.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_21.wav",
+    "textgrid": "align_output/level5_pronunciation_data_21.TextGrid"
   },
   {
     "text": "왜 이렇게 늦었어요?",
-    "wav": "model_first\\level5_pronunciation_data_22.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_22.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_22.wav",
+    "textgrid": "align_output/level5_pronunciation_data_22.TextGrid"
   },
   {
     "text": "진짜 맛있다!",
-    "wav": "model_first\\level5_pronunciation_data_23.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_23.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_23.wav",
+    "textgrid": "align_output/level5_pronunciation_data_23.TextGrid"
   },
   {
     "text": "다행이다.",
-    "wav": "model_first\\level5_pronunciation_data_24.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_24.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_24.wav",
+    "textgrid": "align_output/level5_pronunciation_data_24.TextGrid"
   },
   {
     "text": "믿을 수가 없어요.",
-    "wav": "model_first\\level5_pronunciation_data_25.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_25.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_25.wav",
+    "textgrid": "align_output/level5_pronunciation_data_25.TextGrid"
   },
   {
     "text": "너무 귀엽다!",
-    "wav": "model_first\\level5_pronunciation_data_26.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_26.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_26.wav",
+    "textgrid": "align_output/level5_pronunciation_data_26.TextGrid"
   },
   {
     "text": "진심으로 감사드립니다.",
-    "wav": "model_first\\level5_pronunciation_data_27.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_27.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_27.wav",
+    "textgrid": "align_output/level5_pronunciation_data_27.TextGrid"
   },
   {
     "text": "아이고, 큰일이네.",
-    "wav": "model_first\\level5_pronunciation_data_28.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_28.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_28.wav",
+    "textgrid": "align_output/level5_pronunciation_data_28.TextGrid"
   },
   {
     "text": "뭐야, 진짜?",
-    "wav": "model_first\\level5_pronunciation_data_29.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_29.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_29.wav",
+    "textgrid": "align_output/level5_pronunciation_data_29.TextGrid"
   },
   {
     "text": "정말 미안해요.",
-    "wav": "model_first\\level5_pronunciation_data_30.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_30.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_30.wav",
+    "textgrid": "align_output/level5_pronunciation_data_30.TextGrid"
   },
   {
     "text": "또 늦었어?",
-    "wav": "model_first\\level5_pronunciation_data_31.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_31.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_31.wav",
+    "textgrid": "align_output/level5_pronunciation_data_31.TextGrid"
   },
   {
     "text": "이게 무슨 일이야?",
-    "wav": "model_first\\level5_pronunciation_data_32.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_32.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_32.wav",
+    "textgrid": "align_output/level5_pronunciation_data_32.TextGrid"
   },
   {
     "text": "됐어!",
-    "wav": "model_first\\level5_pronunciation_data_33.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_33.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_33.wav",
+    "textgrid": "align_output/level5_pronunciation_data_33.TextGrid"
   },
   {
     "text": "할 수 있어!",
-    "wav": "model_first\\level5_pronunciation_data_34.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_34.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_34.wav",
+    "textgrid": "align_output/level5_pronunciation_data_34.TextGrid"
   },
   {
     "text": "도와주세요!",
-    "wav": "model_first\\level5_pronunciation_data_35.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_35.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_35.wav",
+    "textgrid": "align_output/level5_pronunciation_data_35.TextGrid"
   },
   {
     "text": "거짓말 하지 마요!",
-    "wav": "model_first\\level5_pronunciation_data_36.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_36.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_36.wav",
+    "textgrid": "align_output/level5_pronunciation_data_36.TextGrid"
   },
   {
     "text": "나중에 봐요.",
-    "wav": "model_first\\level5_pronunciation_data_37.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_37.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_37.wav",
+    "textgrid": "align_output/level5_pronunciation_data_37.TextGrid"
   },
   {
     "text": "기다릴게요.",
-    "wav": "model_first\\level5_pronunciation_data_38.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_38.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_38.wav",
+    "textgrid": "align_output/level5_pronunciation_data_38.TextGrid"
   },
   {
     "text": "정말 행복했어요.",
-    "wav": "model_first\\level5_pronunciation_data_39.wav",
-    "textgrid": "align_output\\level5_pronunciation_data_39.TextGrid"
+    "wav": "model_first/level5_pronunciation_data_39.wav",
+    "textgrid": "align_output/level5_pronunciation_data_39.TextGrid"
   }
 ]
