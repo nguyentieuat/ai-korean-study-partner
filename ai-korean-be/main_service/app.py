@@ -20,14 +20,14 @@ app.register_blueprint(cooperate_bp)
 def health_check():
     return jsonify({"status": "ok"}), 200
 
-@app.route("/static/uploads/<path:filename>")
+@app.route("/static/<path:filename>")
 def serve_pronun_file(filename):
-    file_path = os.path.join("static/uploads", filename)
+    file_path = os.path.join("static/", filename)
     if not os.path.isfile(file_path):
         return abort(404)
 
     # Trả file về client
-    return send_from_directory("static/uploads", filename)
+    return send_from_directory("static/", filename)
 
 
 if __name__ == '__main__':
