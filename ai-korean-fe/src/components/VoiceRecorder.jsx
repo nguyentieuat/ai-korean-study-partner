@@ -114,7 +114,10 @@ const VoiceRecorder = ({
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ conversation_id: conversation_id,history: formattedHistory }),
+                  body: JSON.stringify({ 
+                    conversation_id: conversation_id,
+                    transcript: transcript,
+                    history: formattedHistory }),
                 }
               );
 
@@ -126,6 +129,7 @@ const VoiceRecorder = ({
                 replyTTS: data2.ai_reply_tts || "",
                 aiVoiceUrl: data2.tts_audio_url || "",
                 typing: false,
+                highlighted: data2.highlighted || "",
               });
             } catch (error) {
               console.error("Lỗi khi lấy phản hồi AI:", error);

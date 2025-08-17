@@ -41,6 +41,7 @@ def process_conversation(user_input, history, check_grammar_flag=True):
     # 1. Grammar check nếu là text
     if check_grammar_flag:
         grammar_result = check_grammar(user_input)
+        print(f"[INFO] Grammar check result: {grammar_result}")
         if 'error' in grammar_result:
             raise Exception("Grammar check failed: " + grammar_result['error'])
         corrected_text = grammar_result['corrected']

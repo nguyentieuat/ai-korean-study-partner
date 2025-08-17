@@ -11,6 +11,7 @@ MODEL = "openai/gpt-3.5-turbo"  # Hoặc dùng llama3 như: "meta-llama/llama-3-
 
 # === HÀM CHÍNH ===
 def check_grammar(text: str) -> dict:
+    print(f"[INFO] Checking grammar for text: {text}")
     prompt = (
         "아래 문장에서 문법, 철자 오류가 있다면 수정해 주세요. "
         "수정한 문장을 먼저 출력하고, 어떤 부분이 왜 수정되었는지 간단히 설명해 주세요.\n"

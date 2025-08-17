@@ -13,7 +13,7 @@ conversation_bp = Blueprint('conversation', __name__)
 @conversation_bp.route('/api/generate_chat', methods=['POST'])
 def chat():
     data = request.get_json()
-    user_input = data['user_input']  # key phải khớp với json gửi từ main_service
+    user_input = data['user_input']  
     history = data.get('history', [])
     check_grammar_flag = data.get('check_grammar_flag', False)
 

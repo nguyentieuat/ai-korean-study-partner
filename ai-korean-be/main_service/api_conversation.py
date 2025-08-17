@@ -72,7 +72,7 @@ def handle_voice():
         result = response_chat.json()
 
          # Lưu lịch sử hội thoại
-        history.append({"role": "user", "content": transcript})
+        history.append({"role": "user", "content": result.get("corrected", "")})
         history.append({"role": "assistant", "content": result.get("reply", "")})
         conversation_id = data.get("conversation_id")
         if not conversation_id:
@@ -85,7 +85,6 @@ def handle_voice():
             f'{chat_service_url}/api/generate_tts',
                 json={"text": result['reply']}
             )
-        print("[INFO] TTS service response:", response_tts.json())
         
         if response_tts.status_code == 200:
             # Lấy mảng byte MP3 từ response
@@ -109,7 +108,8 @@ def handle_voice():
 
         return jsonify({
             'ai_reply_tts': result['reply'],
-            'tts_audio_url': result["tts_audio_url"]
+            'tts_audio_url': result['tts_audio_url'],
+            'highlighted': result.get('highlighted', "")
         })
     except Exception as e:
         print(f"Exception: {e}")
