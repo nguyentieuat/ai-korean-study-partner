@@ -37,7 +37,6 @@ def topik_generate_question():
                 f'{chat_service_url}/api/generate_tts',
                 json={"text": question_text}
             )
-            print("[INFO] TTS service response:", response_tts.json())
 
             if response_tts.status_code == 200:
                 audio_bytes = response_tts.content
