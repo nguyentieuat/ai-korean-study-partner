@@ -3,3 +3,5 @@ flask
 Flask-Cors
 pydub 
 ffmpeg
+gtts
+torch
