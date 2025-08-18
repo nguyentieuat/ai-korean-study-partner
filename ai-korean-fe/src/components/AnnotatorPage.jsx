@@ -29,8 +29,7 @@ const AnnotatorPage = ({ userInfo }) => {
           `${backendUrl}/api/cooperate_annotator?offset=0&limit=10`
         );
         const result = await res.json();
-        console.log("📥 Dataset từ API:", result);
-
+        
         if (result.data && result.data.length > 0) {
           setDataSet(result.data);
           setData(result.data[0]);

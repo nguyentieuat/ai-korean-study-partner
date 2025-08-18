@@ -18,57 +18,62 @@ def cooperate_annotator_save():
 
         # --- Lưu user info ---
         # Tính số annotation lần này
-        new_count = sum(len(item.get("annotations", [])) for item in annotations)
-        user_file = os.path.join("cooperate", "user", f"{annotator_phone}.json")
-        if os.path.exists(user_file):
-            with open(user_file, "r", encoding="utf-8") as f:
-                old_data = json.load(f)
-                total_count = old_data.get("annotation_count", 0) + new_count
-        else:
-            total_count = new_count
+        new_count = len(annotations)
+        json_path = ""
+        if new_count > 0:
+            user_folder = os.path.join("cooperate", "user")
+            os.makedirs(user_folder, exist_ok=True)  # tạo folder nếu chưa tồn tại
 
-        user_info = {
-            "name": annotator_name,
-            "phone": annotator_phone,
-            "annotation_count": total_count,
-            "last_submit": datetime.now().isoformat()
-        }
-        # Cập nhật số lượng annotation
-        with open(user_file, "w", encoding="utf-8") as f:
-            json.dump(user_info, f, ensure_ascii=False, indent=2)
+            user_file = os.path.join(user_folder, f"{annotator_phone}.json")
+            if os.path.exists(user_file):
+                with open(user_file, "r", encoding="utf-8") as f:
+                    old_data = json.load(f)
+                    total_count = old_data.get("annotation_count", 0) + new_count
+            else:
+                total_count = new_count
 
-        # --- Lưu annotations chi tiết ---
-        for ann in annotations:
-            audio_path = ann.get("audio_path")
+            user_info = {
+                "name": annotator_name,
+                "phone": annotator_phone,
+                "annotation_count": total_count,
+                "last_submit": datetime.now().isoformat()
+            }
+            # Cập nhật số lượng annotation
+            with open(user_file, "w", encoding="utf-8") as f:
+                json.dump(user_info, f, ensure_ascii=False, indent=2)
 
-             # --- Move audio sang folder cooperate/marked/pronun ---
-            if audio_path and os.path.exists(audio_path):
-                dest_folder = os.path.join("cooperate", "marked", "pronun")
-                os.makedirs(dest_folder, exist_ok=True)
+            # --- Lưu annotations chi tiết ---
+            for ann in annotations:
+                audio_path = ann.get("audio_path")
 
-                # Giữ nguyên tên file gốc
-                dest_path = os.path.join(dest_folder, filename)
+                # --- Move audio sang folder cooperate/marked/pronun ---
+                if audio_path and os.path.exists(audio_path):
+                    dest_folder = os.path.join("cooperate", "marked", "pronun")
+                    os.makedirs(dest_folder, exist_ok=True)
+
+                    # Giữ nguyên tên file gốc
+                    dest_path = os.path.join(dest_folder, filename)
+                    try:
+                        shutil.move(audio_path, dest_path)   # di chuyển file
+                        ann["audio_path"] = dest_path
+                        print(f"[INFO] Đã move {audio_path} -> {dest_path}")
+                    except Exception as e:
+                        print(f"[ERROR] Không move được {audio_path}: {e}")
+                        traceback.print_exc()
+                        continue
+
                 try:
-                    shutil.move(audio_path, dest_path)   # di chuyển file
-                    ann["audio_path"] = dest_path
-                    print(f"[INFO] Đã move {audio_path} -> {dest_path}")
+                    filename = os.path.basename(ann["audio_path"])
+                    ann_file = os.path.join("cooperate", "annotator", f"{filename}.json")
+                    with open(ann_file, "w", encoding="utf-8") as f:
+                        json.dump(ann, f, ensure_ascii=False, indent=2)
+                    json_path = ann_file
                 except Exception as e:
-                    print(f"[ERROR] Không move được {audio_path}: {e}")
+                    print(f"[ERROR] Không lưu được {ann_file}: {e}")
                     traceback.print_exc()
-                    continue
+                    break
 
-            try:
-                filename = os.path.basename(ann["audio_path"])
-                ann_file = os.path.join("cooperate", "annotator", f"{filename}.json")
-                with open(ann_file, "w", encoding="utf-8") as f:
-                    json.dump(ann, f, ensure_ascii=False, indent=2)
-            except Exception as e:
-                print(f"[ERROR] Không lưu được {ann_file}: {e}")
-                traceback.print_exc()
-                break
-
-                
-        return jsonify({"message": "Lưu thành công!"}), 200
+        return jsonify({"message": "Lưu thành công!", "json_file": json_path}), 200
     except Exception as e:
         print(e)
         traceback.print_exc()
@@ -130,9 +135,12 @@ def cooperate_topik_annotator_save():
         # --- Lưu user info ---
         # Tính số annotation lần này
         new_count = len(annotations)
-       
+        json_path = ""
         if new_count > 0:
-            user_file = os.path.join("cooperate", "user", f"{annotator_phone}.json")
+            user_folder = os.path.join("cooperate", "user")
+            os.makedirs(user_folder, exist_ok=True)  # tạo folder nếu chưa tồn tại
+
+            user_file = os.path.join(user_folder, f"{annotator_phone}.json")
             if os.path.exists(user_file):
                 
                 with open(user_file, "r", encoding="utf-8") as f:
@@ -156,12 +164,12 @@ def cooperate_topik_annotator_save():
                     ann_file = os.path.join("cooperate", "topik_annotator", f"{datetime.now().strftime('%Y%m%d%H%M%S')}.json")
                     with open(ann_file, "w", encoding="utf-8") as f:
                         json.dump(ann, f, ensure_ascii=False, indent=2)
-                    print(f"[INFO] Đã lưu {ann_file}")
+                    json_path = ann_file
                 except Exception as e:
                     print(f"[ERROR] Không lưu được {ann}: {e}")
                     break
                 
-        return jsonify({"message": "Lưu thành công!"}), 200
+        return jsonify({"message": "Lưu thành công!", "json_file": json_path}), 200
     except Exception as e:
         print(e)
         traceback.print_exc()
@@ -179,7 +187,10 @@ def cooperate_vitspre_save():
         new_count = len(records)
         json_path = ""  # khai báo trước để trả về nếu không có record
         if new_count > 0:
-            user_file = os.path.join("cooperate", "user", f"{annotator_phone}.json")
+            user_folder = os.path.join("cooperate", "user")
+            os.makedirs(user_folder, exist_ok=True)  # tạo folder nếu chưa tồn tại
+
+            user_file = os.path.join(user_folder, f"{annotator_phone}.json")
             if os.path.exists(user_file):
                 with open(user_file, "r", encoding="utf-8") as f:
                     old_data = json.load(f)
