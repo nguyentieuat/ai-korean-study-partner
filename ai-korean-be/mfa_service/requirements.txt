@@ -13,7 +13,8 @@ torchaudio
 textgrid 
 openai-whisper 
 phonemizer
-
+aiortc
+aiohttp
 
 # pip install git+https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner.git
 # conda install -c conda-forge kaldi pynini librosa praatio tqdm requests colorama pyyaml openfst baumwelch ngram
