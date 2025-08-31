@@ -1,0 +1,28 @@
+{
+  "total": 42,
+  "bundles": 11,
+  "full_bundles": 10,
+  "partial_bundles": 1,
+  "pattern_ok": 8,
+  "pattern_bad": 2,
+  "notes": [
+    {
+      "bundle_id": "TOPIK1_topik_model_parsed_00001",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_model_parsed_00002",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    }
+  ]
+}

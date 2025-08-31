@@ -159,9 +159,9 @@ def cooperate_topik_annotator_save():
             json.dump(user_info, f, ensure_ascii=False, indent=2)
 
             # --- Lưu annotations chi tiết ---
-            for ann in annotations:
+            for i,ann in enumerate(annotations):
                 try:
-                    ann_file = os.path.join("cooperate", "topik_annotator", f"{datetime.now().strftime('%Y%m%d%H%M%S')}.json")
+                    ann_file = os.path.join("cooperate", "topik_annotator", f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{i}.json")
                     with open(ann_file, "w", encoding="utf-8") as f:
                         json.dump(ann, f, ensure_ascii=False, indent=2)
                     json_path = ann_file

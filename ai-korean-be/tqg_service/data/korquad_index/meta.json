@@ -1,0 +1,11 @@
+{
+  "model_name": "intfloat/multilingual-e5-base",
+  "dimension": 768,
+  "count": 12312,
+  "strip_html": true,
+  "skip_table": true,
+  "chunk_chars": 250,
+  "overlap": 60,
+  "min_context_chars": 80,
+  "batch_size": 128
+}

@@ -1,0 +1,1387 @@
+{
+  "total": 947,
+  "bundles": 237,
+  "full_bundles": 236,
+  "partial_bundles": 1,
+  "pattern_ok": 83,
+  "pattern_bad": 153,
+  "notes": [
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00003",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00004",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00005",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00009",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00010",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00011",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00012",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00013",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00014",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00017",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00018",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00019",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00020",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00024",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00025",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00027",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00028",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00030",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00032",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00033",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00034",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00035",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00036",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00038",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00040",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00041",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00042",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00043",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00044",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00046",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00048",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00051",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00052",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00053",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00054",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00056",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00058",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00060",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00062",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00064",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00065",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00066",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00068",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00074",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00075",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00079",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00081",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00082",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00083",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00084",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00085",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00086",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00087",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00088",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00092",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00093",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00094",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00095",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00096",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00097",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00104",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00105",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00106",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00107",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00108",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00109",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00110",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00111",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00113",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00115",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00116",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00117",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00118",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00119",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00121",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00122",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00123",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00126",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00127",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00128",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00129",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00130",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00131",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00133",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00134",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00135",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00136",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00137",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00138",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00139",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00140",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00141",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00143",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00144",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00145",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00146",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00147",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00148",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00150",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00152",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00153",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00154",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00156",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00157",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00160",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00161",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00162",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00164",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00165",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00166",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00167",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00169",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00170",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00175",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00178",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00180",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00183",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00184",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00185",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00186",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00187",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00190",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00192",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00194",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00196",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00197",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00198",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00201",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00202",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00203",
+      "scores": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00204",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00205",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00206",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00207",
+      "scores": [
+        3,
+        3,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00209",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00210",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00211",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00214",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00216",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00217",
+      "scores": [
+        4,
+        4,
+        4,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00219",
+      "scores": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00220",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00221",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00222",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00223",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00225",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00226",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00227",
+      "scores": [
+        4,
+        4,
+        3,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00228",
+      "scores": [
+        4,
+        3,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00230",
+      "scores": [
+        3,
+        4,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00231",
+      "scores": [
+        3,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00234",
+      "scores": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "bundle_id": "TOPIK1_topik_raw_5000-00001_00235",
+      "scores": [
+        3,
+        3,
+        3,
+        4
+      ]
+    }
+  ]
+}

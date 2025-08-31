@@ -1,0 +1,31 @@
+{
+  "input_files": [
+    "data\\topik1\\1-4\\dataset\\topik_model_parsed.jsonl",
+    "data\\topik1\\1-4\\dataset\\topik_raw_5000-00001.jsonl",
+    "data\\topik1\\1-4\\dataset\\topik_raw_5000-00002.jsonl",
+    "data\\topik1\\1-4\\dataset\\topik_raw_5000-00003.jsonl",
+    "data\\topik1\\1-4\\dataset\\topik_raw_5000-00004.jsonl",
+    "data\\topik1\\1-4\\dataset\\topik_raw_5000-00005.jsonl"
+  ],
+  "counts": {
+    "bundles_total": 1181,
+    "bundles_used": 1177,
+    "train_bundles": 943,
+    "val_bundles": 117,
+    "test_bundles": 117
+  },
+  "sizes": {
+    "train": {
+      "samples": 3772,
+      "sft_samples": 3772
+    },
+    "val": {
+      "samples": 468,
+      "sft_samples": 468
+    },
+    "test": {
+      "samples": 468,
+      "sft_samples": 468
+    }
+  }
+}

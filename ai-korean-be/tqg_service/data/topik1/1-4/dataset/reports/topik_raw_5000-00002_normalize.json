@@ -1,0 +1,9 @@
+{
+  "input": "D:\\Other demo\\New proj\\ai-korean-study-partner\\ai-korean-be\\tqg_service\\data\\topik1\\1-4\\dataset\\topik_raw_5000-00002.jsonl",
+  "output": "D:\\Other demo\\New proj\\ai-korean-study-partner\\ai-korean-be\\tqg_service\\data\\topik1\\1-4\\dataset\\topik_raw_5000-00002.jsonl.tmp",
+  "total_in": 930,
+  "total_ok": 930,
+  "total_dup_skipped": 0,
+  "total_bad": 0,
+  "bad_reasons": {}
+}

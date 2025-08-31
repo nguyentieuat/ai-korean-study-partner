@@ -9,3 +9,4 @@ openai-whisper
 torch
 gTTS
 montreal-forced-aligner
+sentence-transformers

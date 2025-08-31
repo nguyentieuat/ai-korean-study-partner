@@ -1,0 +1,22 @@
+{
+  "type": "Nghe_Almat_Dap",
+  "section": "Nghe",
+  "level": "1",
+  "title": "[1~4] 다음을 듣고 물음에 맞는 대답을 고르십시오.",
+  "question": "물음에 맞는 대답을 고르십시오.",
+  "explanation": "",
+  "score": "4",
+  "options": {
+    "A": "네, 학생이에요.",
+    "B": "아니요, 학생이 와요.",
+    "C": "네, 학생이 없어요.",
+    "D": "아니요, 학생이 좋아요."
+  },
+  "answer": "A",
+  "dialogue": [
+    {
+      "speaker": "남자:",
+      "text": "학생이에요?"
+    }
+  ]
+}
