@@ -27,7 +27,7 @@ ffmpeg-python>=0.2.0  # wrapper Python, vẫn phải cài ffmpeg binary ở hệ
 # -------- Montreal Forced Aligner (tùy chọn, nặng) --------
 # MFA nên cài qua conda do phụ thuộc Kaldi/OpenFST...
 # Nếu bắt buộc dùng pip cho POC:
-git+https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner.git
+# git+https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner.git
 # Và các phụ thuộc hệ thống/conda:
 # conda install -c conda-forge kaldi pynini librosa praatio tqdm requests colorama pyyaml openfst baumwelch ngram
 # (Hoặc) nếu dùng kalpy:
