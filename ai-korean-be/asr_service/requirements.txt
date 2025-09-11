@@ -1,8 +1,7 @@
-# === Core ASR ===
-torch
-torchaudio
-faster-whisper.
-
+# === Core ASR (CPU) ===
+faster-whisper==1.0.3
+ctranslate2>=4.4,<5   # engine của faster-whisper
+# openai-whisper
 # === FastAPI server ===
 fastapi
 uvicorn[standard]
@@ -11,9 +10,9 @@ python-multipart
 
 # === Audio processing ===
 pydub
-soundfile  # optional: nếu muốn đọc ghi wav trực tiếp
-ffmpeg-python  # wrapper Python cho ffmpeg (nhớ cài ffmpeg hệ thống)
+soundfile
+ffmpeg-python
 
 # === Utils ===
-requests     # để fetch file audio qua URL
-phonemizer   # nếu sau này cần phoneme conversion
+requests
+phonemizer
