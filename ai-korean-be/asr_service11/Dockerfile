@@ -11,7 +11,8 @@ WORKDIR /app
 COPY requirements.txt .
 # Gợi ý: thay openai-whisper bằng faster-whisper để nhanh hơn trên CPU:
 # sed -i 's/openai-whisper/faster-whisper/g' requirements.txt  # nếu muốn
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 RUN useradd -m app && chown -R app:app /app
