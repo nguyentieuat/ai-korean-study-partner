@@ -1,0 +1,100 @@
+<mxfile host="app.diagrams.net" modified="2025-09-10T00:00:00.000Z" agent="AI" version="22.0.8" editor="www.diagrams.net">
+  <diagram id="AIKSP-arch-1" name="AI Korean Study Partner">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Client UI -->
+        <mxCell id="cli" value="Client UI" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="160" y="60" width="160" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Main Service / API Gateway -->
+        <mxCell id="gw" value="Main Service / API Gateway" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="140" y="160" width="200" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Edge: Client -> Gateway -->
+        <mxCell id="e_cli_gw" edge="1" parent="1" source="cli" target="gw" style="endArrow=block;strokeWidth=2;strokeColor=#6c8ebf;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Service boxes row -->
+        <mxCell id="asr" value="/asr_service&#10;&#10;<i>Convert speech ➜ text</i><br/>(ASR • Whisper)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="290" width="180" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="chat" value="/chat_service&#10;&#10;<i>Chat / Voice</i><br/>(AI Prompt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="220" y="290" width="180" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="mfa" value="/mfa_service&#10;&#10;<i>Pronunciation Scoring</i><br/>(MFA • Wav2Vec)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="420" y="290" width="180" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tqg" value="/tqg_service&#10;&#10;<i>TOPIK Question Generation</i><br/>(Fine-tuned LLaMA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="620" y="290" width="200" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tts" value="/tts_service&#10;&#10;<i>Text ➜ Speech</i><br/>(VITS • Zeroth_Korean)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="850" y="290" width="200" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges: Gateway -> services -->
+        <mxCell id="e_gw_asr" edge="1" parent="1" source="gw" target="asr" style="endArrow=block;strokeWidth=2;strokeColor=#82b366;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_gw_chat" edge="1" parent="1" source="gw" target="chat" style="endArrow=block;strokeWidth=2;strokeColor=#82b366;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_gw_mfa" edge="1" parent="1" source="gw" target="mfa" style="endArrow=block;strokeWidth=2;strokeColor=#82b366;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_gw_tqg" edge="1" parent="1" source="gw" target="tqg" style="endArrow=block;strokeWidth=2;strokeColor=#82b366;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_gw_tts" edge="1" parent="1" source="gw" target="tts" style="endArrow=block;strokeWidth=2;strokeColor=#82b366;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Cross-service flow: TQG -> TTS -> Client -->
+        <mxCell id="e_tqg_tts" edge="1" parent="1" source="tqg" target="tts" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#b85450;strokeWidth=2;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_tts_cli" edge="1" parent="1" source="tts" target="cli" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#b85450;strokeWidth=2;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Example user flow: Client speak -> ASR -> Chat -> Client -->
+        <mxCell id="e_cli_asr" edge="1" parent="1" source="cli" target="asr" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#6c8ebf;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_asr_chat" edge="1" parent="1" source="asr" target="chat" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#6c8ebf;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_chat_cli" edge="1" parent="1" source="chat" target="cli" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#6c8ebf;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Example pronunciation path: Client -> MFA -> Client -->
+        <mxCell id="e_cli_mfa" edge="1" parent="1" source="cli" target="mfa" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#9673a6;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_mfa_cli" edge="1" parent="1" source="mfa" target="cli" style="endArrow=block;dashed=1;dashPattern=6 6;strokeColor=#9673a6;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="Legend:&#10;<b>Solid</b> = routing qua Gateway&#10;<b>Dashed</b> = luồng tác vụ/UX chính" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#b3b3b3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="20" y="420" width="280" height="70" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

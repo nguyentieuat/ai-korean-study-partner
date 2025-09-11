@@ -1,0 +1,136 @@
+{
+  "meta": { "lang": "ko", "version": "1.2" },
+
+  "ipa_aliases": {
+    "t͡ɕ": "tɕ",
+    "t͡ɕʰ": "tɕʰ",
+    "t͡ɕ͈": "tɕ͈",
+    "d͡ʑ": "dʑ"
+  },
+
+  "K_class": {
+    "covers": ["k","k̚","kʰ","k͈","ɡ"],
+    "advice": [
+      "Đầu lưỡi chạm nhẹ phần sau răng trên; bật hơi rõ hơn ở đầu âm.",
+      "Âm tắc cuối (받침) nhớ đóng miệng dứt khoát, không kéo nguyên âm trước."
+    ]
+  },
+
+  "T_class": {
+    "covers": ["t","t̚","tʰ","t͈","d","ts","tsʰ","tɕ","tɕʰ","tɕ͈","dʑ"],
+    "advice": [
+      "Giữ lưỡi sát lợi; với âm bật hơi thêm luồng hơi rõ (ㅎ-hoá)."
+    ]
+  },
+
+  "P_class": {
+    "covers": ["p","p̚","pʰ","p͈","b"],
+    "advice": [
+      "Mím môi kín rồi bật mạnh; cuối âm nhớ khép môi, đừng thêm nguyên âm đệm."
+    ]
+  },
+
+  "Sibilant_class": {
+    "covers": ["s","sʰ","s͈","ɕ","ɕʰ"],
+    "advice": [
+      "Đặt đầu lưỡi ngay sau răng trên, khe hẹp để luồng hơi đều.",
+      "Phân biệt ㅅ thường và ㅆ (tense) bằng mức siết và đều hơi."
+    ]
+  },
+
+  "Affricate_class": {
+    "covers": ["tɕ","tɕʰ","tɕ͈","dʑ"],
+    "advice": [
+      "Bắt đầu bằng tắc nhẹ rồi chuyển nhanh sang xát; giữ chuyển động gọn.",
+      "Trước âm i/j hay nguyên âm sáng, âm dễ palatal hoá — chú ý khẩu hình."
+    ]
+  },
+
+  "Liquid_Nasal": {
+    "covers": ["l","ɾ","n","m","ŋ"],
+    "advice": [
+      "Phân biệt ㄹ (l/ɾ) và ㄴ: ㄹ uốn đầu lưỡi chạm lợi; ㄴ hạ lưỡi để hơi qua mũi.",
+      "Âm mũi (ㄴ, ㅁ, ㅇ) cần mở đường mũi tự nhiên, không chặn hơi."
+    ]
+  },
+
+  "Glide_class": {
+    "covers": ["j","w","ɰ","ɥ"],
+    "advice": [
+      "Âm lướt phải ngắn và nhẹ, không biến thành nguyên âm đầy đủ.",
+      "Tránh kéo dài glide gây méo nguyên âm kế tiếp."
+    ]
+  },
+
+  "Vowels_basic": {
+    "advice": [
+      "Giữ nguyên âm ngắn, không kéo dài; ㅡ (miệng phẳng) khác ㅜ (tròn môi).",
+      "Phân biệt ㅐ/ㅔ bằng vị trí lưỡi: ㅐ mở hơn ㅔ một chút.",
+      "ㅓ hơi mở và lùi hơn ㅗ; ㅗ tròn môi rõ."
+    ],
+    "pairs": [
+      { "contrast": ["ㅐ","ㅔ"], "tip": "ㅐ mở hơn, ㅔ khép hơn; đừng phát lẫn như /e/ duy nhất." },
+      { "contrast": ["ㅡ","ㅜ"], "tip": "ㅡ phẳng môi, ㅜ tròn môi; giữ độ tròn ổn định." },
+      { "contrast": ["ㅓ","ㅗ"], "tip": "ㅓ thấp-lùi, ㅗ tròn-môi cao hơn; đừng tròn môi ở ㅓ." }
+    ]
+  },
+
+  "context_rules": [
+    {
+      "name": "coda_unreleased_stop",
+      "if": { "current_in": ["k","t","p","k̚","t̚","p̚"], "position": "coda" },
+      "advice": [
+        "Âm tắc cuối (받침) cần đóng gọn, không nhả hơi; tránh thêm nguyên âm đệm.",
+        "Rút ngắn nguyên âm trước coda để kết thúc dứt khoát."
+      ]
+    },
+    {
+      "name": "aspiration_with_h_following",
+      "if": { "current_in": ["k","t","p","s","tɕ"], "next_in": ["h"] },
+      "advice": [
+        "Có ㅎ sau → bật hơi rõ hơn (ㅎ-hoá).",
+        "Tập nhịp: t–h / s–h ngắt nhanh rồi bật hơi."
+      ]
+    },
+    {
+      "name": "nasal_assimilation_before_NM",
+      "if": { "current_in": ["k","t","p"], "next_in": ["n","m"] },
+      "advice": [
+        "Trước ㄴ/ㅁ, phụ âm cuối dễ mũi hoá (k→ŋ, t→n, p→m); đừng cưỡng lại.",
+        "Giữ nguyên âm trước ngắn, để chuyển sang âm mũi mượt."
+      ]
+    },
+    {
+      "name": "L_N_rule",
+      "if": { "pattern": "L+N_or_N+L" },
+      "advice": [
+        "Chuỗi ㄹ/ㄴ dễ đồng hoá thành ㄹ-ㄹ; uốn đầu lưỡi chạm lợi đều 2 âm.",
+        "Tránh hạ lưỡi quá sớm làm rơi thành ㄴ."
+      ]
+    },
+    {
+      "name": "palatalization_before_i_or_glide",
+      "if": { "current_in": ["t","d","s"], "next_in": ["i","j","ɥ"], "allow": ["tɕ","dʑ","ɕ"] },
+      "advice": [
+        "Trước i/j, phụ âm dễ hoá thành âm quặt lưỡi/âm xát vòm (t→tɕ, s→ɕ).",
+        "Giữ lưỡi cao hơn và tiến ra vòm cứng."
+      ]
+    },
+    {
+      "name": "resyllabification_to_onset",
+      "if": { "current_class_in": ["K_class","T_class","P_class"], "next_is_vowel": true },
+      "advice": [
+        "Cuối âm tiết + nguyên âm sau → dễ chuyển sang onset; phát rõ phụ âm đầu âm tiết mới.",
+        "Đừng đóng hoàn toàn coda nếu đã chuyển sang phụ âm đầu."
+      ]
+    },
+    {
+      "name": "tensification_context",
+      "if": { "current_in": ["k","t","p","s","tɕ"], "env_hint": "tense_trigger" },
+      "advice": [
+        "Ngữ cảnh làm căng hoá (ㅂ/ㄱ/ㄷ + ...) → siết khẩu hình, rút ngắn nguyên âm.",
+        "Đảm bảo luồng hơi nhỏ nhưng áp lực cao (tense)."
+      ]
+    }
+  ]
+}

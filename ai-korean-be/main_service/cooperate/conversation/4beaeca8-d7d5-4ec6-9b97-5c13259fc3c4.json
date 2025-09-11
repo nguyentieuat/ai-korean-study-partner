@@ -1,0 +1,42 @@
+[
+  {
+    "role": "user",
+    "message": " 안녕하세오"
+  },
+  {
+    "role": "user",
+    "message": " 안녕하세오"
+  },
+  {
+    "role": "user",
+    "message": " 안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 어떻게 지내세요?"
+  },
+  {
+    "role": "user",
+    "message": " 안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 오늘 기분은 어떠세요?"
+  },
+  {
+    "role": "user",
+    "message": "안녕하세오"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 다시 인사해 주셔서 반가워요. 무엇을 이야기하고 싶으세요?"
+  },
+  {
+    "role": "user",
+    "content": "문장을 입력해 주세요."
+  },
+  {
+    "role": "assistant",
+    "content": "어떤 문장을 원하시나요? 주제나 내용에 대해 말씀해 주시면 도와드릴게요!"
+  }
+]

@@ -1,0 +1,12 @@
+.git
+__pycache__/
+*.py[cod]
+*.ipynb
+.env
+.env.*
+models/
+logs/
+.cache/
+data/
+tmp/
+.vscode/

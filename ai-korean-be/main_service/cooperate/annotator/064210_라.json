@@ -1,0 +1,19 @@
+{
+  "audio_path": "cooperate/marked/pronun/064210_라.webm",
+  "text_heard": "라",
+  "annotations": [
+    {
+      "char_index": 0,
+      "char_text": "라",
+      "error_type": "vowel",
+      "suggested_fix": "aaaa",
+      "comment": ""
+    }
+  ],
+  "annotator": {
+    "name": "",
+    "phone": "1234567890"
+  },
+  "submitted_at": "2025-09-09T23:46:43.665038+00:00",
+  "id": "fe3c2f6998704752866acf0a7f666dde"
+}

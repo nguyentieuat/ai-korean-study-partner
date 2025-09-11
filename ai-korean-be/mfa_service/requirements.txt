@@ -1,0 +1,42 @@
+# -------- Core API --------
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+python-dotenv>=1.0
+requests
+
+# -------- Audio & TextGrid --------
+pydub>=0.25           # cần ffmpeg binary ở OS PATH
+praatio>=6.0.0,<6.3
+textgrid>=1.5
+python-mecab-ko 
+jamo         
+# praat-textgrids>=1.4.0
+
+# -------- Data handling --------
+numpy>=1.26
+pandas>=2.2
+
+# -------- Optional helpers --------
+ffmpeg-python>=0.2.0  # wrapper Python, vẫn phải cài ffmpeg binary ở hệ điều hành
+
+# -------- Local/Custom alignment lib (nếu dùng) --------
+# Nếu module 'g2p_needleman_wunsch_alignment' là thư viện local trong repo:
+# -e ./g2p_needleman_wunsch_alignment
+
+# -------- Montreal Forced Aligner (tùy chọn, nặng) --------
+# MFA nên cài qua conda do phụ thuộc Kaldi/OpenFST...
+# Nếu bắt buộc dùng pip cho POC:
+git+https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner.git
+# Và các phụ thuộc hệ thống/conda:
+# conda install -c conda-forge kaldi pynini librosa praatio tqdm requests colorama pyyaml openfst baumwelch ngram
+# (Hoặc) nếu dùng kalpy:
+# git+https://github.com/MontrealCorpusTools/kalpy.git@v1.3.1
+
+torch 
+torchvision 
+torchaudio
+transformers==4.43.3 
+soundfile==0.12.1
+ctc-segmentation==1.7.4
+webrtcvad

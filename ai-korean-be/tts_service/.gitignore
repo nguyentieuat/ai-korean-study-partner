@@ -1,0 +1,46 @@
+# --- Python build/cache ---
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+
+# --- Virtual envs ---
+.venv/
+venv/
+env/
+
+# --- Environment & secrets ---
+.env
+.env.*
+*.key
+*.pem
+*.crt
+
+# --- IDE / OS junk ---
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# --- Models / checkpoints (đưa lên HF Model repo riêng nếu cần) ---
+models/
+checkpoints/
+*.safetensors
+*.pt
+*.ckpt
+*.bin
+
+# --- HF / Transformers caches ---
+.cache/
+huggingface/
+hf_cache/
+transformers_cache/
+
+# --- Notebooks ---
+*.ipynb
+*.ipynb_checkpoints/

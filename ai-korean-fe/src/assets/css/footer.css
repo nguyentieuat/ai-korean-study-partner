@@ -1,0 +1,109 @@
+/* Sticky footer */
+html, body, #root { height: 100%; margin: 0; }
+.app-container { display: flex; flex-direction: column; min-height: 100vh; }
+.app-content   { flex: 1; }
+.app-footer    { margin-top: auto; width: 100%; border-top: 1px solid #eee; background: #fff; }
+
+/* Lưới 3 cột: trái (copyright), giữa (donate), phải (trống) */
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Trái: giữ ở góc trái */
+.copyright { justify-self: start; }
+
+/* Giữa: luôn căn giữa */
+.donate { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; justify-self: center; }
+/* Text gọn */
+.donate-text {
+  font-size: 0.9rem;
+}
+
+/* QR nhỏ để vừa 1 dòng */
+.donate-qr { width: 56px; height: auto; border-radius: 6px; border: 1px solid #eee; cursor: zoom-in; }
+
+/* Modal overlay */
+/* Overlay phủ toàn màn */
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.qr-modal.open { display: flex; }
+
+/* Hộp modal 400x400, căn giữa */
+.qr-box {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ảnh fit trong hộp */
+.qr-modal-img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+}
+
+/* Nút đóng nằm trong hộp */
+.qr-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 20px;
+  line-height: 32px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Responsive: nếu màn nhỏ hơn 400px, co xuống cho vừa */
+@media (max-width: 420px) {
+  .qr-box {
+    width: min(90vw, 400px);
+    height: min(90vw, 400px);
+  }
+}
+
+
+.qr-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 24px;
+  line-height: 36px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Responsive: khi màn nhỏ vẫn giữ bố cục cân đối */
+@media (max-width: 360px) {
+  .donate-qr { width: 48px; }
+  .donate { gap: 6px; }
+}

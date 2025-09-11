@@ -1,0 +1,34 @@
+.consent-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1100;
+}
+
+.consent-modal {
+  width: min(92vw, 560px);
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e9e9e9;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  padding: 20px 22px;
+}
+
+.consent-title { margin: 0 0 8px; font-size: 1.25rem; }
+.consent-desc { margin: 0 0 12px; color: #444; }
+.consent-link { margin-left: 6px; }
+
+.consent-options {
+  margin: 12px 0 16px;
+  display: grid; gap: 10px;
+}
+.consent-check { display: flex; align-items: center; gap: 10px; }
+
+.consent-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn {
+  padding: 8px 14px; border-radius: 10px; border: 1px solid transparent; cursor: pointer;
+  background: #f6f6f6;
+}
+.btn:hover { filter: brightness(.98); }
+.btn-primary { background: #0d6efd; color: #fff; }
+.btn-ghost { background: #fff; border-color: #e0e0e0; }

@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+env/
+venv/
+.env
+.venv/
+
+# Flask
+instance/
+*.db
+*.sqlite3
+
+# React / Node
+node_modules/
+build/
+dist/
+npm-debug.log*
+yarn-error.log*
+*.lock
+
+# IDE / Editor
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific: TTS, MFA, uploads
+ai-korean-be/main_service/static/
+ai-korean-be/main_service/log/
+ai-korean-be/mfa_service/data/
+ai-korean-be/mfa_service/temp_data/
+ai-korean-be/mfa_service/output_dir/
+ai-korean-be/mfa_service/align_out/
+ai-korean-be/mfa_service/korean_mfa.zip

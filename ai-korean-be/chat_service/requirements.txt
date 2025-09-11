@@ -1,0 +1,14 @@
+# === Core web service (FastAPI) ===
+fastapi
+uvicorn[standard]
+python-multipart
+requests
+python-dotenv
+
+# === Audio / TTS ===
+pydub
+gTTS
+
+# === Bridge & compat (dùng FileStorage trong code cũ) ===
+werkzeug
+

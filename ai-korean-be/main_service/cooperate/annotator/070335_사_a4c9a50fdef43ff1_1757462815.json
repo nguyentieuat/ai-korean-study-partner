@@ -1,0 +1,20 @@
+{
+  "audio_path": "cooperate/marked/pronun/070335_사.webm",
+  "text_heard": "사",
+  "annotations": [
+    {
+      "char_index": 0,
+      "char_text": "사",
+      "error_type": "length",
+      "suggested_fix": "ádasdas",
+      "comment": ""
+    }
+  ],
+  "item_id": "a4c9a50fdef43ff1",
+  "annotator": {
+    "name": "",
+    "phone": "1234567890"
+  },
+  "submitted_at": "2025-09-10T00:06:55.447150+00:00",
+  "id": "aa6c7fd7d361419a9d0ba6bb46fd815d"
+}

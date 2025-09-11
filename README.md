@@ -1,0 +1,1 @@
+# ai-korean-speaking-partner

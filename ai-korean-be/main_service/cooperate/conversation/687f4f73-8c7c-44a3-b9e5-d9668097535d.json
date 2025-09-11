@@ -1,0 +1,22 @@
+[
+  {
+    "role": "user",
+    "message": " 안녕히 가세요"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 어떻게 지내고 계신가요?"
+  },
+  {
+    "role": "user",
+    "message": " 안녕"
+  },
+  {
+    "role": "user",
+    "content": "안녕하세요."
+  },
+  {
+    "role": "assistant",
+    "content": "반갑습니다! 오늘은 어떤 이야기 나눌까요?"
+  }
+]

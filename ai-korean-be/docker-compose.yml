@@ -1,0 +1,142 @@
+version: "3.9"
+name: ai-stack
+
+x-common-env: &common_env
+  HF_HOME: /models/hf
+  TRANSFORMERS_CACHE: /models/hf
+  TOKENIZERS_PARALLELISM: "false"
+  OMP_NUM_THREADS: "4"
+  OPENBLAS_NUM_THREADS: "4"
+  MKL_NUM_THREADS: "4"
+  NUMEXPR_NUM_THREADS: "4"
+  # CPU-only: bỏ hẳn CUDA_VISIBLE_DEVICES hoặc đặt -1
+  # CUDA_VISIBLE_DEVICES: "-1"
+
+networks:
+  web: {}
+
+volumes:
+  models: {}
+  cache: {}
+  logs: {}
+
+services:
+  # Reverse proxy + TLS (HTTP/2, WS, gRPC)
+  gateway:
+    image: caddy:2
+    container_name: gateway
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - logs:/var/log/caddy
+    networks: [web]
+    depends_on:
+      - main_service
+
+  main_service:
+    build: ./main_service
+    restart: always
+    environment:
+      <<: *common_env
+      UVICORN_WORKERS: "1"
+      CHAT_URL: http://chat_service:5001
+      MFA_URL: http://mfa_service:5002
+      TQG_URL: http://tqg_service:5003
+      TTS_URL: http://tts_service:5004
+      ASR_URL: http://asr_service:5005
+    volumes:
+      - logs:/app/log
+    networks: [web]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  asr_service:
+    build: ./asr_service              # <-- sửa từ image: ./asr_service
+    restart: always
+    environment:
+      <<: *common_env
+      WHISPER_MODEL: "medium"         # (CPU) cân nhắc dùng small/medium + int8 nếu dùng faster-whisper
+    volumes:
+      - models:/models/hf
+      - cache:/app/cache
+    networks: [web]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5005/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  tts_service:
+    build: ./tts_service
+    restart: always
+    environment:
+      <<: *common_env
+    volumes:
+      - models:/models/hf
+      - cache:/app/cache
+      # - /mnt/gcs:/mnt/gcs:rw   # chỉ giữ nếu bạn thật sự đã mount GCS
+    networks: [web]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5004/healthz || exit 1"]
+      interval: 30s
+      timeout: 6s
+      start_period: 40s
+      retries: 3
+
+  mfa_service:
+    build: ./mfa_service
+    restart: always
+    environment:
+      <<: *common_env
+    volumes:
+      - models:/models/hf
+      - cache:/app/cache
+    networks: [web]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5002/healthz || exit 1"]
+      interval: 30s
+      timeout: 6s
+      start_period: 40s
+      retries: 3
+
+  chat_service:
+    build: ./chat_service
+    restart: always
+    environment:
+      <<: *common_env
+      # nếu chat gọi API ngoài thì để API keys trong .env và mount vào
+    volumes:
+      - models:/models/hf
+    networks: [web]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5001/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  tqg_service:
+    build: ./tqg_service
+    restart: always
+    environment:
+      <<: *common_env
+      STORAGE_DIR: /data/tqg
+    volumes:
+      - models:/models/hf
+      - cache:/app/cache
+      # - /mnt/gcs:/data/tqg:rw  # bật nếu bạn mount GCS
+    networks: [web]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5004/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
