@@ -5,7 +5,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
     TOKENIZERS_PARALLELISM=false
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg libsndfile1 curl && rm -rf /var/lib/apt/lists/*
+    git build-essential python3-dev ffmpeg sox libsndfile1 curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY requirements.txt .
