@@ -1,0 +1,19 @@
+# === Core ASR ===
+torch
+torchaudio
+faster-whisper.
+
+# === FastAPI server ===
+fastapi
+uvicorn[standard]
+anyio
+python-multipart
+
+# === Audio processing ===
+pydub
+soundfile  # optional: nếu muốn đọc ghi wav trực tiếp
+ffmpeg-python  # wrapper Python cho ffmpeg (nhớ cài ffmpeg hệ thống)
+
+# === Utils ===
+requests     # để fetch file audio qua URL
+phonemizer   # nếu sau này cần phoneme conversion
