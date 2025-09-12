@@ -40,11 +40,11 @@ services:
     environment:
       <<: *common_env
       UVICORN_WORKERS: "1"
-      CHAT_URL: http://localhost:5001
-      MFA_URL:  http://localhost:5002
-      TQG_URL:  http://localhost:5003
-      TTS_URL:  http://localhost:5004
-      ASR_URL:  http://localhost:5005
+      CHAT_SERVICE_URL: http://chat_service:5001
+      MFA_SERVICE_URL:  http://mfa_service:5002  
+      TQG_SERVICE_URL:  http://tqg_service:5003
+      TTS_SERVICE_URL:  http://tts_service:5004
+      ASR_SERVICE_URL:  http://asr_service:5005
       LOG_FOLDER: /app/log/pronun
     volumes:
       - logs:/app/log
