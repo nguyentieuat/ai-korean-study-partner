@@ -65,6 +65,7 @@ services:
     env_file: [.env]
     environment:
       <<: *common_env
+      ASR_SERVICE_URL:  http://asr_service:5005
     networks: [web]
     ports:
       - "5001:5001"
@@ -84,6 +85,8 @@ services:
       HF_HOME: /models/hf
       TRANSFORMERS_CACHE: /models/hf
       HF_TOKEN: ${HF_TOKEN}
+      TTS_SERVICE_URL:  http://tts_service:5004
+
     volumes:
       - models:/models/hf 
     networks: [web]
@@ -102,6 +105,7 @@ services:
     environment:
       <<: *common_env
       STORAGE_DIR: /data/tqg
+      ASR_SERVICE_URL:  http://asr_service:5005
     networks: [web]
     ports:
       - "5003:5003"
