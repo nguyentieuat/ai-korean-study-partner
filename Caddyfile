@@ -1,3 +1,9 @@
 :80 {
+  @api path /api/*
+  handle @api {
     reverse_proxy main_service:5000
+  }
+  handle {
+    reverse_proxy frontend:80
+  }
 }
