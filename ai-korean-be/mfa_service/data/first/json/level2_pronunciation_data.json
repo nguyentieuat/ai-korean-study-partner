@@ -1,0 +1,366 @@
+{
+  "level": 2,
+  "focus": "phụ âm & patch’im (âm cuối)",
+  "items": [
+    {
+      "text": "국",
+      "notes": "받침 ㄱ - chặn âm cuối",
+      "ipa": "guk",
+      "audioUrl": "audio/reply_fa201cec8cec4a3cb8db4c14d7e6488b.mp3"
+    },
+    {
+      "text": "밥",
+      "notes": "받침 ㅂ - môi khép",
+      "ipa": "bap",
+      "audioUrl": "audio/reply_c92f00bfbffa4299be14e67ef9c0b3da.mp3"
+    },
+    {
+      "text": "눈",
+      "notes": "받침 ㄴ - mũi nhẹ",
+      "ipa": "nun",
+      "audioUrl": "audio/reply_5c40f76b4af14148bf1e302cf6ed1cb5.mp3"
+    },
+    {
+      "text": "물",
+      "notes": "받침 ㄹ - lưỡi cong",
+      "ipa": "mul",
+      "audioUrl": "audio/reply_5b65078b20d044ad8b0de81b84b727fe.mp3"
+    },
+    {
+      "text": "밤",
+      "notes": "받침 ㅁ - mũi, môi khép",
+      "ipa": "bam",
+      "audioUrl": "audio/reply_d1ffa29e4fdd4594a507b80e3ce3790f.mp3"
+    },
+    {
+      "text": "꽃",
+      "notes": "받침 ㅊ - âm gió mạnh",
+      "ipa": "kkoch",
+      "audioUrl": "audio/reply_80f6e7eb1c96417f991a021f5f45cfcf.mp3"
+    },
+    {
+      "text": "밖",
+      "notes": "받침 ㄲ - âm cứng",
+      "ipa": "bak",
+      "audioUrl": "audio/reply_7c0f9dd6b72b40eeabcb2edb2e45d9e2.mp3"
+    },
+    {
+      "text": "맛",
+      "notes": "받침 ㅅ - âm nhẹ",
+      "ipa": "mat",
+      "audioUrl": "audio/reply_1fafb9851ff64cd1aa43b0c514e15c8a.mp3"
+    },
+    {
+      "text": "넋",
+      "notes": "받침 ㄺ - phát âm ㄱ",
+      "ipa": "neok",
+      "audioUrl": "audio/reply_0b59a6f97f2f47c68236a5c60f34ec4c.mp3"
+    },
+    {
+      "text": "솥",
+      "notes": "받침 ㅌ - âm bật",
+      "ipa": "sot",
+      "audioUrl": "audio/reply_0d3c581b5c414f06a715bafed3745505.mp3"
+    },
+    {
+      "text": "밥",
+      "ipa": "bap",
+      "notes": "phụ âm thường ㅂ - âm nhẹ",
+      "audioUrl": "audio/reply_965926f6bf23409eac65bb28e85d8cf4.mp3"
+    },
+    {
+      "text": "밖",
+      "ipa": "pak",
+      "notes": "받침 kép ㄱ + ㅅ → chỉ đọc ㄱ",
+      "audioUrl": "audio/reply_0159314ed2e647d0918c8023ee3b7db2.mp3"
+    },
+    {
+      "text": "꽃",
+      "ipa": "kkot",
+      "notes": "받침 ㅊ - bật nhẹ",
+      "audioUrl": "audio/reply_56222e65d4174b57b22bede17472ec25.mp3"
+    },
+    {
+      "text": "빵",
+      "ipa": "ppang",
+      "notes": "phụ âm căng ㅃ + 받침 ㅇ",
+      "audioUrl": "audio/reply_8e45a39e0f9a45a2836eb2d590dfc310.mp3"
+    },
+    {
+      "text": "팥",
+      "ipa": "pat",
+      "notes": "bật hơi ㅍ + 받침 ㅌ",
+      "audioUrl": "audio/reply_e78deab454d84d039693fc9fa94d9876.mp3"
+    },
+    {
+      "text": "삯",
+      "ipa": "sak",
+      "notes": "받침 kép ㅅ + ㄱ → chỉ đọc ㄱ",
+      "audioUrl": "audio/reply_3b55bda1be4143d598da8fd6125ab433.mp3"
+    },
+    {
+      "text": "닭",
+      "ipa": "dak",
+      "notes": "받침 kép ㄹ + ㄱ → chỉ đọc ㄱ",
+      "audioUrl": "audio/reply_4b79931d062141ef839339cd7a8949ff.mp3"
+    },
+    {
+      "text": "떡",
+      "ipa": "tteok",
+      "notes": "phụ âm căng ㄸ + 받침 ㄱ",
+      "audioUrl": "audio/reply_9e5957ed84dc4d06a116963df90689fe.mp3"
+    },
+    {
+      "text": "찻",
+      "ipa": "chat",
+      "notes": "bật hơi ㅊ + 받침 ㅅ",
+      "audioUrl": "audio/reply_d2652cc5673f4b4eb278f8951c10d381.mp3"
+    },
+    {
+      "text": "밖에",
+      "ipa": "bakke",
+      "notes": "받침 ㄱ + bắt đầu ㄲ",
+      "audioUrl": "audio/reply_80eab74bc5114eb0882234edfeac9e62.mp3"
+    },
+    {
+      "text": "삶",
+      "ipa": "salm",
+      "notes": "받침 kép ㄹ + ㅁ → đọc đủ",
+      "audioUrl": "audio/reply_58e8dcd5cdf64e8c998426756d9cec03.mp3"
+    },
+    {
+      "text": "짬",
+      "ipa": "jjam",
+      "notes": "phụ âm căng ㅉ + 받침 ㅁ",
+      "audioUrl": "audio/reply_5bc294003158474b947577f1ceb37237.mp3"
+    },
+    {
+      "text": "껍질",
+      "ipa": "kkeopjil",
+      "notes": "phụ âm căng ㄲ + 받침 ㅂ",
+      "audioUrl": "audio/reply_3d9621bb66fe4518ba6aff5cf733ede9.mp3"
+    },
+    {
+      "text": "밖으로",
+      "ipa": "bakkeuro",
+      "notes": "받침 ㄱ + bắt đầu ㄲ",
+      "audioUrl": "audio/reply_ccce6916baa14f0ebc288424eb1e02fa.mp3"
+    },
+    {
+      "text": "앞",
+      "ipa": "ap",
+      "notes": "받침 ㅍ - bật âm cuối",
+      "audioUrl": "audio/reply_8f01cf93921746b9ade8d43ae5f8bbe7.mp3"
+    },
+    {
+      "text": "깎다",
+      "ipa": "kkakda",
+      "notes": "받침 kép ㄲ + ㄷ → chỉ đọc ㄲ",
+      "audioUrl": "audio/reply_715664dad35a488cbf6ba7b39d533624.mp3"
+    },
+    {
+      "text": "밟다",
+      "ipa": "bapda",
+      "notes": "받침 kép ㅂ + ㄹ → đọc ㄹ",
+      "audioUrl": "audio/reply_02035bd3a0934ccd8603cfcca2eacb04.mp3"
+    },
+    {
+      "text": "짧다",
+      "ipa": "jjalda",
+      "notes": "받침 kép ㄹ + ㅂ → đọc ㄹ",
+      "audioUrl": "audio/reply_271128d1043d4f7cb94d048c5091409a.mp3"
+    },
+    {
+      "text": "쌍둥이",
+      "ipa": "ssangdungi",
+      "notes": "phụ âm căng ㅆ + ㄷ",
+      "audioUrl": "audio/reply_fc06158619a844699a1bc3d86a4d03d6.mp3"
+    },
+    {
+      "text": "찢다",
+      "ipa": "jjitda",
+      "notes": "phụ âm căng ㅉ + 받침 ㅈ",
+      "audioUrl": "audio/reply_5689e4c2acb94c7d980eba71e73e6f41.mp3"
+    },
+    {
+      "text": "핥다",
+      "ipa": "haltda",
+      "notes": "받침 kép ㄹ + ㅌ → đọc ㄹ",
+      "audioUrl": "audio/reply_9e5c22b6489a4a779f42f1985ee643d2.mp3"
+    },
+    {
+      "text": "쌓다",
+      "ipa": "ssatda",
+      "notes": "받침 kép ㅆ + ㅎ → đọc ㅆ",
+      "audioUrl": "audio/reply_ea8efbf64cfa4548ac7be9a8ac49f98a.mp3"
+    },
+    {
+      "text": "잃다",
+      "ipa": "ilta",
+      "notes": "받침 kép ㄹ + ㅎ → chỉ đọc ㄹ",
+      "audioUrl": "audio/reply_78904fd468234660a3403825ff591097.mp3"
+    },
+    {
+      "text": "밖에서",
+      "ipa": "bakkeseo",
+      "notes": "받침 ㄱ + bắt đầu ㄲ",
+      "audioUrl": "audio/reply_904a0ddb6ef9485aa46d0ac2933df18f.mp3"
+    },
+    {
+      "text": "짖다",
+      "ipa": "jitda",
+      "notes": "받침 ㅈ - giữ hơi nhẹ",
+      "audioUrl": "audio/reply_000e3111e74d47fb90621e785a1d3219.mp3"
+    },
+    {
+      "text": "끝",
+      "ipa": "kkeut",
+      "notes": "phụ âm căng ㄲ + 받침 ㅌ",
+      "audioUrl": "audio/reply_3cb676a656ea4c97acafb3fb4f4930b6.mp3"
+    },
+    {
+      "text": "끓다",
+      "ipa": "kkeulda",
+      "notes": "phụ âm căng ㄲ + 받침 ㄹ",
+      "audioUrl": "audio/reply_6da14d4459dc43f4b4b8f48722d05145.mp3"
+    },
+    {
+      "text": "깡",
+      "ipa": "kkang",
+      "notes": "phụ âm căng ㄲ + 받침 ㅇ",
+      "audioUrl": "audio/reply_2303a9dae9304e538a6d8d53a66aca62.mp3"
+    },
+    {
+      "text": "딱",
+      "ipa": "ttak",
+      "notes": "phụ âm căng ㄸ + 받침 ㄱ",
+      "audioUrl": "audio/reply_f77b7bcea2254dbf9147172029bbbd37.mp3"
+    },
+    {
+      "text": "밟히다",
+      "ipa": "balpida",
+      "notes": "받침 kép ㅂ + ㄹ → phát âm ㄹ",
+      "audioUrl": "audio/reply_8b31285981724313836ec6497b424f9d.mp3"
+    },
+    {
+      "text": "걷다",
+      "ipa": "geotda",
+      "notes": "받침 ㄷ - bật nhẹ cuối",
+      "audioUrl": "audio/reply_2ec281088f52417bac21c70e15ebfea2.mp3"
+    },
+    {
+      "text": "맡다",
+      "ipa": "matda",
+      "notes": "받침 ㅌ + ㄷ → bật mạnh",
+      "audioUrl": "audio/reply_20e7758a08fd44dc9cf00a5e5a46cc60.mp3"
+    },
+    {
+      "text": "쫓다",
+      "ipa": "jjotda",
+      "notes": "phụ âm căng ㅉ + 받침 ㅊ",
+      "audioUrl": "audio/reply_42256983049e4caba41d7c9ee25adcd8.mp3"
+    },
+    {
+      "text": "짖는",
+      "ipa": "jinneun",
+      "notes": "받침 ㅈ + ㄴ → nối mượt",
+      "audioUrl": "audio/reply_291d8b2b91ae47df816aad63f49aea84.mp3"
+    },
+    {
+      "text": "쭉",
+      "ipa": "jjuk",
+      "notes": "phụ âm căng ㅉ + 받침 ㄱ",
+      "audioUrl": "audio/reply_637a15fafc6548e3a512232caac96070.mp3"
+    },
+    {
+      "text": "꺾다",
+      "ipa": "kkeokda",
+      "notes": "phụ âm căng ㄲ + 받침 ㄱ",
+      "audioUrl": "audio/reply_d626eef9d206492a9ecda511d841948b.mp3"
+    },
+    {
+      "text": "밭",
+      "ipa": "pat",
+      "notes": "받침 ㅌ - bật âm cuối",
+      "audioUrl": "audio/reply_b8bb08db9f34440d9feb4a31b8dcea63.mp3"
+    },
+    {
+      "text": "닭고기",
+      "ipa": "dakkogi",
+      "notes": "받침 ㄱ + ㄱ → đọc rõ ㄱ",
+      "audioUrl": "audio/reply_7161eb41fa904b9ba42d17e73d94b374.mp3"
+    },
+    {
+      "text": "넋",
+      "ipa": "neok",
+      "notes": "받침 kép ㄴ + ㄱ → đọc ㄱ",
+      "audioUrl": "audio/reply_e9c64f8a94324f02bec37e29b71e3b04.mp3"
+    },
+    {
+      "text": "값",
+      "ipa": "gap",
+      "notes": "받침 kép ㅂ + ㅅ → chỉ đọc ㅂ",
+      "audioUrl": "audio/reply_73f8eafc969b44d29562b05017ad9af2.mp3"
+    },
+    {
+      "text": "읊다",
+      "ipa": "eulpda",
+      "notes": "받침 kép ㅂ + ㄹ → chỉ đọc ㄹ",
+      "audioUrl": "audio/reply_35d759e0fb834b548b02c5c0ba5915da.mp3"
+    },
+    {
+      "text": "꽉",
+      "ipa": "kkwak",
+      "notes": "phụ âm căng ㄲ + 받침 ㄱ",
+      "audioUrl": "audio/reply_89773cdda167438ca54306ab19a30a83.mp3"
+    },
+    {
+      "text": "깃발",
+      "ipa": "gitbal",
+      "notes": "받침 ㅅ - nối nhẹ",
+      "audioUrl": "audio/reply_d48fd489a195470eb470564cfe244ebb.mp3"
+    },
+    {
+      "text": "묻다",
+      "ipa": "mutda",
+      "notes": "받침 ㄷ - bật rõ cuối",
+      "audioUrl": "audio/reply_08f6b8361891407c8236c75022b5da3b.mp3"
+    },
+    {
+      "text": "짓다",
+      "ipa": "jitda",
+      "notes": "받침 ㅈ - rõ và nhanh",
+      "audioUrl": "audio/reply_36d2f87018b94e538a105c0813b8ef82.mp3"
+    },
+    {
+      "text": "꽂히다",
+      "ipa": "kkochida",
+      "notes": "받침 ㅊ + ㅎ - bật hơi",
+      "audioUrl": "audio/reply_e1629c1bca0b4a03803a59d2d2e3abee.mp3"
+    },
+    {
+      "text": "앉다",
+      "ipa": "anta",
+      "notes": "받침 ㄴ + ㅈ → chỉ đọc ㄴ",
+      "audioUrl": "audio/reply_4fb869087d314a8e8ce5af0c4a78a9c1.mp3"
+    },
+    {
+      "text": "짧은",
+      "ipa": "jjalbeun",
+      "notes": "받침 kép ㄹ + ㅂ → chỉ đọc ㄹ",
+      "audioUrl": "audio/reply_a99d86da43a14c52bb0ee2231dd6554c.mp3"
+    },
+    {
+      "text": "묽다",
+      "ipa": "mukda",
+      "notes": "받침 kép ㄹ + ㄱ → chỉ đọc ㄱ",
+      "audioUrl": "audio/reply_a903bafed4f04702a353e659ae1b4218.mp3"
+    },
+    {
+      "text": "읊을",
+      "ipa": "eulpeul",
+      "notes": "받침 kép ㅂ + ㄹ → giữ ㄹ",
+      "audioUrl": "audio/reply_f99b136b44a24e6eb6177e2bf3daa2d3.mp3"
+    }
+  ]
+}

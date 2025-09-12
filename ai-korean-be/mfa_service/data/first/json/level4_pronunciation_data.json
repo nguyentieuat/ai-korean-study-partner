@@ -1,0 +1,246 @@
+{
+  "level": 4,
+  "focus": "ngữ điệu & tốc độ",
+  "items": [
+    {
+      "text": "정말 고마워요.",
+      "ipa": "t͡ɕʌŋmal koma.wʌ.jo",
+      "audioUrl": "audio/reply_60633b4342a54832bacd263c9e6babd0.mp3",
+      "notes": "Cảm ơn chân thành, nhấn '정말'"
+    },
+    {
+      "text": "밥 먹었어요?",
+      "ipa": "pap mʌ.kʌ.sʌ.jo",
+      "audioUrl": "audio/reply_bfcb54faf1ee4adf807245a59e88ad3d.mp3",
+      "notes": "Giọng hỏi, lên giọng ở cuối"
+    },
+    {
+      "text": "진짜 예쁘다!",
+      "ipa": "t͡ɕin.t͡ɕ͈a je.p͈ɯ.da",
+      "audioUrl": "audio/reply_0145bb5fe9be498c9d265b74e5cf5105.mp3",
+      "notes": "Câu cảm thán, nhấn '진짜'"
+    },
+    {
+      "text": "알겠어요.",
+      "ipa": "al.ge.sʌ.jo",
+      "audioUrl": "audio/reply_df9095978e6e44c096670c6f63e0fd92.mp3",
+      "notes": "Giọng nhẹ, hạ ở cuối câu"
+    },
+    {
+      "text": "괜찮아요?",
+      "ipa": "kwɛn.t͡ɕʰa.na.jo",
+      "audioUrl": "audio/reply_d22ace363d18496aa6b762f9d2cfd0e1.mp3",
+      "notes": "Giọng hỏi, cao dần cuối câu"
+    },
+    {
+      "text": "그거 정말 맛있었어요.",
+      "ipa": "kɯ.gʌ t͡ɕʌŋmal ma.ɕi.sʌ.sʌ.jo",
+      "audioUrl": "audio/reply_890eca4e593a40b29cb9f396965cb0cf.mp3",
+      "notes": "Nhấn '정말', chậm ở '맛있었어요'"
+    },
+    {
+      "text": "진짜요?",
+      "ipa": "t͡ɕin.t͡ɕ͈a.jo",
+      "audioUrl": "audio/reply_4b9796cf4b994e7c83592e02355f6cd4.mp3",
+      "notes": "Nghi vấn, ngạc nhiên, lên giọng cuối"
+    },
+    {
+      "text": "잘 지냈어요?",
+      "ipa": "t͡ɕal t͡ɕi.ne.sʌ.jo",
+      "audioUrl": "audio/reply_0006e47ed7d84972939408a54fe5552e.mp3",
+      "notes": "Giọng hỏi nhẹ nhàng"
+    },
+    {
+      "text": "뭐라고요?",
+      "ipa": "mwʌ.ɾa.go.jo",
+      "audioUrl": "audio/reply_639394e816924bc984203664d616c27a.mp3",
+      "notes": "Ngạc nhiên, cao dần cuối câu"
+    },
+    {
+      "text": "좋은 하루 보내세요.",
+      "ipa": "t͡ɕo.ɯn ha.ɾu po.ne.se.jo",
+      "audioUrl": "audio/reply_338eec14985d4b57b5e051278a043d21.mp3",
+      "notes": "Nhấn đều, ngữ điệu nhẹ nhàng"
+    },
+    {
+      "text": "어디 가요?",
+      "ipa": "ʌ.di ɡa.jo",
+      "audioUrl": "audio/reply_41ccfce323ed4995b3cf4063d0491628.mp3",
+      "notes": "Nghi vấn, giọng nhẹ nhàng"
+    },
+    {
+      "text": "이게 뭐예요?",
+      "ipa": "i.ɡe mwʌ.je.jo",
+      "audioUrl": "audio/reply_a4bba688453c40c5b9c93cfd7e012f64.mp3",
+      "notes": "Giọng hỏi, lên cao ở '뭐예요'"
+    },
+    {
+      "text": "대박!",
+      "ipa": "tɛ.baɡ",
+      "audioUrl": "audio/reply_51d62aa68faf4cf6b478e90ac796fd7f.mp3",
+      "notes": "Ngạc nhiên, nhấn mạnh"
+    },
+    {
+      "text": "피곤해 죽겠어요.",
+      "ipa": "pʰi.ɡon.hɛ tɕuɡ.kɛ.sʌ.jo",
+      "audioUrl": "audio/reply_2c433fdd743f45b591a27912de53764c.mp3",
+      "notes": "Cảm thán, nhấn '죽겠어요'"
+    },
+    {
+      "text": "늦어서 죄송해요.",
+      "ipa": "nɯ.dʑʌ.sʌ tɕwe.soŋ.he.jo",
+      "audioUrl": "audio/reply_2d09245016d54bcdb1db5769310510a3.mp3",
+      "notes": "Nhấn '죄송해요', tốc độ vừa"
+    },
+    {
+      "text": "안녕하세요?",
+      "ipa": "an.njʌ.ha.se.jo",
+      "audioUrl": "audio/reply_9b7d10535de24359bd2e22b1ccf3a5d5.mp3",
+      "notes": "Câu chào, nhẹ nhàng lên giọng"
+    },
+    {
+      "text": "잘 부탁드립니다.",
+      "ipa": "tɕal pu.tʰak.tɯ.rim.ni.da",
+      "audioUrl": "audio/reply_ac50504cfa8548f79c8c57e28e843d90.mp3",
+      "notes": "Giọng lịch sự, nhấn đều"
+    },
+    {
+      "text": "안 돼!",
+      "ipa": "an dwɛ",
+      "audioUrl": "audio/reply_da1ef2dea1b14cd2bace2ebac0a564fd.mp3",
+      "notes": "Câu phủ định mạnh, nhấn '안'"
+    },
+    {
+      "text": "정말요?",
+      "ipa": "tɕʌŋ.mal.jo",
+      "audioUrl": "audio/reply_b06568ba4bf242fb8b1899a4c31b05bb.mp3",
+      "notes": "Ngạc nhiên, giọng cao cuối"
+    },
+    {
+      "text": "아, 그래요?",
+      "ipa": "a kɯ.rɛ.jo",
+      "audioUrl": "audio/reply_31ffdb521d20414eb701f0ed90414fba.mp3",
+      "notes": "Ngạc nhiên nhẹ, lên giọng cuối"
+    },
+    {
+      "text": "어떻게 알았어요?",
+      "ipa": "ʌ.tʌ.k͈e a.ra.sʌ.jo",
+      "audioUrl": "audio/reply_f238f81e42d64bfd9c00c610fa70d00f.mp3",
+      "notes": "Giọng hỏi, lên cao ở '알았어요'"
+    },
+    {
+      "text": "헐~",
+      "ipa": "hʌl",
+      "audioUrl": "audio/reply_48c3f977712c4dae94dc71712525812b.mp3",
+      "notes": "Ngạc nhiên nhẹ, kéo dài"
+    },
+    {
+      "text": "왜 이렇게 늦었어요?",
+      "ipa": "wɛ i.rʌ.kʰe nɯ.dʌ.sʌ.jo",
+      "audioUrl": "audio/reply_de907f052c454f7d8912d98fba819186.mp3",
+      "notes": "Giọng hơi trách, nhấn '왜'"
+    },
+    {
+      "text": "진짜 맛있다!",
+      "ipa": "tɕin.t͡ɕ͈a ma.ɕit.t͈a",
+      "audioUrl": "audio/reply_7d4309ff4be2431ab36785f2d5bfab42.mp3",
+      "notes": "Cảm thán, nhấn '진짜'"
+    },
+    {
+      "text": "다행이다.",
+      "ipa": "ta.hɛ.ŋi.da",
+      "audioUrl": "audio/reply_7ae2d1987398411b98eb798edad8ae2a.mp3",
+      "notes": "Thở phào, nhẹ nhàng, hạ giọng"
+    },
+    {
+      "text": "믿을 수가 없어요.",
+      "ipa": "mi.dɯl su.ɡa ʌp.sʌ.jo",
+      "audioUrl": "audio/reply_1892c95c6f674a3dbce86bfd45f48032.mp3",
+      "notes": "Ngạc nhiên, nhấn ở '없어요'"
+    },
+    {
+      "text": "너무 귀엽다!",
+      "ipa": "nʌ.mu ɡwi.jʌp.t͈a",
+      "audioUrl": "audio/reply_5df43439b69f48f4bbccf9b43eacda5b.mp3",
+      "notes": "Cảm thán, nhấn '너무'"
+    },
+    {
+      "text": "진심으로 감사드립니다.",
+      "ipa": "tɕin.ɕi.mi.ro kam.sa.tɯ.rim.ni.da",
+      "audioUrl": "audio/reply_e341316d6b3c42db905e163b1b49b64d.mp3",
+      "notes": "Trang trọng, nhấn ở '진심'"
+    },
+    {
+      "text": "아이고, 큰일이네.",
+      "ipa": "a.i.ɡu kʰɯ.ni.ri.ne",
+      "audioUrl": "audio/reply_1b4906a01a0b49b288355c026f2eaa4b.mp3",
+      "notes": "Thở dài, hạ giọng"
+    },
+    {
+      "text": "뭐야, 진짜?",
+      "ipa": "mwʌ.ja tɕin.t͡ɕ͈a",
+      "audioUrl": "audio/reply_d254621734e540878d32abfdb929c3c9.mp3",
+      "notes": "Ngạc nhiên, nhấn '진짜'"
+    },
+    {
+      "text": "정말 미안해요.",
+      "ipa": "tɕʌŋ.mal mi.an.he.jo",
+      "audioUrl": "audio/reply_a654357a730e42a3b0a4ee161bef2a0e.mp3",
+      "notes": "Nhấn '정말', chậm rãi"
+    },
+    {
+      "text": "또 늦었어?",
+      "ipa": "t͈o nɯ.dʌ.s͈ʌ",
+      "audioUrl": "audio/reply_26c56ac1fd8a4933acd2d67d8e04c9cf.mp3",
+      "notes": "Giọng hỏi trách móc nhẹ"
+    },
+    {
+      "text": "이게 무슨 일이야?",
+      "ipa": "i.ɡe mu.sɯn i.ri.ja",
+      "audioUrl": "audio/reply_24bcf835e5fd4ec3a90faee011e09dc8.mp3",
+      "notes": "Giọng thắc mắc, lên cuối câu"
+    },
+    {
+      "text": "됐어!",
+      "ipa": "twe.s͈ʌ",
+      "audioUrl": "audio/reply_49575d04a56543359d983cce608fa838.mp3",
+      "notes": "Quyết đoán, nhấn mạnh"
+    },
+    {
+      "text": "할 수 있어!",
+      "ipa": "hal su i.s͈ʌ",
+      "audioUrl": "audio/reply_dd9af4e2b91249109ec6a1c973681ae5.mp3",
+      "notes": "Động viên, nhấn ở '수'"
+    },
+    {
+      "text": "도와주세요!",
+      "ipa": "to.wa.tɕu.se.jo",
+      "audioUrl": "audio/reply_14a97a97ac784d82ae8af6fffb345cce.mp3",
+      "notes": "Cầu cứu, nhấn '주세요'"
+    },
+    {
+      "text": "거짓말 하지 마요!",
+      "ipa": "kʌ.dʑin.mal ha.dʑi ma.jo",
+      "audioUrl": "audio/reply_d5245b44d3bc432eb75f70d5cf73ae77.mp3",
+      "notes": "Phủ định mạnh, nhấn ở '하지 마요'"
+    },
+    {
+      "text": "나중에 봐요.",
+      "ipa": "na.dʑu.ŋe pwa.jo",
+      "audioUrl": "audio/reply_a97e408098b541d285c2cad70cb4f849.mp3",
+      "notes": "Chào nhẹ nhàng"
+    },
+    {
+      "text": "기다릴게요.",
+      "ipa": "ki.da.ril.k͈e.jo",
+      "audioUrl": "audio/reply_5cb31d0253ac4a8ca5da7edcbe2a4e5f.mp3",
+      "notes": "Lời hứa, nhẹ nhàng"
+    },
+    {
+      "text": "정말 행복했어요.",
+      "ipa": "tɕʌŋ.mal hɛŋ.bo.kʰe.s͈ʌ.jo",
+      "audioUrl": "audio/reply_ef482949ebf14938965c56090295058f.mp3",
+      "notes": "Nhấn '행복', kéo dài nhẹ"
+    }
+  ]
+}

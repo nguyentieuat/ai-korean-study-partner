@@ -31,7 +31,7 @@ Thumbs.db
 # Project-specific: TTS, MFA, uploads
 ai-korean-be/main_service/static/
 ai-korean-be/main_service/log/
-ai-korean-be/mfa_service/data/
+# ai-korean-be/mfa_service/data/
 ai-korean-be/mfa_service/temp_data/
 ai-korean-be/mfa_service/output_dir/
 ai-korean-be/mfa_service/align_out/

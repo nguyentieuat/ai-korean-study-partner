@@ -1,0 +1,348 @@
+{
+  "level": 3,
+  "focus": "nối âm & biến âm",
+  "items": [
+    {
+      "text": "같이",
+      "ipa": "ka.t͡ɕʰi",
+      "audioUrl": "audio/reply_1edf6f3038e647669caa405e3c3f0b66.mp3",
+      "notes": "ㅌ + ㅣ → 치"
+    },
+    {
+      "text": "학교에",
+      "ipa": "hak̚.kjo.e",
+      "audioUrl": "audio/reply_1b13aa2758f84981a2177eaf5fa229c3.mp3",
+      "notes": "ㄱ + ㅇ → ㄲ"
+    },
+    {
+      "text": "좋아요",
+      "ipa": "t͡ɕo.a.jo",
+      "audioUrl": "audio/reply_4ec7631a1d7a4851b83345ef1dd5a132.mp3",
+      "notes": "ㅎ biến mất giữa nguyên âm"
+    },
+    {
+      "text": "싫어",
+      "ipa": "ɕi.rʌ",
+      "audioUrl": "audio/reply_7f44feed569f4ef2a37421bdd0fa4560.mp3",
+      "notes": "ㄹ + ㅎ → ㄹ"
+    },
+    {
+      "text": "막히다",
+      "ipa": "ma.kʰi.da",
+      "audioUrl": "audio/reply_7b8a164b26a34ecf8541c537f3662c27.mp3",
+      "notes": "ㄱ + ㅎ → ㅋ"
+    },
+    {
+      "text": "놓아",
+      "ipa": "nwa",
+      "audioUrl": "audio/reply_f7e5d67e53734c39bbc9488a485d14e7.mp3",
+      "notes": "ㅎ + ㅏ → kết hợp thành 놔"
+    },
+    {
+      "text": "많이",
+      "ipa": "ma.ni",
+      "audioUrl": "audio/reply_13153ba0aff44bc59d30eb72b603e6d7.mp3",
+      "notes": "ㅎ biến mất giữa nguyên âm"
+    },
+    {
+      "text": "좋은",
+      "ipa": "t͡ɕo.ɯn",
+      "audioUrl": "audio/reply_cf555d026a88451b8e740fcfb0d1d7ea.mp3",
+      "notes": "ㅎ biến mất giữa nguyên âm"
+    },
+    {
+      "text": "국물",
+      "ipa": "kuŋ.mul",
+      "audioUrl": "audio/reply_d6e649c19000472baa56ad138665ba80.mp3",
+      "notes": "ㄱ + ㅁ → ㅇ + ㅁ"
+    },
+    {
+      "text": "읽다",
+      "ipa": "ik̚.t͈a",
+      "audioUrl": "audio/reply_407fd204678744699efdbc9283fc5875.mp3",
+      "notes": "ㄹ + ㄱ + ㄷ → ㄱ đọc mạnh"
+    },
+    {
+      "text": "읽어요",
+      "ipa": "il.kʌ.jo",
+      "audioUrl": "audio/reply_f9621c7a90fd428cae2d6055c86ddc8d.mp3",
+      "notes": "ㄹ + ㄱ + ㅇ → ㄹ + ㄱ → ㄱ nối với ㅇ"
+    },
+    {
+      "text": "묻어요",
+      "ipa": "mu.dʌ.jo",
+      "audioUrl": "audio/reply_f978aac410b14574872b5eebdabd2a06.mp3",
+      "notes": "ㄷ + ㅇ → ㄷ nối sang"
+    },
+    {
+      "text": "닫아요",
+      "ipa": "ta.da.jo",
+      "audioUrl": "audio/reply_2bd37bec1ff346ef929fe62784918420.mp3",
+      "notes": "ㄷ + ㅇ → ㄷ nối sang"
+    },
+    {
+      "text": "잡아요",
+      "ipa": "t͡ɕa.ba.jo",
+      "audioUrl": "audio/reply_dd5611b66c9f4b3bbaba7fcf63b2e6db.mp3",
+      "notes": "ㅂ + ㅇ → ㅂ nối sang"
+    },
+    {
+      "text": "물어봐요",
+      "ipa": "mu.rʌ.bwa.jo",
+      "audioUrl": "audio/reply_389eb0610f2f4e658dd1b73a3ebb7cf0.mp3",
+      "notes": "ㄹ + ㅇ → ㄹ nối sang"
+    },
+    {
+      "text": "합니다",
+      "ipa": "ham.ni.da",
+      "audioUrl": "audio/reply_44abe1248b744260b249b9d87f683432.mp3",
+      "notes": "ㅂ + ㄴ → ㅁ + ㄴ"
+    },
+    {
+      "text": "읽는",
+      "ipa": "iŋ.nɯn",
+      "audioUrl": "audio/reply_75c067fb7f6c4a5c8ac9e602477cc880.mp3",
+      "notes": "ㄱ + ㄴ → ㅇ + ㄴ"
+    },
+    {
+      "text": "닫는",
+      "ipa": "dan.nɯn",
+      "audioUrl": "audio/reply_8b72d9670a9f435a96d58229aa40520e.mp3",
+      "notes": "ㄷ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "맞는",
+      "ipa": "man.nɯn",
+      "audioUrl": "audio/reply_639288a7d31f49c0b3fce348d8a695f1.mp3",
+      "notes": "ㅈ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "젊은",
+      "ipa": "t͡ɕʌl.mɯn",
+      "audioUrl": "audio/reply_31aeed56569644d9b15affd0200d1e69.mp3",
+      "notes": "ㅁ nối âm lên"
+    },
+    {
+      "text": "밟는",
+      "ipa": "pam.nɯn",
+      "audioUrl": "audio/reply_6d0bb68970e8494d9ec0bcc6a9d0069e.mp3",
+      "notes": "ㄹ + ㅂ + ㄴ → ㅂ biến thành ㅁ"
+    },
+    {
+      "text": "읽고",
+      "ipa": "il.k͈o",
+      "audioUrl": "audio/reply_e874c5ec413840dea01576938a046567.mp3",
+      "notes": "ㄹ + ㄱ + ㄱ → ㄹ đọc nhẹ, ㄱ gấp"
+    },
+    {
+      "text": "젊고",
+      "ipa": "t͡ɕʌm.k͈o",
+      "audioUrl": "audio/reply_efd45ca540de4ff6a9ba636304b7a573.mp3",
+      "notes": "ㅁ + ㄱ → ㅁ nối sang"
+    },
+    {
+      "text": "살다",
+      "ipa": "sal.da",
+      "audioUrl": "audio/reply_619cfd996d0b482ab99fa0293b577d13.mp3",
+      "notes": "ㄹ giữ nguyên"
+    },
+    {
+      "text": "알다",
+      "ipa": "al.da",
+      "audioUrl": "audio/reply_0c5689a5ecff4e37bf3dc15581be7255.mp3",
+      "notes": "ㄹ giữ nguyên"
+    },
+    {
+      "text": "이름이 뭐예요?",
+      "ipa": "i.rɯ.mi mwʌ.je.jo",
+      "audioUrl": "audio/reply_6d163f09a5f54a9897d10432e251f4ea.mp3",
+      "notes": "이 + ㅇ → 이르미"
+    },
+    {
+      "text": "어디 가요?",
+      "ipa": "ʌ.di ka.jo",
+      "audioUrl": "audio/reply_3aa3911c070d4a38a64ee7802473caf7.mp3",
+      "notes": "Không biến âm"
+    },
+    {
+      "text": "뭐 해요?",
+      "ipa": "mwʌ.hɛ.jo",
+      "audioUrl": "audio/reply_e58ba0b46a5f413289212ba28162524a.mp3",
+      "notes": "두 âm kết hợp"
+    },
+    {
+      "text": "좋게",
+      "ipa": "t͡ɕo.kʰe",
+      "audioUrl": "audio/reply_aa63f25b11f84018b1fe6e11fa62efe9.mp3",
+      "notes": "ㅎ + ㄱ → ㅋ"
+    },
+    {
+      "text": "축하해요",
+      "ipa": "t͡ɕʰu.kʰa.hɛ.jo",
+      "audioUrl": "audio/reply_31737e2675cd46dc82e4187aef21543d.mp3",
+      "notes": "ㅎ biến mất"
+    },
+    {
+      "text": "많다",
+      "ipa": "man.tʰa",
+      "audioUrl": "audio/reply_a95d51a6698b4c92a465815b8d316c01.mp3",
+      "notes": "ㄴ + ㅎ → ㄴ + ㅌ → ㅌ"
+    },
+    {
+      "text": "괜찮아요",
+      "ipa": "kwɛn.t͡ɕʰa.na.jo",
+      "audioUrl": "audio/reply_48e7cced3dad4cbaa6e36b3d6dd0206a.mp3",
+      "notes": "ㄴ + ㅎ → ㄴ + ㅊ"
+    },
+    {
+      "text": "같은",
+      "ipa": "ka.tʰɯn",
+      "audioUrl": "audio/reply_6f7ffd6ca5dc4c5ab536103f3751f75f.mp3",
+      "notes": "ㅌ + ㅡ → ㅌ nối sang"
+    },
+    {
+      "text": "붙이다",
+      "ipa": "pu.t͡ɕʰi.da",
+      "audioUrl": "audio/reply_f5406af64ea24e7396db79cb6f941ad0.mp3",
+      "notes": "ㅌ + ㅎ → ㅊ"
+    },
+    {
+      "text": "놓고",
+      "ipa": "no.kʰo",
+      "audioUrl": "audio/reply_8265ad087c7e4f5da657e72c695278cb.mp3",
+      "notes": "ㅎ + ㄱ → ㅋ"
+    },
+    {
+      "text": "앉다",
+      "ipa": "an.t͈a",
+      "audioUrl": "audio/reply_b792bde2b0d34545bc954598d6e50089.mp3",
+      "notes": "ㄴ + ㅈ + ㄷ → ㄴ + ㄷ"
+    },
+    {
+      "text": "있다",
+      "ipa": "it̚.t͈a",
+      "audioUrl": "audio/reply_86e6f0c757eb42e7a341d18226923fb7.mp3",
+      "notes": "ㅆ + ㄷ → ㄷ mạnh"
+    },
+    {
+      "text": "없다",
+      "ipa": "ʌp̚.t͈a",
+      "audioUrl": "audio/reply_15d50fa424cc4c7cbc066712dd396474.mp3",
+      "notes": "ㅂ + ㄷ → ㅂ nối sang"
+    },
+    {
+      "text": "맞다",
+      "ipa": "mat̚.t͈a",
+      "audioUrl": "audio/reply_2ea636bc4f8743a8a76a80d793804250.mp3",
+      "notes": "ㅈ + ㄷ → ㄷ nối sang"
+    },
+    {
+      "text": "앉아요",
+      "ipa": "an.d͡ʑa.jo",
+      "audioUrl": "audio/reply_7dbf8d047a5d4a7781b43972e9d519b6.mp3",
+      "notes": "ㅈ nối với ㅇ"
+    },
+    {
+      "text": "읽어요",
+      "ipa": "il.gʌ.jo",
+      "audioUrl": "audio/reply_7ff139c22b4a420dbb5fdae4801c8edb.mp3",
+      "notes": "ㄱ nối với ㅇ"
+    },
+    {
+      "text": "묻는다",
+      "ipa": "mun.nɯn.da",
+      "audioUrl": "audio/reply_18f1ba3af9b24350a548a055c3135a46.mp3",
+      "notes": "ㄷ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "답니다",
+      "ipa": "tam.ni.da",
+      "audioUrl": "audio/reply_ddcdc3372e7b48c1b41dd1b85802d072.mp3",
+      "notes": "ㅂ + ㄴ → ㅁ + ㄴ"
+    },
+    {
+      "text": "먹는",
+      "ipa": "mʌŋ.nɯn",
+      "audioUrl": "audio/reply_0ae6e39921444ef58bfe8e39510432cb.mp3",
+      "notes": "ㄱ + ㄴ → ㅇ + ㄴ"
+    },
+    {
+      "text": "씻는",
+      "ipa": "sin.nɯn",
+      "audioUrl": "audio/reply_18c256297cb24f0c909d1a06f2ff49bc.mp3",
+      "notes": "ㅅ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "짓는",
+      "ipa": "t͡ɕin.nɯn",
+      "audioUrl": "audio/reply_e6d0bbece2a64e41a977515e0b9a86ec.mp3",
+      "notes": "ㅈ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "쌓는",
+      "ipa": "san.nɯn",
+      "audioUrl": "audio/reply_b66e35707466454bb9dcc3720aedf954.mp3",
+      "notes": "ㅎ biến mất"
+    },
+    {
+      "text": "맞아요",
+      "ipa": "ma.d͡ʑa.jo",
+      "audioUrl": "audio/reply_94d70a32ddde4285bb55a4dabcadc0ea.mp3",
+      "notes": "ㅈ nối với ㅇ"
+    },
+    {
+      "text": "젖어요",
+      "ipa": "t͡ɕʌ.d͡ʑʌ.jo",
+      "audioUrl": "audio/reply_c10c63c5166642df8b67354ecf9512e1.mp3",
+      "notes": "ㅈ nối sang"
+    },
+    {
+      "text": "놨어요",
+      "ipa": "nwa.s͈ʌ.jo",
+      "audioUrl": "audio/reply_be30e6a58b8f40d18c964d95ef7b9f0b.mp3",
+      "notes": "ㅎ + ㅆ → ㅆ giữ, ㅎ biến mất"
+    },
+    {
+      "text": "왔어요",
+      "ipa": "wa.s͈ʌ.jo",
+      "audioUrl": "audio/reply_3516f98b7d684aa9a437f381137991e2.mp3",
+      "notes": "ㅎ mất, ㅆ giữ"
+    },
+    {
+      "text": "괜찮습니다",
+      "ipa": "kwɛn.t͡ɕʰam.sɯm.ni.da",
+      "audioUrl": "audio/reply_ccabcb585a7943ac8a1a0ab27a93e00b.mp3",
+      "notes": "ㅎ + ㅅ → ㅊ + ㅅ"
+    },
+    {
+      "text": "걷는",
+      "ipa": "kʌn.nɯn",
+      "audioUrl": "audio/reply_598208fc36eb486c92f0f7ac064baa85.mp3",
+      "notes": "ㄷ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "벗는",
+      "ipa": "bʌn.nɯn",
+      "audioUrl": "audio/reply_14a8de36ba604bb3b6832cf5ea162826.mp3",
+      "notes": "ㅅ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "쫓는",
+      "ipa": "t͡ɕon.nɯn",
+      "audioUrl": "audio/reply_75258fa2781c4c01a89de96c7c7e39ed.mp3",
+      "notes": "ㅊ + ㄴ → ㄴ + ㄴ"
+    },
+    {
+      "text": "잡는",
+      "ipa": "jam.nɯn",
+      "audioUrl": "audio/reply_fa8e56ffc0094e6ba323115e33c9bba3.mp3",
+      "notes": "ㅂ + ㄴ → ㅁ + ㄴ"
+    },
+    {
+      "text": "엎는",
+      "ipa": "ʌm.nɯn",
+      "audioUrl": "audio/reply_4f3cf41a9897430895e67d915bbc6b2b.mp3",
+      "notes": "ㅂ + ㄴ → ㅁ + ㄴ"
+    }
+  ]
+}

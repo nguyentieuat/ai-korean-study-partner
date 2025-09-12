@@ -1,0 +1,294 @@
+{
+  "level": 1,
+  "focus": "âm cơ bản",
+  "items": [
+    {
+      "text": "가",
+      "ipa": "ka",
+      "audioUrl": "audio/reply_642207af8d664e05a709d51b953b8ea7.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㄱ"
+    },
+    {
+      "text": "나",
+      "ipa": "na",
+      "audioUrl": "audio/reply_cf57401a814740b08b657b3ca1490f4c.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㄴ"
+    },
+    {
+      "text": "다",
+      "ipa": "ta",
+      "audioUrl": "audio/reply_f90814756dfb4ad3b9d55ece85c36f85.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㄷ"
+    },
+    {
+      "text": "라",
+      "ipa": "ɾa",
+      "audioUrl": "audio/reply_94355f2b11f24a08a2af570a801be223.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㄹ"
+    },
+    {
+      "text": "마",
+      "ipa": "ma",
+      "audioUrl": "audio/reply_c742b27eb38e415c93e011579860793a.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㅁ"
+    },
+    {
+      "text": "바",
+      "ipa": "pa",
+      "audioUrl": "audio/reply_9773165ed60e4987b93805c6e5cacc8e.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㅂ"
+    },
+    {
+      "text": "사",
+      "ipa": "sa",
+      "audioUrl": "audio/reply_a107e2e842974e9cbe47581a361593fd.mp3",
+      "notes": "ㅏ âm mở, phụ âm ㅅ"
+    },
+    {
+      "text": "거",
+      "ipa": "kʌ",
+      "audioUrl": "audio/reply_405ee2f3bea74e87ac0789f0462ff026.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㄱ"
+    },
+    {
+      "text": "너",
+      "ipa": "nʌ",
+      "audioUrl": "audio/reply_4a258e0d4aa940adb8004ed4feab6f40.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㄴ"
+    },
+    {
+      "text": "더",
+      "ipa": "tʌ",
+      "audioUrl": "audio/reply_c43cb057f9b741159dba0f005b3c5ba7.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㄷ"
+    },
+    {
+      "text": "러",
+      "ipa": "ɾʌ",
+      "audioUrl": "audio/reply_d3ef557814794513a61cfeda58cd4658.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㄹ"
+    },
+    {
+      "text": "머",
+      "ipa": "mʌ",
+      "audioUrl": "audio/reply_7ffba02f1f394bf1a007f795e6a5b001.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㅁ"
+    },
+    {
+      "text": "버",
+      "ipa": "pʌ",
+      "audioUrl": "audio/reply_0dd865e0c1564bf481f67eb99193e9d7.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㅂ"
+    },
+    {
+      "text": "서",
+      "ipa": "sʌ",
+      "audioUrl": "audio/reply_29596bffaba842bbab02054a39c2542e.mp3",
+      "notes": "ㅓ âm mở miệng, phụ âm ㅅ"
+    },
+    {
+      "text": "고",
+      "ipa": "ko",
+      "audioUrl": "audio/reply_edd434f2901e451483d5d646db25d174.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㄱ"
+    },
+    {
+      "text": "노",
+      "ipa": "no",
+      "audioUrl": "audio/reply_7f37aa7b117d4d81a392d44162e9b02a.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㄴ"
+    },
+    {
+      "text": "도",
+      "ipa": "to",
+      "audioUrl": "audio/reply_1049b378c7db44b69609d1449ed9738d.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㄷ"
+    },
+    {
+      "text": "로",
+      "ipa": "ɾo",
+      "audioUrl": "audio/reply_e4ac8d22017d4f5ba0c9403b231fc9bb.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㄹ"
+    },
+    {
+      "text": "모",
+      "ipa": "mo",
+      "audioUrl": "audio/reply_285801a6b0c24f8ea6a5eae6dd1e0c69.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㅁ"
+    },
+    {
+      "text": "보",
+      "ipa": "po",
+      "audioUrl": "audio/reply_424376ca8f4741f0815c11b60302b6c2.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㅂ"
+    },
+    {
+      "text": "소",
+      "ipa": "so",
+      "audioUrl": "audio/reply_3c546f0f32074dc5b5b80e97fbc41f8e.mp3",
+      "notes": "ㅗ âm tròn môi, phụ âm ㅅ"
+    },
+    {
+      "text": "구",
+      "ipa": "ku",
+      "audioUrl": "audio/reply_305d55054d844c29a4b8489497893ee8.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㄱ"
+    },
+    {
+      "text": "누",
+      "ipa": "nu",
+      "audioUrl": "audio/reply_b875bbd8c0c14fc8ad76edbd70cc92a2.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㄴ"
+    },
+    {
+      "text": "두",
+      "ipa": "tu",
+      "audioUrl": "audio/reply_9ac44c72627d42eea4b7c3edd993c451.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㄷ"
+    },
+    {
+      "text": "루",
+      "ipa": "ɾu",
+      "audioUrl": "audio/reply_bc6e01ecba2f49d39848b3d6cfd00a6e.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㄹ"
+    },
+    {
+      "text": "무",
+      "ipa": "mu",
+      "audioUrl": "audio/reply_9f2ce9ce9bfa4ddda4e700e13110cd54.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㅁ"
+    },
+    {
+      "text": "부",
+      "ipa": "pu",
+      "audioUrl": "audio/reply_455260ca76754823ae11352a6f71c19a.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㅂ"
+    },
+    {
+      "text": "수",
+      "ipa": "su",
+      "audioUrl": "audio/reply_2948cbd3a6c04f5192242a7d48236f03.mp3",
+      "notes": "ㅜ âm tròn môi sâu, phụ âm ㅅ"
+    },
+    {
+      "text": "그",
+      "ipa": "kɯ",
+      "audioUrl": "audio/reply_78474de1f6614f4c831f8f45b883dd97.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㄱ"
+    },
+    {
+      "text": "느",
+      "ipa": "nɯ",
+      "audioUrl": "audio/reply_375b9bd5733e4f248ea75d5e7c751f6d.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㄴ"
+    },
+    {
+      "text": "드",
+      "ipa": "tɯ",
+      "audioUrl": "audio/reply_16f26e933b83464ba5372da02c95e7c7.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㄷ"
+    },
+    {
+      "text": "르",
+      "ipa": "ɾɯ",
+      "audioUrl": "audio/reply_b64c411eec934959b3bf499afb1841b9.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㄹ"
+    },
+    {
+      "text": "므",
+      "ipa": "mɯ",
+      "audioUrl": "audio/reply_7380c726cbdf47ae91a470156bc3ba00.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㅁ"
+    },
+    {
+      "text": "브",
+      "ipa": "pɯ",
+      "audioUrl": "audio/reply_0f07734ac66f41d095f6a896bfda3c5a.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㅂ"
+    },
+    {
+      "text": "스",
+      "ipa": "sɯ",
+      "audioUrl": "audio/reply_065ebe8b65cc4e9e97f2a510c944c88c.mp3",
+      "notes": "ㅡ âm lưỡi giữa, phụ âm ㅅ"
+    },
+    {
+      "text": "기",
+      "ipa": "ki",
+      "audioUrl": "audio/reply_d07972216efd4ac79163889a2205e0b5.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㄱ"
+    },
+    {
+      "text": "니",
+      "ipa": "ni",
+      "audioUrl": "audio/reply_c99b8f93e42a4a8cacd588be1d395349.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㄴ"
+    },
+    {
+      "text": "디",
+      "ipa": "ti",
+      "audioUrl": "audio/reply_ef8446a922a149f78e99ffc4bee9104d.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㄷ"
+    },
+    {
+      "text": "리",
+      "ipa": "ɾi",
+      "audioUrl": "audio/reply_8b78b97ef9dd4c2aab8a7f266b50a335.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㄹ"
+    },
+    {
+      "text": "미",
+      "ipa": "mi",
+      "audioUrl": "audio/reply_a351d77061714a76bd99e216cc7e9330.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㅁ"
+    },
+    {
+      "text": "비",
+      "ipa": "pi",
+      "audioUrl": "audio/reply_98a505a7a63f4665b1a5c28895f755b6.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㅂ"
+    },
+    {
+      "text": "시",
+      "ipa": "si",
+      "audioUrl": "audio/reply_7833c29264e94302bdeab8985a25dc4a.mp3",
+      "notes": "ㅣ âm cao, phụ âm ㅅ"
+    },
+    {
+      "text": "아",
+      "ipa": "a",
+      "audioUrl": "audio/reply_fe5831494523489a806020160226f89e.mp3",
+      "notes": "nguyên âm đơn, không phụ âm đầu"
+    },
+    {
+      "text": "어",
+      "ipa": "ʌ",
+      "audioUrl": "audio/reply_bd93969cf9d148a9b2c0fa37f742dbe0.mp3",
+      "notes": "nguyên âm đơn, không phụ âm đầu"
+    },
+    {
+      "text": "오",
+      "ipa": "o",
+      "audioUrl": "audio/reply_7acff551af974f72bd2835023677582e.mp3",
+      "notes": "nguyên âm đơn, không phụ âm đầu"
+    },
+    {
+      "text": "우",
+      "ipa": "u",
+      "audioUrl": "audio/reply_5a9d5c24963d463aae0c42b5de0d1cdd.mp3",
+      "notes": "nguyên âm đơn, không phụ âm đầu"
+    },
+    {
+      "text": "으",
+      "ipa": "ɯ",
+      "audioUrl": "audio/reply_07184bdc5393411cba0823a9110ba0c9.mp3",
+      "notes": "nguyên âm đơn, không phụ âm đầu"
+    },
+    {
+      "text": "이",
+      "ipa": "i",
+      "audioUrl": "audio/reply_20698bff42e44d75b1c983477fe7cca1.mp3",
+      "notes": "nguyên âm đơn, không phụ âm đầu"
+    }
+  ]
+}
