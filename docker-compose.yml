@@ -139,9 +139,10 @@ services:
 
   frontend:
     build:
-      context: ./ai-korean-fe/frontend
+      context: ./ai-korean-fe
       args:
-        # build-time Vite endpoint cho FE gọi API qua gateway (sản xuất)
-        VITE_API_URL=http://localhost:5000
+        VITE_API_URL: "http://<IP_VM>:5000"   # <-- phải là key: value
     restart: always
     networks: [web]
+    ports:
+      - "3000:80"    # nếu image FE serve bằng nginx trên cổng 80
