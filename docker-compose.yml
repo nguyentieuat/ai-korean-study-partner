@@ -151,7 +151,7 @@ services:
     build:
       context: ./ai-korean-fe
       args:
-        VITE_API_URL: "http://35.215.129.189:5000"   # <-- phải là key: value
+        VITE_API_URL: "https://6af926a10b96.ngrok-free.app:5000"   # <-- phải là key: value
     restart: always
     networks: [web]
     ports:
