@@ -1,3 +1,10 @@
+fastapi
+uvicorn[standard]
+httpx>=0.27        # gọi dịch vụ con, async
+python-dotenv      # load .env
+python-multipart
+
+
 numpy>=1.24,<2.1
 numba<0.60
 scipy>=1.11,<1.14
@@ -7,6 +14,4 @@ Cython>=0.29.36
 soundfile>=0.12
 edge-tts
 soundfile
-flask 
-flask-cors
 pydub

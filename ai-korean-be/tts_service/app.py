@@ -1,20 +1,38 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-# from api_evaluateMFAW2V import evaluateMFAW2V_bp
-from api_vitsTTS import vitsTTS_bp
+# app.py (FastAPI)
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+import httpx
 
-app = Flask(__name__, static_url_path='/static')
-CORS(app)  # Cho phép mọi origin truy cập
+from api_tts import router as tts_router
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # HTTP client shared (keep-alive), không đặt timeout để phù hợp file dài
+    app.state.http = httpx.AsyncClient(timeout=None, follow_redirects=True)
+    yield
+    await app.state.http.aclose()
 
-# app.register_blueprint(evaluateMFAW2V_bp)
-app.register_blueprint(vitsTTS_bp)
+app = FastAPI(title="Main Orchestrator", lifespan=lifespan)
 
-# Health check endpoint cho ELB
-@app.route('/health', methods=['GET'])
+# CORS mở (chỉnh lại khi lên prod)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], allow_credentials=True,
+    allow_methods=["*"], allow_headers=["*"],
+)
+
+# Routers
+app.include_router(tts_router)
+
+@app.get("/health")
 def health_check():
-    return jsonify({"status": "ok"}), 200
+    return {"status": "ok"}
+
 
 if __name__ == '__main__':
-    # Chạy ASR service ở cổng 5004
-    app.run(host='0.0.0.0', port=5004, debug=True)
+    # Chạy main service ở cổng 5004
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=5004, reload=True)
