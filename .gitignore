@@ -35,4 +35,4 @@ ai-korean-be/main_service/log/
 ai-korean-be/mfa_service/temp_data/
 ai-korean-be/mfa_service/output_dir/
 ai-korean-be/mfa_service/align_out/
-ai-korean-be/mfa_service/korean_mfa.zip
+# ai-korean-be/mfa_service/korean_mfa.zip
