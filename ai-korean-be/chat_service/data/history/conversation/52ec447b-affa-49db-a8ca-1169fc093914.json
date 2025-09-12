@@ -1,0 +1,30 @@
+[
+  {
+    "role": "user",
+    "message": "아냥"
+  },
+  {
+    "role": "user",
+    "message": "아냥"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 어떻게 지내세요?"
+  },
+  {
+    "role": "user",
+    "message": "안녕하"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 오늘은 어떤 하루를 보내고 계신가요?"
+  },
+  {
+    "role": "user",
+    "content": "녕하세요"
+  },
+  {
+    "role": "assistant",
+    "content": "안녕하세요! 반가워요. 오늘은 어떤 이야기를 나눠볼까요?"
+  }
+]

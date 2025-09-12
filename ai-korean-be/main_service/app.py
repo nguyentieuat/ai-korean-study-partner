@@ -21,21 +21,23 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Main Orchestrator", lifespan=lifespan)
 
 # CORS mở (chỉnh lại khi lên prod)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"], allow_credentials=True,
-#     allow_methods=["*"], allow_headers=["*"],
-# )
-
-FRONTEND_ORIGIN = "http://35.215.129.189:3000"  
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN],  
+    allow_origins=["*"],  
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=False,  
 )
+
+# FRONTEND_ORIGIN = "http://35.215.129.189:3000"  
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=[FRONTEND_ORIGIN],  
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+#     allow_credentials=False,  
+# )
 
 # Static /static/*
 os.makedirs("static", exist_ok=True)

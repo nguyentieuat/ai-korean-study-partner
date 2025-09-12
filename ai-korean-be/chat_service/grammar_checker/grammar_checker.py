@@ -1,91 +1,180 @@
-import os
-import requests
-import difflib
-import re
+import os, json, time
+import requests, difflib, re
 from dotenv import load_dotenv
 
-# === CONFIG ===
 load_dotenv()
-API_KEY = os.getenv("OPENROUTER_API_KEY") 
-MODEL = "openai/gpt-3.5-turbo"  # Hoặc dùng llama3 như: "meta-llama/llama-3-70b-instruct"
 
-# === HÀM CHÍNH ===
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+
+# Thứ tự fallback: ưu tiên model open-source/hỗ trợ rộng rãi để tránh lỗi region
+MODEL_CANDIDATES = [
+    os.getenv("GRAMMAR_MODEL", "").strip() or "meta-llama/llama-3-8b-instruct",
+    "meta-llama/llama-3-70b-instruct",
+    "google/gemma-2-9b-it",
+    "mistralai/mixtral-8x7b-instruct",
+    "openai/gpt-3.5-turbo",   # để cuối cùng (có thể bị chặn theo khu vực)
+]
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+# ---------- helpers ----------
+def _normalize(text: str) -> str:
+    return re.sub(r'[.!?…]+$', '', (text or "").strip())
+
+def _highlight_changes(original: str, corrected: str) -> str:
+    end_punct_pattern = r"[.?!…]$"
+    original_core = re.sub(end_punct_pattern, "", original or "")
+    corrected_core = re.sub(end_punct_pattern, "", corrected or "")
+
+    sm = difflib.SequenceMatcher(None, original_core, corrected_core)
+    result = []
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == 'equal':
+            result.append(corrected_core[j1:j2])
+        elif tag in ('replace', 'insert'):
+            result.append(f'<span class="highlight">{corrected_core[j1:j2]}</span>')
+        # delete -> bỏ qua
+    end_punct = corrected[-1] if re.search(end_punct_pattern, corrected or "") else ""
+    return "".join(result) + end_punct
+
+def _extract_text_from_choices(result: dict) -> str:
+    """
+    Cố gắng trích nội dung trả về từ nhiều định dạng khác nhau.
+    """
+    try:
+        choices = result.get("choices") or []
+        if not choices:
+            return ""
+        msg = choices[0].get("message") or {}
+        content = msg.get("content")
+        if isinstance(content, str):
+            return content
+        # Một số model trả dạng list-of-parts
+        if isinstance(content, list):
+            return "".join(part.get("text", "") for part in content if isinstance(part, dict))
+    except Exception:
+        pass
+    return ""
+
+def _split_correction_and_explain(text: str):
+    """
+    Cố gắng tách câu sửa và phần giải thích.
+    Kịch bản thường thấy: dòng đầu là câu sửa, các dòng dưới là giải thích.
+    Nếu model trả theo định dạng khác thì fallback hợp lý.
+    """
+    t = (text or "").strip()
+    if not t:
+        return "", ""
+    lines = [ln.strip() for ln in t.splitlines() if ln.strip()]
+    # Thử bắt pattern kiểu "수정문: ..." hoặc "Corrected: ...":
+    m = re.search(r"(수정|교정|Corrected)\s*[:：]\s*(.+)", t, flags=re.I)
+    if m:
+        corrected = m.group(2).strip()
+        # phần còn lại (trừ dòng bắt được) là giải thích
+        explain = re.sub(re.escape(m.group(0)), "", t, count=1).strip()
+        return corrected, explain
+
+    # Nếu không match, lấy dòng đầu là câu sửa, phần sau là giải thích
+    corrected = lines[0]
+    explain = "\n".join(lines[1:]) if len(lines) > 1 else ""
+    # Loại bỏ prefix "수정:" nếu có
+    corrected = re.sub(r"^.*?:\s*", "", corrected).strip()
+    return corrected, explain
+
+# ---------- main ----------
 def check_grammar(text: str) -> dict:
-    print(f"[INFO] Checking grammar for text: {text}")
+    if not text or not text.strip():
+        return {"ok": False, "error": "empty_text"}
+
+    if not OPENROUTER_API_KEY:
+        # Không có key -> trả ok=False nhưng không crash
+        return {"ok": False, "error": "missing_OPENROUTER_API_KEY"}
+
     prompt = (
-        "아래 문장에서 문법, 철자 오류가 있다면 수정해 주세요. "
-        "수정한 문장을 먼저 출력하고, 어떤 부분이 왜 수정되었는지 간단히 설명해 주세요.\n"
+        "다음 한국어 문장에 문법/철자 오류가 있으면 자연스럽게 수정해 주세요.\n"
+        "첫 줄에 '수정문: <수정된 문장>'만 출력하고, 이어서 간단한 이유를 한두 줄로 설명하세요.\n"
         f"문장: {text}"
     )
 
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        # Khuyến nghị của OpenRouter (không bắt buộc, nhưng tốt cho QoS):
+        # "HTTP-Referer": "http://your.site", 
+        # "X-Title": "AI Korean Study Partner",
     }
 
-    data = {
-        "model": MODEL,
+    data_template = {
         "messages": [
             {"role": "system", "content": "당신은 한국어 교사입니다."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ]
     }
 
-    response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
-    result = response.json()
-    print(f"[INFO] Grammar check response: {result}")
+    # Retry nhẹ mỗi model
+    for model in MODEL_CANDIDATES:
+        if not model:
+            continue
+        data = dict(data_template)
+        data["model"] = model
 
-    if "choices" not in result:
-        return {"error": result.get("error", "Unknown error")}
+        for attempt in range(2):  # tối đa 2 lần/mô hình
+            try:
+                resp = requests.post(
+                    OPENROUTER_URL, headers=headers, json=data,
+                    timeout=(10, 30)  # 10s connect, 30s read
+                )
+                # Nếu HTTP status không 2xx -> trả lỗi cụ thể
+                if resp.status_code // 100 != 2:
+                    try:
+                        j = resp.json()
+                        err_str = json.dumps(j.get("error", j), ensure_ascii=False)
+                    except Exception:
+                        err_str = f"HTTP {resp.status_code}: {resp.text[:200]}"
+                    # Với 403 region… -> thử model tiếp theo
+                    if resp.status_code in (401, 403, 429, 503):
+                        break
+                    else:
+                        # lỗi khác -> cũng thử model tiếp theo
+                        break
 
-    content = result["choices"][0]["message"]["content"]
-    lines = content.strip().split('\n')
-    corrected = re.sub(r"^.*?:\s*", "", lines[0]).strip()
-    explanation = "\n".join(lines[1:]).strip()
+                result = resp.json()
+                content = _extract_text_from_choices(result)
+                if not content:
+                    # nếu không có choices -> thử model tiếp theo
+                    break
 
-    if normalize(corrected) == normalize(text):
-        return {
-            "original": text,
-            "corrected": "",
-            "highlighted": "",
-            "explanation": "문법이나 철자 오류가 없습니다."
-        }
+                corrected, explanation = _split_correction_and_explain(content)
 
-    highlighted = highlight_changes(text, corrected)
+                # Nếu model “không sửa” gì
+                if _normalize(corrected) == _normalize(text):
+                    return {
+                        "ok": True,
+                        "original": text,
+                        "corrected": "",
+                        "highlighted": "",
+                        "explanation": "문법이나 철자 오류가 없습니다."
+                    }
 
-    return {
-        "original": text,
-        "corrected": corrected,
-        "highlighted": highlighted,
-        "explanation": explanation
-    }
+                highlighted = _highlight_changes(text, corrected)
+                return {
+                    "ok": True,
+                    "original": text,
+                    "corrected": corrected,
+                    "highlighted": highlighted,
+                    "explanation": explanation,
+                    "model_used": model
+                }
 
+            except requests.Timeout:
+                # thử lại 1 lần, rồi chuyển model
+                if attempt == 0:
+                    time.sleep(0.5)
+                    continue
+                break
+            except Exception as e:
+                # Lỗi mạng/parse… chuyển model tiếp
+                break
 
-# === HÀM PHỤ: Tô màu phần thay đổi ===
-def highlight_changes(original, corrected):
-    """
-    Highlight các cụm từ khác biệt (không bao gồm dấu chấm cuối câu).
-    """
-    # Loại bỏ dấu chấm kết câu tạm thời để không detect
-    end_punct_pattern = r"[.?!…]$"
-    original_core = re.sub(end_punct_pattern, "", original)
-    corrected_core = re.sub(end_punct_pattern, "", corrected)
-
-    # Dùng SequenceMatcher để tìm đoạn khác nhau
-    sm = difflib.SequenceMatcher(None, original_core, corrected_core)
-    result = ""
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        if tag == 'equal':
-            result += corrected_core[j1:j2]
-        elif tag == 'replace' or tag == 'insert':
-            result += f'<span class="highlight">{corrected_core[j1:j2]}</span>'
-        # Xóa không cần thêm gì
-
-    # Lấy lại dấu kết câu (nếu có) từ corrected
-    end_punct = corrected[-1] if re.search(end_punct_pattern, corrected) else ""
-
-    return result + end_punct
-
-
-def normalize(text):
-    return re.sub(r'[.!?…]+$', '', text.strip())
+    # Nếu đến đây tức tất cả model đều fail
+    return {"ok": False, "error": "all_models_failed_or_region_blocked"}
