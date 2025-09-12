@@ -1,4 +1,4 @@
-# w2v2_forced_aligner/w2v2_forced_scoring.py
+# w2v2_forced_aligner/w2v2_forced_scoring.py 
 import os
 import logging
 from functools import lru_cache
@@ -83,6 +83,7 @@ ALIAS_CANON: Dict[str, str] = {
     "e̞": "e", "o̞": "o", "ɐ": "a", "ɫ": "l",
     "ɾ̚": "ɾ",
 }
+
 def _canon(ph: str) -> str:
     return ALIAS_CANON.get(ph, ph)
 
@@ -115,10 +116,16 @@ def estimate_char_confidences_from_energy(
     sr_target: int = TARGET_SR,
     frame_ms: float = 20.0,
     hop_ms: float = 10.0,
-    vad_lo_q: float = 0.15,      # ngưỡng VAD = phân vị 15% log-RMS
-    voiced_q: float = 0.35,      # khung được coi là "voiced" nếu > phân vị 35% (trong vùng thoại)
-    edge_comp: float = 0.97,     # bù mép cho ký tự đầu/cuối
-    smooth_win: int = 3,         # làm mượt confidence cuối cùng
+    vad_lo_q: float = 0.15,      # ngưỡng VAD (lọc im lặng)
+    # SOFT-VOICED thay vì nhị phân: dùng 2 phân vị để chuẩn hoá mềm
+    soft_q_lo: float = 0.2,
+    soft_q_hi: float = 0.8,
+    # Đệm đầu/cuối vùng thoại (giảm "tụt" âm đầu/cuối)
+    lead_pad_ms: float = 200.0,
+    tail_pad_ms: float = 100.0,
+    edge_comp: float = 1.0,      # bỏ phạt mép
+    smooth_win: int = 7,         # mượt hơn
+
 ) -> List[float]:
     import numpy as np
     import torchaudio
@@ -150,14 +157,22 @@ def estimate_char_confidences_from_energy(
     idx = np.where(log_rms > thr_vad)[0]
     if idx.size == 0:
         return [0.0] * Nchar
+    # MỞ RỘNG vùng thoại về trái/phải để bảo vệ âm đầu/cuối
     i0, i1 = int(idx[0]), int(idx[-1]) + 1
-    log_rms = log_rms[i0:i1]
+    hop = max(1, int(round(hop_ms * sr / 1000.0)))
+    lead = max(0, int(round(lead_pad_ms * sr / 1000.0 / hop)))
+    tail = max(0, int(round(tail_pad_ms * sr / 1000.0 / hop)))
+    s = max(0, i0 - lead)
+    e = min(len(log_rms), i1 + tail)
+    log_rms = log_rms[s:e]
     if log_rms.size < Nchar:
         return [0.0] * Nchar
 
-    # Chuẩn hoá trong vùng thoại + nhị phân voiced theo phân vị
-    thr_voiced = np.quantile(log_rms, voiced_q)
-    voiced = (log_rms > thr_voiced).astype(np.float32)   # 0/1 theo “có nói” chứ không theo độ to
+    # SOFT-VOICED: scale 0..1 giữa 2 phân vị
+    lo = np.quantile(log_rms, soft_q_lo)
+    hi = np.quantile(log_rms, soft_q_hi)
+    denom = max(1e-6, (hi - lo))
+    voiced = np.clip((log_rms - lo) / denom, 0.0, 1.0).astype(np.float32)
 
     # Chia đều thời gian vùng thoại theo số ký tự
     F = len(log_rms)
@@ -167,7 +182,7 @@ def estimate_char_confidences_from_energy(
         bounds.append(int(round(k * per)))
     bounds.append(F)
 
-    # Confidence = tỉ lệ khung voiced trong span (không phụ thuộc biên độ)
+    # Confidence = trung bình voiced trong span
     confs = []
     for k in range(Nchar):
         a, b = bounds[k], bounds[k+1]
@@ -177,7 +192,7 @@ def estimate_char_confidences_from_energy(
             frac = float(voiced[a:b].mean())
             confs.append(frac)
 
-    # Bù mép để giảm “đội” đầu/cuối + làm mượt nhẹ
+    # Bù mép + làm mượt
     if Nchar >= 1:
         confs[0] *= edge_comp
         confs[-1] *= edge_comp
@@ -185,10 +200,19 @@ def estimate_char_confidences_from_energy(
         k = np.ones(smooth_win, dtype=np.float32) / smooth_win
         confs = list(np.convolve(np.array(confs, dtype=np.float32), k, mode="same"))
 
-    # Chuẩn hoá 0..1 nhẹ nhàng (đảm bảo không all-zero nếu có tiếng nói)
-    low = float(voiced_q)          # vd 0.35
-    confs = [float(np.clip((c - low) / max(1e-6, 1.0 - low), 0.0, 1.0)) for c in confs]
+    # Gamma-compress + dynamic blend nếu mean thấp + boost nhẹ 2 ký tự đầu
+    confs = np.asarray(confs, dtype=np.float32)
+    confs = np.clip(confs, 0.0, 1.0) ** 0.6
 
+    m = float(confs.mean()) if confs.size else 0.0
+    beta = float(np.clip((0.68 - m) / 0.20, 0.0, 0.6))  # chỉ blend khi mean thấp
+    if beta > 0.0:
+        confs = (1.0 - beta) * confs + beta * 0.7
+
+    if confs.size >= 1: confs[0] = min(1.0, confs[0] + 0.05)
+    if confs.size >= 2: confs[1] = min(1.0, confs[1] + 0.03)
+
+    confs = np.clip(confs, 0.0, 1.0).astype(np.float32).tolist()
     return confs
 
 # ============ 3) Load TextGrid (phones) ============
@@ -206,6 +230,7 @@ def _pick_phone_tier(tg: TextGrid):
     return None
 
 _DROP_LABELS = {"", "sp", "sil", "spn", "pau", "ns", "breath", "noise"}
+
 def load_alignment(textgrid_path: str) -> List[Dict[str, Any]]:
     tg = TextGrid()
     tg.read(textgrid_path)
@@ -422,8 +447,8 @@ def score_pronunciation(
                     })
                 cur = lab
                 cur_ph, cur_sc, cur_adv = [], [], []
-            cur_ph.append(d["phoneme"])
-            cur_sc.append(d["score"])
+            cur_ph.append(d["phoneme"]) 
+            cur_sc.append(d["score"]) 
             cur_adv.extend(d.get("advice") or [])
         if cur_ph:
             avg_c = float(np.mean(cur_sc)) if cur_sc else 0.0
@@ -503,6 +528,7 @@ def _build_duration_priors_from_ref_tg(
             priors.append([x / total for x in local])
     return priors
 
+
 def _default_phone_weights(phones: List[str]) -> List[float]:
     if not phones:
         return []
@@ -516,6 +542,7 @@ def _default_phone_weights(phones: List[str]) -> List[float]:
             vals.append(1.0)
     s = sum(vals)
     return [v / s for v in vals]
+
 
 def score_pronunciation_forced(
     vectors_user: List[Dict[str, Any]],
@@ -541,7 +568,6 @@ def score_pronunciation_forced(
     total_sec = max(total_sec, 1e-3)
 
     # Char confidences: nếu không có, fallback = 0.7 (giữ backward-compat)
-    # => Khuyến nghị: TỪ API hãy truyền chính xác bằng estimate_char_confidences_from_energy(...)
     ref_chars = [c for c in reference_text] or [" "]
     if char_confidences is None or len(char_confidences) < len(ref_chars):
         fill = [0.7] * len(ref_chars)
@@ -581,6 +607,7 @@ def score_pronunciation_forced(
     details: List[Dict[str, Any]] = []
     by_chunk: List[Dict[str, Any]] = []
     prev_ph_global = None
+    first_syllable_boost = 0.06  # cộng nhẹ vào raw score âm tiết đầu
 
     for idx, ((label, phs), (_ch, st, en, p_syl)) in enumerate(zip(ref_chunks, syl_spans)):
         phs_canon = [_canon(p) for p in phs]
@@ -601,10 +628,13 @@ def score_pronunciation_forced(
             next_ph = phs_canon[i+1] if (i+1) < len(phs_canon) else None
             pos = _estimate_position(ph, prev_ph_global, next_ph)
 
-            w_pos = 1.0 if pos == "nucleus" else (0.9 if pos == "onset" else 0.85)
+            # Phạt vị trí nhẹ (ổn định hơn so với 1.0/1.0/1.0)
+            w_pos = 1.0 if pos == "nucleus" else (0.97 if pos == "onset" else 0.94)
             raw = float(np.clip(p_syl, 0.0, 1.0)) * w_pos
+            if idx == 0:
+                raw = min(1.0, raw + first_syllable_boost)  # bù nhẹ âm tiết đầu
 
-            # GATE thiếu âm
+            # GATE thiếu âm (dựa trên p_syl thô)
             missing = p_syl < missing_threshold
             score = 0.0 if missing else float(max(min_score_floor, min(1.0, raw)))
 

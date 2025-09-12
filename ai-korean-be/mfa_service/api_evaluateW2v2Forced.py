@@ -1,4 +1,4 @@
-# api_evaluateW2v2Forced.py
+# api_evaluateW2v2Forced.py 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from pydub import AudioSegment
@@ -7,6 +7,8 @@ from tempfile import TemporaryDirectory
 import uuid
 import traceback
 import torch
+import os
+import re, unicodedata
 
 # W2V2 forced scoring (không cần TG user)
 from w2v2_forced_aligner.w2v2_forced_scoring import (
@@ -37,6 +39,15 @@ router = APIRouter(prefix="/api", tags=["evaluate-W2V2-Forced"])
 async def _warmup_models():
     init_w2v2()  # idempotent
 
+
+def _normalize_korean_text(s: str) -> str:
+    """Giữ Hangul + khoảng trắng, loại dấu câu/ký tự khác để không lệch số ký tự."""
+    s = unicodedata.normalize("NFC", s).strip()
+    s = re.sub(r"[^\uAC00-\uD7A3\s]", "", s)
+    s = re.sub(r"\s+", " ", s)
+    return s
+
+
 @router.post("/evaluate-w2v2-forced")
 def evaluate_pronunciation_forced(
     text: str = Form(...),
@@ -53,7 +64,7 @@ def evaluate_pronunciation_forced(
             session_dir = Path(tmpdir)
             wav_path = session_dir / "sample.wav"
 
-            # 1) Chuẩn hoá WAV 16k mono
+            # 1) Chuẩn hoá WAV 16k mono từ file user upload
             raw_bytes = audio.file.read()
             if not raw_bytes:
                 raise HTTPException(status_code=400, detail="File audio rỗng")
@@ -66,7 +77,7 @@ def evaluate_pronunciation_forced(
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Lỗi xử lý audio: {e}")
 
-            # 2) Lấy total duration (đồng thời warm model lần nữa nếu cần)
+            # 2) Extract features để lấy tổng thời lượng
             feats, sr_user, total_sec = extract_features(str(wav_path))
 
             # vectors_user tối thiểu (chỉ để truyền duration/schema)
@@ -78,12 +89,15 @@ def evaluate_pronunciation_forced(
                 "end": float(total_sec),
             }]
 
-            # 3) Ước lượng char_confidences theo năng lượng (RMS)
-            char_confs = estimate_char_confidences_from_energy(str(wav_path), text)
+            # Chuẩn hoá text cho năng lượng & G2P; vẫn giữ text gốc cho lookup REF & trả JSON
+            text_norm = _normalize_korean_text(text)
 
-            # 4) Optional: TextGrid REF (nếu có) → priors
+            # 3) Ước lượng char_confidences theo năng lượng (RMS/soft-voiced + pad)
+            char_confs = estimate_char_confidences_from_energy(str(wav_path), text_norm)
+
+            # 4) Optional: TextGrid REF (nếu có) → priors (ưu tiên text gốc để khớp key mapping)
             ref_tg_path = None
-            ref_paths = get_paths_by_text(text)
+            ref_paths = get_paths_by_text(text) or get_paths_by_text(text_norm)
             if ref_paths:
                 _ref_wav, _ref_tg = ref_paths
                 if _ref_tg and Path(_ref_tg).exists():
@@ -94,23 +108,23 @@ def evaluate_pronunciation_forced(
                 mfa_dict = load_mfa_dict(MFA_DICT_PATH)
             except Exception:
                 mfa_dict = {}
-            ref_chunks, notes = text_to_phonemes_mfa(text, mfa_dict, return_by_word=True)
+            ref_chunks, notes = text_to_phonemes_mfa(text_norm, mfa_dict, return_by_word=True)
 
             # 6) Chấm điểm (chunk-aware, priors nếu có, GATE im lặng bằng char_confs)
             scoring = score_pronunciation_forced(
                 vectors_user=vectors_user,
-                reference_text=text,
+                reference_text=text_norm,  # dùng chuỗi clean để chia syllable đều
                 ref_chunks=ref_chunks,
                 ref_textgrid_path=str(ref_tg_path) if ref_tg_path else None,
-                char_confidences=char_confs,                # <<<<<<<<<< key: im lặng -> 0
-                missing_threshold=0.05,     # ↑
-                min_score_floor=0.0,        # giữ 0.0: thiếu => 0 điểm
+                char_confidences=char_confs,                # im lặng -> 0 theo missing_threshold
+                missing_threshold=0.02,
+                min_score_floor=0.20,
                 advice_threshold=0.80,
             )
 
             return JSONResponse({
                 "notes": notes,
-                "text": text,
+                "text": text,  # trả câu gốc
                 **scoring
             })
 
