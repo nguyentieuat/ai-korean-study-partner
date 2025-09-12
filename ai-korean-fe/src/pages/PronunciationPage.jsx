@@ -30,7 +30,7 @@ const PronunciationPage = () => {
   const silenceTimerRef = useRef(null);
 
   const VOLUME_THRESHOLD = 0.015; // ngưỡng RMS 0..1
-  const NO_SOUND_MS = 3000;       // 3s
+  const NO_SOUND_MS = 3000; // 3s
 
   // Lưu audio & evaluation theo từng index
   const [userAudioByIndex, setUserAudioByIndex] = useState({});
@@ -39,6 +39,88 @@ const PronunciationPage = () => {
   const [levelsMeta, setLevelsMeta] = useState([]);
   const [levelsLoading, setLevelsLoading] = useState(false);
   const [levelsError, setLevelsError] = useState(null);
+
+  // === Tracking identities ===
+  const [sessionId, setSessionId] = useState("");
+  const [userIdHash, setUserIdHash] = useState("");
+  // === Tracking endpoint ===
+  const TRACK_URL = `${backendUrl}/track/event`;
+
+  // Init userIdHash (ẩn danh) + sessionId để ghép với Google Form
+  useEffect(() => {
+    // userIdHash lưu localStorage
+    let uid = localStorage.getItem("uid_hash");
+    if (!uid) {
+      uid = crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+      localStorage.setItem("uid_hash", uid);
+    }
+    setUserIdHash(uid);
+
+    // sessionId mới cho mỗi phiên
+    const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    setSessionId(`S-${day}-${rand}`);
+  }, []);
+
+  // Gửi sự kiện an toàn (idempotent bằng event_id random)
+  async function postTrackEvent(payload) {
+    try {
+      const event_id =
+        crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+      const body = JSON.stringify({ event_id, ...payload });
+      const res = await fetch(TRACK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      // không chặn UI nếu lỗi
+      return await res.json().catch(() => ({ ok: false }));
+    } catch {
+      return { ok: false };
+    }
+  }
+
+  // Trích các phoneme điểm thấp từ kết quả chấm (threshold 0.8)
+  function extractProblemPhones(result, threshold = 0.8) {
+    const out = new Set();
+    if (Array.isArray(result?.details_collapsed)) {
+      for (const syl of result.details_collapsed) {
+        const ph = syl?.phonemes || [];
+        const sc = syl?.scores || [];
+        for (let i = 0; i < Math.min(ph.length, sc.length); i++) {
+          const s = Number(sc[i] ?? 0);
+          if (s < threshold && ph[i]) out.add(ph[i]);
+        }
+      }
+    } else if (Array.isArray(result?.details)) {
+      for (const d of result.details) {
+        const s = Number(d?.score ?? d?.conf ?? 0);
+        const lab = d?.phoneme_surface || d?.phoneme;
+        if (lab && s < threshold) out.add(lab);
+      }
+    }
+    return Array.from(out);
+  }
+
+  // Gom lời khuyên/tip (nếu backend trả về)
+  function extractTipsShown(result) {
+    const tips = new Set();
+    if (Array.isArray(result?.notes)) {
+      result.notes.forEach((n) => tips.add(String(n)));
+    }
+    const dc = result?.details_collapsed;
+    if (Array.isArray(dc)) {
+      dc.forEach((syl) => {
+        if (Array.isArray(syl?.advice)) {
+          syl.advice.forEach((a) => {
+            if (Array.isArray(a)) a.forEach((x) => tips.add(String(x)));
+            else if (typeof a === "string") tips.add(a);
+          });
+        }
+      });
+    }
+    return Array.from(tips).slice(0, 10);
+  }
 
   // Chủ đề tĩnh
   const dataByTopic = {
@@ -125,7 +207,9 @@ const PronunciationPage = () => {
       // cảnh báo nếu 1s chưa có âm thanh
       silenceTimerRef.current = setTimeout(() => {
         if (!soundDetectedRef.current) {
-          window.alert("Mình chưa nghe thấy âm thanh nào. Hãy kiểm tra mic hoặc nói gần hơn nhé!");
+          window.alert(
+            "Mình chưa nghe thấy âm thanh nào. Hãy kiểm tra mic hoặc nói gần hơn nhé!"
+          );
         }
       }, NO_SOUND_MS);
     } catch (e) {
@@ -375,6 +459,28 @@ const PronunciationPage = () => {
         // Lưu audio & evaluation theo index
         setUserAudioByIndex((prev) => ({ ...prev, [selectedIndex]: audioUrl }));
         setEvaluationByIndex((prev) => ({ ...prev, [selectedIndex]: result }));
+
+        // ======= TRACK SỰ KIỆN PRONUN =======
+        const itemId =
+          current.item_id ||
+          current.id ||
+          `PRON-lev${level}-${String(selectedIndex).padStart(4, "0")}`;
+
+        const score_overall = Number(result?.avg_score ?? result?.score ?? 0);
+        const cerNum = Number(result?.cer ?? result?.cer_rate ?? NaN);
+        const problem_phones = extractProblemPhones(result);
+        const tips_shown = extractTipsShown(result);
+
+        await postTrackEvent({
+          user_id_hash: userIdHash,
+          session_id: sessionId,
+          event_type: "pronun_scored",
+          item_id: itemId,
+          duration_ms: tResponse,
+          score_overall,
+          cer: Number.isFinite(cerNum) ? cerNum : undefined,
+          meta: { problem_phones, tips_shown },
+        });
       } catch (err) {
         console.error("Lỗi chấm điểm:", err);
       } finally {
@@ -782,7 +888,7 @@ const PronunciationPage = () => {
       return groups;
     }
 
-    // Fallback 
+    // Fallback
     const mapped = mapForTooltip(text, dets);
     const groups = [];
     mapped.forEach((syl, i) => {
@@ -907,7 +1013,9 @@ const PronunciationPage = () => {
             <button
               className={`btn ${recording ? "btn-danger" : "btn-warning"}`}
               onClick={recording ? handleStop : handleStart}
-              disabled={uiDisabled ? false : loading || !current.text || evaluating}
+              disabled={
+                uiDisabled ? false : loading || !current.text || evaluating
+              }
             >
               {recording ? "⏹ Dừng ghi âm" : "🎙️ Ghi âm"}
             </button>

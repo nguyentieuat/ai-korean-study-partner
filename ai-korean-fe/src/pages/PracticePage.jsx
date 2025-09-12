@@ -33,6 +33,45 @@ const PracticePage = () => {
   const [reasonTags, setReasonTags] = useState([]);
   const [freeText, setFreeText] = useState("");
 
+  // === Tracking endpoint (khớp FastAPI /api/track/event) ===
+  const TRACK_URL = `${backendUrl}/track/event`;
+
+  // === Tracking identities ===
+  const [sessionId, setSessionId] = useState("");
+  const [userIdHash, setUserIdHash] = useState("");
+
+  // đo thời gian trả lời + đếm số lần phát audio
+  const startTimeRef = useRef(null);
+  const audioPlayCountRef = useRef(0);
+
+  useEffect(() => {
+    let uid = localStorage.getItem("uid_hash");
+    if (!uid) {
+      uid = crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+      localStorage.setItem("uid_hash", uid);
+    }
+    setUserIdHash(uid);
+
+    const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    setSessionId(`S-${day}-${rand}`);
+  }, []);
+
+  async function postTrackEvent(payload) {
+    try {
+      const event_id =
+        crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+      await fetch(TRACK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id, ...payload }),
+        keepalive: true, // không chặn UI khi rời trang
+      });
+    } catch {
+      // nuốt lỗi tracking để không ảnh hưởng UX
+    }
+  }
+
   const REASON_OPTIONS = [
     { code: "audio_bad", label: "Âm thanh kém/khó nghe" },
     { code: "off_topic", label: "Lệch chủ đề" },
@@ -136,20 +175,28 @@ const PracticePage = () => {
   // Auto-scroll khi HẾT GIỜ hoặc khi CHỌN ĐÁP ÁN
   useEffect(() => {
     if ((timeUp || selectedAnswer) && answerSectionRef.current) {
-      answerSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      answerSectionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [timeUp, selectedAnswer]);
 
   const handleAudioPlay = () => {
+    // lần đầu play audio → đặt mốc thời gian
+    if (!startTimeRef.current) startTimeRef.current = performance.now();
+    // đếm số lần phát (kể cả replay tự động)
+    audioPlayCountRef.current += 1;
+
     // Nếu đã chọn đáp án hoặc đã hết giờ -> cho phép nghe lại, KHÔNG khởi động countdown/lock
     if (selectedAnswer || timeUp) return;
 
     // Lần đầu: khóa controls, bắt đầu sequence và countdown
     if (!sequenceActive && !audioLocked) {
-      setAudioLocked(true);      // khóa controls sau lần click đầu (không bấm lại)
+      setAudioLocked(true); // khóa controls sau lần click đầu (không bấm lại)
       setSequenceActive(true);
-      setReplaysRemaining(1);    // 2 lượt: lượt này + 1 replay
-      startCountdownOnce();      // bắt đầu đếm ngược 120s
+      setReplaysRemaining(1); // 2 lượt: lượt này + 1 replay
+      startCountdownOnce(); // bắt đầu đếm ngược 120s
     }
   };
 
@@ -218,6 +265,10 @@ const PracticePage = () => {
     resetAllPlayback();
     resetTimer();
 
+    // reset tracking mốc thời gian + bộ đếm phát audio
+    startTimeRef.current = null;
+    audioPlayCountRef.current = 0;
+
     const categoryParam = type === "listening" ? "listening" : "reading";
 
     try {
@@ -227,6 +278,11 @@ const PracticePage = () => {
         cau: parseInt(q.toString(), 10),
       });
       setQuestionContent(res.data);
+
+      // Với bài đọc: tính thời gian từ khi câu hiện ra
+      if (categoryParam === "reading") {
+        startTimeRef.current = performance.now();
+      }
     } catch (err) {
       console.error("Error fetching question:", err);
       setQuestionContent({ error: "Không thể lấy câu hỏi" });
@@ -255,15 +311,15 @@ const PracticePage = () => {
       type,
       cau: selectedQuestion,
       questionId: questionContent?.id ?? null,
-      reaction,                                // "like" | "dislike"
-      reason_tags: extra.reason_tags ?? null,  // array hoặc null
+      reaction, // "like" | "dislike"
+      reason_tags: extra.reason_tags ?? null, // array hoặc null
       free_text: extra.free_text ?? null,
       answer_selected: selectedAnswer ?? null,
       is_correct:
         selectedAnswer != null && questionContent?.answer != null
           ? selectedAnswer === questionContent.answer
           : null,
-      timer_seconds_left: remainingSec,        // có thể null nếu chưa bắt đầu
+      timer_seconds_left: remainingSec, // có thể null nếu chưa bắt đầu
       time_limit: 120,
       question_snapshot: snapshot,
     };
@@ -307,7 +363,13 @@ const PracticePage = () => {
 
     if (selectedAnswer) {
       const isSelected = selectedAnswer === key;
-      return isSelected ? (isCorrect ? "btn-success" : "btn-danger") : (isCorrect ? "btn-success" : "btn-outline-secondary");
+      return isSelected
+        ? isCorrect
+          ? "btn-success"
+          : "btn-danger"
+        : isCorrect
+        ? "btn-success"
+        : "btn-outline-secondary";
     }
 
     if (timeUp) {
@@ -336,6 +398,37 @@ const PracticePage = () => {
     if (audioRef.current) {
       audioRef.current.pause();
     }
+
+    // === TRACK: topik_answered ===
+    // (Đặt sau return của setState callback để chắc chắn chạy)
+    const t0 = startTimeRef.current; // có thể null nếu chưa set
+    const responseTime =
+      typeof t0 === "number"
+        ? Math.max(0, Math.round(performance.now() - t0))
+        : null;
+
+    const is_correct =
+      questionContent?.answer != null ? key === questionContent.answer : null;
+
+    const item_id =
+      questionContent?.id ??
+      `${level}-${type}-Q${String(selectedQuestion).padStart(3, "0")}`;
+
+    postTrackEvent({
+      user_id_hash: userIdHash,
+      session_id: sessionId,
+      event_type: "topik_answered",
+      item_id, // ví dụ: Q1-0001 hoặc fallback theo pattern
+      is_correct,
+      duration_ms: responseTime, // ms từ mốc bắt đầu → lúc chọn
+      meta: {
+        level,
+        type,
+        cau: selectedQuestion,
+        audio_play_count: audioPlayCountRef.current || 0,
+        time_limit: 120,
+      },
+    });
   };
 
   return (
@@ -347,7 +440,9 @@ const PracticePage = () => {
         {["topik1", "topik2"].map((lvl) => (
           <button
             key={lvl}
-            className={`btn btn-lg ${level === lvl ? "btn-primary shadow" : "btn-outline-secondary"}`}
+            className={`btn btn-lg ${
+              level === lvl ? "btn-primary shadow" : "btn-outline-secondary"
+            }`}
             onClick={() => {
               setLevel(lvl);
               setType(null);
@@ -369,7 +464,9 @@ const PracticePage = () => {
         {["reading", "listening"].map((t) => (
           <button
             key={t}
-            className={`btn btn-md ${type === t ? "btn-success shadow" : "btn-outline-secondary"}`}
+            className={`btn btn-md ${
+              type === t ? "btn-success shadow" : "btn-outline-secondary"
+            }`}
             onClick={() => {
               setType(t);
               setSelectedQuestion(null);
@@ -388,7 +485,9 @@ const PracticePage = () => {
       {/* Chọn câu hỏi */}
       {type && questions.length > 0 && (
         <div className="mb-4">
-          <h5 className="text-center mb-2">Chọn câu hỏi ({questions.length} câu)</h5>
+          <h5 className="text-center mb-2">
+            Chọn câu hỏi ({questions.length} câu)
+          </h5>
           <div
             className="d-flex flex-wrap justify-content-center gap-2 border rounded p-2 bg-light"
             style={{ maxHeight: "400px", overflowY: "auto" }}
@@ -396,7 +495,11 @@ const PracticePage = () => {
             {questions.map((q) => (
               <button
                 key={q}
-                className={`btn btn-sm ${selectedQuestion === q ? "btn-primary" : "btn-outline-secondary"}`}
+                className={`btn btn-sm ${
+                  selectedQuestion === q
+                    ? "btn-primary"
+                    : "btn-outline-secondary"
+                }`}
                 style={{ width: "40px", height: "40px", position: "relative" }}
                 disabled={loadingQuestion}
                 onClick={() => fetchQuestion(q)}
@@ -417,7 +520,10 @@ const PracticePage = () => {
 
       {/* Hiển thị thông báo câu đang phát triển */}
       {questionContent?.message ? (
-        <div className="card shadow p-4 mt-4 mx-auto text-center" style={{ maxWidth: "600px" }}>
+        <div
+          className="card shadow p-4 mt-4 mx-auto text-center"
+          style={{ maxWidth: "600px" }}
+        >
           <h5 className="card-title mb-3">{questionContent.title}</h5>
           <p className="text-warning fst-italic">{questionContent.message}</p>
         </div>
@@ -425,11 +531,16 @@ const PracticePage = () => {
         selectedQuestion &&
         questionContent &&
         !questionContent.error && (
-          <div className="card shadow p-4 mt-4 mx-auto" style={{ maxWidth: "600px" }}>
+          <div
+            className="card shadow p-4 mt-4 mx-auto"
+            style={{ maxWidth: "600px" }}
+          >
             {/* Title row with countdown at right */}
             <div className="d-flex align-items-center justify-content-center position-relative mb-3">
               <h5 className="card-title text-center m-0">
-                {level.toUpperCase()} - {type === "reading" ? "reading" : "listening"} - Câu {selectedQuestion}
+                {level.toUpperCase()} -{" "}
+                {type === "reading" ? "reading" : "listening"} - Câu{" "}
+                {selectedQuestion}
               </h5>
               {type === "listening" && remainingSec !== null && (
                 <span
@@ -449,7 +560,11 @@ const PracticePage = () => {
                 <div className="btn-group" role="group" aria-label="Feedback">
                   <button
                     type="button"
-                    className={`btn btn-sm ${feedback === "like" ? "btn-success" : "btn-outline-success"}`}
+                    className={`btn btn-sm ${
+                      feedback === "like"
+                        ? "btn-success"
+                        : "btn-outline-success"
+                    }`}
                     onClick={sendFeedbackLike}
                     disabled={!selectedQuestion}
                     title="Hữu ích"
@@ -458,7 +573,11 @@ const PracticePage = () => {
                   </button>
                   <button
                     type="button"
-                    className={`btn btn-sm ${feedback === "dislike" ? "btn-danger" : "btn-outline-danger"}`}
+                    className={`btn btn-sm ${
+                      feedback === "dislike"
+                        ? "btn-danger"
+                        : "btn-outline-danger"
+                    }`}
                     onClick={() => setShowDislikePanel((v) => !v)}
                     disabled={!selectedQuestion}
                     title="Chưa ổn"
@@ -478,10 +597,15 @@ const PracticePage = () => {
                       width: "280px",
                     }}
                   >
-                    <div className="small fw-semibold mb-2">Vì sao bạn không thích?</div>
+                    <div className="small fw-semibold mb-2">
+                      Vì sao bạn không thích?
+                    </div>
                     <div className="d-flex flex-column gap-1 mb-2">
                       {REASON_OPTIONS.map((opt) => (
-                        <label key={opt.code} className="form-check d-flex align-items-center gap-2">
+                        <label
+                          key={opt.code}
+                          className="form-check d-flex align-items-center gap-2"
+                        >
                           <input
                             type="checkbox"
                             className="form-check-input"
@@ -511,7 +635,10 @@ const PracticePage = () => {
                       >
                         Đóng
                       </button>
-                      <button className="btn btn-sm btn-danger" onClick={submitDislike}>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={submitDislike}
+                      >
                         Gửi
                       </button>
                     </div>
@@ -558,16 +685,18 @@ const PracticePage = () => {
               {/* Choices */}
               {selectedQuestion && questionContent?.choices && (
                 <div className="d-flex flex-column gap-2 mt-3">
-                  {Object.entries(questionContent.choices).map(([key, text]) => (
-                    <button
-                      key={key}
-                      className={`btn ${choiceVariant(key)}`}
-                      onClick={() => onChooseAnswer(key)}
-                      disabled={disableChoices}
-                    >
-                      {key}. {text}
-                    </button>
-                  ))}
+                  {Object.entries(questionContent.choices).map(
+                    ([key, text]) => (
+                      <button
+                        key={key}
+                        className={`btn ${choiceVariant(key)}`}
+                        onClick={() => onChooseAnswer(key)}
+                        disabled={disableChoices}
+                      >
+                        {key}. {text}
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </div>
@@ -579,7 +708,9 @@ const PracticePage = () => {
                   className="btn btn-outline-primary"
                   onClick={() => fetchQuestion(selectedQuestion)}
                 >
-                  <span className="loop-icon me-2" aria-hidden="true">↻</span>
+                  <span className="loop-icon me-2" aria-hidden="true">
+                    ↻
+                  </span>
                   Thử lại câu hỏi
                 </button>
               </div>

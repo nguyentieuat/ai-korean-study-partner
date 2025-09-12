@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "message": "안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 무엇을 이야기하고 싶으신가요?"
+  },
+  {
+    "role": "user",
+    "content": "안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "content": "혹시 궁금한 점이나 나누고 싶은 이야기가 있으신가요? 언제든지 말씀해 주세요!"
+  }
+]

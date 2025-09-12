@@ -10,6 +10,7 @@ from api_conversation import router as conversation_router
 from api_pronunciation import router as pronunciation_router
 from api_topikgenerate import router as topik_router
 from api_cooperate import router as cooperate_router
+from app_tracking import router as tracking_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,6 +39,7 @@ app.include_router(conversation_router)
 app.include_router(pronunciation_router)
 app.include_router(topik_router)
 app.include_router(cooperate_router)
+app.include_router(tracking_router)
 
 @app.get("/health")
 def health_check():

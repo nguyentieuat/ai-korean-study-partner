@@ -42,6 +42,39 @@ const ConversationPage = () => {
     }
   });
 
+  // === Tracking endpoint (khớp FastAPI /api/track/event) ===
+  const TRACK_URL = `${backendUrl}/track/event`;
+  // === Tracking identities ===
+  const [sessionId, setSessionId] = useState("");
+  const [userIdHash, setUserIdHash] = useState("");
+  // Tạo userIdHash ẩn danh + sessionId để ghép với Google Form
+  React.useEffect(() => {
+    let uid = localStorage.getItem("uid_hash");
+    if (!uid) {
+      uid = crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+      localStorage.setItem("uid_hash", uid);
+    }
+    setUserIdHash(uid);
+
+    const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    setSessionId(`S-${day}-${rand}`);
+  }, []);
+  async function postTrackEvent(payload) {
+    try {
+      const event_id =
+        crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+      const res = await fetch(TRACK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id, ...payload }),
+      });
+      await res.json().catch(() => null); // không chặn UI nếu lỗi parse
+    } catch {
+      // nuốt lỗi tracking, không ảnh hưởng UX
+    }
+  }
+
   // giọng AI: female/male
   const [voice, setVoice] = useState(() => {
     const raw = localStorage.getItem(LS_KEY_VOICE);
@@ -76,6 +109,11 @@ const ConversationPage = () => {
       localStorage.removeItem(LS_KEY_HISTORY);
       localStorage.removeItem(LS_KEY_CONV_ID);
     } catch {}
+
+    // reset sessionId cho phiên mới
+    const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    setSessionId(`S-${day}-${rand}`);
   };
 
   // Gửi tin nhắn dạng text
@@ -96,22 +134,24 @@ const ConversationPage = () => {
 
     const formattedHistory = getFormattedHistoryForServer(updatedHistory);
 
+    // === đo latency ở FE
+    const t0 = performance.now();
     try {
-      const response = await fetch(
-        `${backendUrl}/korean-speaking-chatting`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: input,
-            conversation_history: formattedHistory,
-            voice, // gửi kèm lựa chọn giọng (BE có thể bỏ qua nếu chưa dùng)
-            ...(conversationId ? { conversation_id: conversationId } : {}),
-          }),
-        }
-      );
+      const response = await fetch(`${backendUrl}/korean-speaking-chatting`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: input,
+          conversation_history: formattedHistory,
+          voice, // gửi kèm lựa chọn giọng (BE có thể bỏ qua nếu chưa dùng)
+          ...(conversationId ? { conversation_id: conversationId } : {}),
+        }),
+      });
 
       const data = await response.json();
+
+      const latencyMs = Math.round(performance.now() - t0);
+
       if (!conversationId && data.conversation_id)
         setConversationId(data.conversation_id);
 
@@ -131,6 +171,15 @@ const ConversationPage = () => {
         };
         return updated;
       });
+
+      // === TRACK: chat_turn (text)
+      postTrackEvent({
+        user_id_hash: userIdHash,
+        session_id: sessionId,
+        event_type: "chat_turn",
+        duration_ms: latencyMs,
+        meta: { mode: "text" },
+      });
     } catch (error) {
       setHistory((prev) => {
         const clearedWaiting = prev.map((msg) =>
@@ -143,6 +192,15 @@ const ConversationPage = () => {
           typing: false,
         };
         return updated;
+      });
+      // (tuỳ chọn) vẫn có thể log thất bại với duration ms
+      const latencyMs = Math.round(performance.now() - t0);
+      postTrackEvent({
+        user_id_hash: userIdHash,
+        session_id: sessionId,
+        event_type: "chat_turn",
+        duration_ms: latencyMs,
+        meta: { mode: "text", error: true },
       });
     } finally {
       setIsTyping(false);
