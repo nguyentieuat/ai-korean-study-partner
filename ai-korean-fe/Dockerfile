@@ -4,7 +4,7 @@ WORKDIR /app
 
 # cài deps nhanh và cache tốt
 COPY package*.json ./
-RUN npm ci
+RUN npm install --no-audit --no-fund
 
 # copy source và build
 COPY . .
