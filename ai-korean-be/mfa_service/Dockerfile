@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
     OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4 NUMEXPR_NUM_THREADS=4 \
-    TOKENIZERS_PARALLELISM=false
+    TOKENIZERS_PARALLELISM=false HF_HOME=/models/hf TRANSFORMERS_CACHE=/models/hf
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git build-essential python3-dev ffmpeg sox libsndfile1 curl \

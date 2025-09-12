@@ -40,3 +40,5 @@ transformers==4.43.3
 soundfile==0.12.1
 ctc-segmentation==1.7.4
 webrtcvad
+huggingface_hub[cli]
+transformers
