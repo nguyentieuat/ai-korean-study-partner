@@ -21,25 +21,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Main Orchestrator", lifespan=lifespan)
 
 # CORS mở (chỉnh lại khi lên prod)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],  
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-#     allow_credentials=False,  
-# )
-
-origins = [
-    "https://0ec7d3789913.ngrok-free.app",  # FE
-    "https://6af926a10b96.ngrok-free.app", # BE 
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],  
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=False,  
 )
 
 # Static /static/*
