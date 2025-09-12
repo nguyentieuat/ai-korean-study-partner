@@ -1,3 +1,4 @@
+# grammar_checker/grammar_checker.py
 import os, json, time
 import requests, difflib, re
 from dotenv import load_dotenv
@@ -8,7 +9,8 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 
 # Thứ tự fallback: ưu tiên model open-source/hỗ trợ rộng rãi để tránh lỗi region
 MODEL_CANDIDATES = [
-    os.getenv("GRAMMAR_MODEL", "").strip() or "meta-llama/llama-3-8b-instruct",
+    os.getenv("GRAMMAR_MODEL", "").strip() or "gpt-4o-mini",
+    "meta-llama/llama-3-8b-instruct",
     "meta-llama/llama-3-70b-instruct",
     "google/gemma-2-9b-it",
     "mistralai/mixtral-8x7b-instruct",
