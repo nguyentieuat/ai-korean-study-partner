@@ -151,7 +151,7 @@ services:
     build:
       context: ./ai-korean-fe
       args:
-        VITE_API_URL: "http://main_service:5000"   # <-- phải là key: value
+        VITE_API_URL: "http://35.215.129.189:5000"   # <-- phải là key: value
     restart: always
     networks: [web]
     ports:
