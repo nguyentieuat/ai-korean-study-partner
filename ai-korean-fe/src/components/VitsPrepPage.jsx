@@ -177,7 +177,7 @@ const VitsPrepPage = ({ userInfo }) => {
     });
 
     try {
-      const res = await fetch(`${backendUrl}/api/cooperate_vitspre`, {
+      const res = await fetch(`${backendUrl}/cooperate_vitspre`, {
         method: "POST",
         body: formData,
       });

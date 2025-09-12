@@ -153,7 +153,7 @@ const PronunciationPage = () => {
       try {
         setLevelsLoading(true);
         setLevelsError(null);
-        const res = await fetch(`${backendUrl}/api/pronunciation/levels`);
+        const res = await fetch(`${backendUrl}/pronunciation/levels`);
         if (!res.ok) throw new Error("Không tải được danh sách cấp độ");
         const data = await res.json();
 
@@ -193,7 +193,7 @@ const PronunciationPage = () => {
       setLoading(true);
       setError(null);
       setSelectedIndex(0);
-      fetch(`${backendUrl}/api/pronunciation/level/${level}`)
+      fetch(`${backendUrl}/pronunciation/level/${level}`)
         .then((res) => {
           if (!res.ok) throw new Error(`Lỗi tải dữ liệu cấp độ ${level}`);
           return res.json();
@@ -365,7 +365,7 @@ const PronunciationPage = () => {
       formData.append("text", current.text || "");
 
       try {
-        const res = await fetch(`${backendUrl}/api/pronunciation/evaluate`, {
+        const res = await fetch(`${backendUrl}/pronunciation/evaluate`, {
           method: "POST",
           body: formData,
         });

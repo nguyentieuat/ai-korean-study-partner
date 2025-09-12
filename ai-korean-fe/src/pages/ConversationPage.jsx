@@ -98,7 +98,7 @@ const ConversationPage = () => {
 
     try {
       const response = await fetch(
-        `${backendUrl}/api/korean-speaking-chatting`,
+        `${backendUrl}/korean-speaking-chatting`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

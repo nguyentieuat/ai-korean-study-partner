@@ -245,7 +245,7 @@ const TopikAnnotationForm = ({ userInfo }) => {
 
     try {
       const response = await fetch(
-        `${backendUrl}/api/cooperate_topik_annotator`,
+        `${backendUrl}/cooperate_topik_annotator`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -77,7 +77,7 @@ const VoiceRecorder = ({
         formData.append("audio", file);
 
         try {
-          const res1 = await fetch(`${backendUrl}/api/transcribe`, {
+          const res1 = await fetch(`${backendUrl}/transcribe`, {
             method: "POST",
             body: formData,
           });
@@ -121,7 +121,7 @@ const VoiceRecorder = ({
               };
 
               const res2 = await fetch(
-                `${backendUrl}/api/korean-speaking-talking`,
+                `${backendUrl}/korean-speaking-talking`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

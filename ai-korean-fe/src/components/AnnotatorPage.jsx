@@ -26,7 +26,7 @@ const AnnotatorPage = ({ userInfo }) => {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${backendUrl}/api/cooperate_annotator?offset=0&limit=10`
+          `${backendUrl}/cooperate_annotator?offset=0&limit=10`
         );
         const result = await res.json();
         
@@ -193,7 +193,7 @@ const AnnotatorPage = ({ userInfo }) => {
     };
     setLoading(true); // bật loading
     try {
-      const response = await fetch(`${backendUrl}/api/cooperate_annotator`, {
+      const response = await fetch(`${backendUrl}/cooperate_annotator`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

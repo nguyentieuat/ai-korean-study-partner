@@ -221,7 +221,7 @@ const PracticePage = () => {
     const categoryParam = type === "listening" ? "listening" : "reading";
 
     try {
-      const res = await axios.post(`${backendUrl}/api/generate_question`, {
+      const res = await axios.post(`${backendUrl}/generate_question`, {
         level: level,
         category: categoryParam,
         cau: parseInt(q.toString(), 10),
@@ -274,7 +274,7 @@ const PracticePage = () => {
       setFeedback("like");
       setShowDislikePanel(false);
       const payload = buildFeedbackPayload("like");
-      await axios.post(`${backendUrl}/api/feedback`, payload);
+      await axios.post(`${backendUrl}/feedback`, payload);
     } catch (e) {
       console.error("Feedback error:", e);
     }
@@ -287,7 +287,7 @@ const PracticePage = () => {
         reason_tags: reasonTags.length ? reasonTags : null,
         free_text: freeText?.trim() ? freeText.trim() : null,
       });
-      await axios.post(`${backendUrl}/api/feedback`, payload);
+      await axios.post(`${backendUrl}/feedback`, payload);
       setShowDislikePanel(false);
     } catch (e) {
       console.error("Feedback error:", e);
