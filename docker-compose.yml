@@ -151,7 +151,7 @@ services:
     build:
       context: ./ai-korean-fe
       args:
-        VITE_API_URL=/api  
+        VITE_API_URL: /api  
     restart: always
     networks: [web]
     ports:
