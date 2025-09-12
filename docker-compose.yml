@@ -141,8 +141,6 @@ services:
     build:
       context: ./ai-korean-fe
       args:
-        VITE_API_URL: "http://<IP_VM>:5000"   # <-- phải là key: value
+        VITE_API_URL: "/api"   # <-- phải là key: value
     restart: always
     networks: [web]
-    ports:
-      - "3000:80"    # nếu image FE serve bằng nginx trên cổng 80
