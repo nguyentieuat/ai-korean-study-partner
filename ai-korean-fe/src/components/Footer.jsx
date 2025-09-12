@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../assets/css/Footer.css";
+import "../assets/css/footer.css";
 import qrBank from "../assets/images/qr.png";
 
 const Footer = () => {
