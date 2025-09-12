@@ -28,4 +28,4 @@ ENV ASR_SERVICE_URL=http://127.0.0.1:5005
 
 EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s CMD curl -fsS http://127.0.0.1:5001/healthz || exit 1
-CMD ["uvicorn","app:app","--host","0.0.0.0","--port","5005"]
+CMD ["uvicorn","app:app","--host","0.0.0.0","--port","5001"]
