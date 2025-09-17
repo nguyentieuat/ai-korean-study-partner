@@ -517,34 +517,53 @@ def _default_phone_weights(phones: List[str]) -> List[float]:
     s = sum(vals)
     return [v / s for v in vals]
 
-def _ctc_lenient_gate(ref_text: str, cer_id: float, cer_text: float, loss_pc: float):
+def _ctc_lenient_gate(
+    ref_text: str,
+    cer_id: float,
+    cer_text: float,
+    loss_pc: float,
+    *,
+    ctc_peak: Optional[float] = None,
+    ctc_mean: Optional[float] = None,
+    dur_sec: Optional[float] = None,
+):
     """
-    Trả về (reject: bool, soft_gate: bool) — bản lenient cho câu ngắn:
-      - 1 âm tiết: không hard-reject trừ khi lệch hoàn toàn.
-      - 2 âm tiết: nới rộng.
-      - >=3 âm tiết: giữ lenient++ như trước.
+    Trả (reject: bool, soft_gate: bool).
+    - 1–2 âm tiết: yêu cầu CTC peak đủ cao (anchor). Nếu peak thấp -> reject.
+    - Không "quá dễ dãi" với CER/loss khi câu quá ngắn.
     """
     L = sum(1 for c in ref_text if 0xAC00 <= ord(c) <= 0xD7A3)
     cer = min(float(cer_text), float(cer_id))
+    p = float(ctc_peak if ctc_peak is not None else -1.0)
+    m = float(ctc_mean if ctc_mean is not None else -1.0)
+    short_uttr = (dur_sec is not None and dur_sec < 0.15)
 
-    # === 1 âm tiết: cực kỳ khoan ===
-    # Chỉ hard-reject nếu CER ~1.0 và loss rất cao (gần như đọc sai hẳn).
+    # ===== 1 âm tiết =====
     if L <= 1:
-        if cer <= 0.92 or loss_pc <= 22.0:
-            return (False, False)   # pass hẳn
-        if cer <= 0.98 and loss_pc <= 35.0:
-            return (False, True)    # soft gate
-        return (True, False)        # hard reject (trường hợp quá lệch)
-
-    # === 2 âm tiết: khá khoan ===
-    if L == 2:
-        if cer <= 0.75 and loss_pc <= 13.0:
+        # anchor: CTC phải "bắt" được âm này ở mức tối thiểu
+        if p >= 0.0 and p < 0.40:
+            return (True, False)  # nói bừa/âm khác -> reject
+        if short_uttr and cer > 0.85:
+            return (True, False)
+        # pass khi khá khớp
+        if cer <= 0.65 and loss_pc <= 10.0:
             return (False, False)
-        if cer <= 0.92 and loss_pc <= 18.0:
+        # soft vùng vàng
+        if cer <= 0.85 and loss_pc <= 14.0:
             return (False, True)
         return (True, False)
 
-    # === 3–5 âm tiết: như lenient++ trước đây ===
+    # ===== 2 âm tiết =====
+    if L == 2:
+        if p >= 0.0 and p < 0.35:
+            return (True, False)
+        if cer <= 0.65 and loss_pc <= 11.0:
+            return (False, False)
+        if cer <= 0.82 and loss_pc <= 14.0:
+            return (False, True)
+        return (True, False)
+
+    # ===== 3–5 âm tiết =====
     if L <= 5:
         if cer <= 0.70 and loss_pc <= 12.0:
             return (False, False)
@@ -552,7 +571,7 @@ def _ctc_lenient_gate(ref_text: str, cer_id: float, cer_text: float, loss_pc: fl
             return (False, True)
         return (True, False)
 
-    # === ≥6 âm tiết ===
+    # ===== ≥6 âm tiết =====
     if cer <= 0.62 and loss_pc <= 10.0:
         return (False, False)
     if cer <= 0.80 and loss_pc <= 14.0:
