@@ -185,13 +185,15 @@ def ctc_gate_global_from_waveform(x: torch.Tensor, sr: int, reference_text: str)
 
     # nếu RMS quá nhỏ, khuếch đại nhẹ để model "nghe thấy" (giới hạn 10x)
     if 0.0 < rms < 0.012:
-        target_rms = 0.06
+        target_rms = 0.08 if dur_sec <= 0.35 else 0.06
         gain = min(12.0, target_rms / max(rms, 1e-6))
         mono = (mono * gain).clamp_(-1.0, 1.0)
         rms = float(mono.pow(2).mean().sqrt().item())
 
-    if dur_sec < 0.25 or rms < 1e-4:
-        return {"loss_per_char": 99.0, "cer": 1.0, "cer_text": 1.0}
+    # Với đơn âm tiết, nhiều mẫu dài ~0.15–0.25s. Đừng coi là fail cứng.
+    if dur_sec < 0.12 or rms < 1e-4:
+        # Trả về giá trị "mềm" để tầng trên soft-gate thay vì hard-reject.
+        return {"loss_per_char": 18.0, "cer": 0.95, "cer_text": 0.95}
 
     inputs = _processor(mono, sampling_rate=TARGET_SR, return_tensors="pt").input_values.to(DEVICE)
     logits = _ctc_model(inputs).logits                     # [1, T, V]

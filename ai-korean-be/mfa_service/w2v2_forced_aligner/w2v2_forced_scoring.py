@@ -519,21 +519,32 @@ def _default_phone_weights(phones: List[str]) -> List[float]:
 
 def _ctc_lenient_gate(ref_text: str, cer_id: float, cer_text: float, loss_pc: float):
     """
-    Trả về (reject: bool, soft_gate: bool) — bản lenient++:
-      - Rất ít reject cứng; đa phần chuyển sang soft (giảm nhẹ tự tin), trừ khi cực lệch.
+    Trả về (reject: bool, soft_gate: bool) — bản lenient cho câu ngắn:
+      - 1 âm tiết: không hard-reject trừ khi lệch hoàn toàn.
+      - 2 âm tiết: nới rộng.
+      - >=3 âm tiết: giữ lenient++ như trước.
     """
     L = sum(1 for c in ref_text if 0xAC00 <= ord(c) <= 0xD7A3)
     cer = min(float(cer_text), float(cer_id))
 
-    # ≤2 âm tiết: gần như luôn pass; chỉ reject khi CER cực cao
-    if L <= 2:
-        if cer <= 0.70:  # rộng
+    # === 1 âm tiết: cực kỳ khoan ===
+    # Chỉ hard-reject nếu CER ~1.0 và loss rất cao (gần như đọc sai hẳn).
+    if L <= 1:
+        if cer <= 0.92 or loss_pc <= 22.0:
+            return (False, False)   # pass hẳn
+        if cer <= 0.98 and loss_pc <= 35.0:
+            return (False, True)    # soft gate
+        return (True, False)        # hard reject (trường hợp quá lệch)
+
+    # === 2 âm tiết: khá khoan ===
+    if L == 2:
+        if cer <= 0.75 and loss_pc <= 13.0:
             return (False, False)
-        if cer <= 0.85 and loss_pc <= 15.0:
+        if cer <= 0.92 and loss_pc <= 18.0:
             return (False, True)
         return (True, False)
 
-    # 3–5 âm tiết: cho qua nhiều, soft nếu ở “vùng vàng”
+    # === 3–5 âm tiết: như lenient++ trước đây ===
     if L <= 5:
         if cer <= 0.70 and loss_pc <= 12.0:
             return (False, False)
@@ -541,7 +552,7 @@ def _ctc_lenient_gate(ref_text: str, cer_id: float, cer_text: float, loss_pc: fl
             return (False, True)
         return (True, False)
 
-    # ≥6 âm tiết: reject thật sự chỉ khi rất lệch
+    # === ≥6 âm tiết ===
     if cer <= 0.62 and loss_pc <= 10.0:
         return (False, False)
     if cer <= 0.80 and loss_pc <= 14.0:
