@@ -8,7 +8,7 @@
 #     (b) BỎ QUA khi âm tiết sau là tiểu từ “이” ở cuối từ/nhóm (vd 옷이→오시)
 #     (c) BỎ QUA khi coda có ㅎ (đơn/ghép) và sau là 이/야/여/요/유 (vd 많이→마니)
 # - 구개음화:
-#     (a) liaison tạo ㄷ/ㅌ + 이 → ㅈ/ㅊ
+#     (a) liaison tạo ㄷ/ㅌ + 이 → ㅈ/ㅊ (CHỈ tại ranh giới 연음)
 #     (b) coda ㄷ/ㅌ + 히(ᄒ+ᅵ) → ᄎ (굳히다→구치다)
 # - Mở rộng collapse_w_* (ㅘ/ㅙ/ㅚ/ㅝ/ㅞ/ㅟ)
 # - Giới hạn 경음화 C tại ranh giới vừa liaison (để “읽어요→일거요”, vẫn “읽고→일꼬”).
@@ -27,7 +27,7 @@ T_LIST = ["\0"] + [chr(x) for x in range(0x11A8, 0x11A8+27)]
 CHO_TO_STR = {
     'ᄀ':'ㄱ','ᄁ':'ㄲ','ᄂ':'ㄴ','ᄃ':'ㄷ','ᄄ':'ㄸ','ᄅ':'ㄹ','ᄆ':'ㅁ',
     'ᄇ':'ㅂ','ᄈ':'ㅃ','ᄉ':'ㅅ','ᄊ':'ㅆ','ᄋ':'ㅇ','ᄌ':'ㅈ','ᄍ':'ㅉ',
-    'ᄎ':'ㅊ','ᄏ':'ㅋ','ᄐ':'ㅌ','ᄑ':'ㅍ','ᄒ':'ㅎ'
+    'ᄎ':'ㅊ','ᄏ':'ㅋ','ᄐ':'ㅌ','ᄑ':'ᄑ','ᄒ':'ㅎ'
 }
 JONG_TO_CHO = {
     'ᆨ':'ᄀ','ᆩ':'ᄁ','ᆪ':'ᄉ','ᆫ':'ᄂ','ᆬ':'ᄌ','ᆭ':'ᄒ','ᆮ':'ᄃ','ᆯ':'ᄅ',
@@ -181,24 +181,74 @@ def normalize_clean(
         tail = last_coda_unit(A.T)
         first = first_coda_unit(A.T)
 
-        # ===== 2) ㄴ-첨가 BEFORE liaison =====
-        if opt.do_n_insertion and A.T!="\0" and has_vowel_onset(B) and B.V in V_IY_SET:
-            skip_for_dt_i = (tail in {'ᆮ','ᇀ'} and B.V=='ᅵ')               # để 구개음화
-            skip_particle_i = _is_particle_I(tokens, i+1)                   # '옷이' etc.
-            # NEW: skip when coda has ㅎ (either single ᇂ or complex *ㅎ) to allow ㅎ-탈락 path (많이, 밟아…)
-            coda_has_h = (tail=='ᇂ') or (A.T in COMPLEX_CODA_SPLIT and COMPLEX_CODA_SPLIT[A.T][1]=='ᇂ') \
-                         or (A.T in COMPLEX_CODA_SPLIT and COMPLEX_CODA_SPLIT[A.T][0]=='ᇂ')
-            skip_h_group = coda_has_h and (B.V in V_IY_SET)
-            if not (skip_for_dt_i or skip_particle_i or skip_h_group):
-                if tail in L_TAIL:
-                    set_onset(B, 'ᄅ'); rule_tags.append(f"l+y->ly(heuristic)@{i+1}")
+                # ===== 2) ㄴ-첨가 BEFORE liaison (tightened) =====
+        if opt.do_n_insertion:
+            # chỉ xét khi B có onset ᄋ (vowel onset) và là một trong {이, 야, 여, 요, 유} và KHÔNG có 받침
+            is_IY_vowel = (B.L == 'ᄋ' and B.V in V_IY_SET and B.T == "\0")
+            if A.T != "\0" and is_IY_vowel:
+                tail = last_coda_unit(A.T)
+                first = first_coda_unit(A.T)
+
+                # 1) d/t + '이' -> dành cho liaison + 구개음화 (같이, 맏이 등)
+                if (tail in {'ᆮ','ᇀ'}) and (B.V == 'ᅵ'):
+                    pass  # skip ㄴ-첨가
                 else:
-                    set_onset(B, 'ᄂ'); rule_tags.append(f"n-insertion@{i+1}")
-                tokens[i+1]=(B,"H")
-                # refresh locals
-                A = tokens[i][0]; B = tokens[i+1][0]; tail = last_coda_unit(A.T); first = first_coda_unit(A.T)
+                    # 2) '이' là tiểu từ ở cuối nhóm → skip
+                    if _is_particle_I(tokens, i+1):
+                        pass
+                    else:
+                        # 3) bất kỳ trường hợp coda có ㅎ (đơn/ghép) + I/Y → skip (để ㅎ-탈락/liaison riêng xử)
+                        coda_has_h = (
+                            tail == 'ᇂ' or
+                            (A.T in COMPLEX_CODA_SPLIT and (COMPLEX_CODA_SPLIT[A.T][0] == 'ᇂ' or COMPLEX_CODA_SPLIT[A.T][1] == 'ᇂ'))
+                        )
+                        if coda_has_h:
+                            pass
+                        else:
+                            # 4) nếu là 겹받침 nói chung → skip (nhường xử lý tách/liaison chuẩn)
+                            if A.T in COMPLEX_CODA_SPLIT:
+                                pass
+                            else:
+                                # 5) các coda “trơn” khác mới cân nhắc chèn
+                                if tail in L_TAIL:
+                                    set_onset(B, 'ᄅ')   # ㄹ + I/Y → ly
+                                    rule_tags.append(f"n-insertion:ly@{i+1}")
+                                else:
+                                    set_onset(B, 'ᄂ')   # ㄴ-첨가
+                                    rule_tags.append(f"n-insertion@{i+1}")
+                                tokens[i+1] = (B, "H")
+
+                                # refresh locals cho các bước sau
+                                A = tokens[i][0]; B = tokens[i+1][0]
+                                tail = last_coda_unit(A.T); first = first_coda_unit(A.T)
 
         # ===== 1) Liaison =====
+        if opt.do_liaison and has_vowel_onset(B) and A.T!="\0":
+            tail = last_coda_unit(A.T)
+            first = first_coda_unit(A.T)
+
+            # --- SPECIAL: 맛있다 / 멋있다 ... —
+            # 패턴: (...)[coda ㅅ/ㅆ] + '있'(ᄋ+ᅵ+ᆻ) + '다'(ᄃ+ᅡ)
+            # 결과 표면형: ... '싣'(ᄉ+ᅵ+ᆮ) + '따'(경음화)
+            if (tail in {'ᆺ','ᆻ'}
+                and B.L=='ᄋ' and B.V=='ᅵ' and B.T=='ᆻ'
+                and i+1 < len(tokens)
+                and tokens[i+1][1] == "H" and tokens[i+1][0].L == 'ᄃ'):
+                # move ㅅ to onset of '있' → '시'
+                set_onset(B, 'ᄉ')
+                # keep '있'의 ㅆ as t-like coda → ㄷ
+                set_coda(B, 'ᆮ')
+                tokens[i+1] = (B, "H")
+
+                # clear or reduce coda of previous syllable
+                first_unit = first
+                set_coda(A, first_unit if first_unit != "\0" else "\0")
+                tokens[i] = (A, "H")
+
+                rule_tags.append(f"special:masitda@{i+1}")
+                liaison_boundaries.add(i)
+                # (다음 경계 i+1에서 경음화 규칙이 ㄷ→ㄸ을 처리함)
+                continue
         if opt.do_liaison and has_vowel_onset(B) and A.T!="\0":
             tail = last_coda_unit(A.T)
             first = first_coda_unit(A.T)
@@ -231,8 +281,12 @@ def normalize_clean(
         tail = last_coda_unit(A.T)
         first = first_coda_unit(A.T)
 
-        # ===== 5a) 구개음화: onset ㄷ/ㅌ + 이 -> ㅈ/ㅊ =====
-        if opt.do_palatalization and B.V=='ᅵ' and B.L in {'ᄃ','ᄐ'}:
+        # ===== 5a) 구개음화: onset ㄷ/ㅌ + 이 -> ㅈ/ㅊ (오직 '연음' 경계에서만) =====
+        # 예: 같이(갇+이)→가치 ✔ / 어디(…디)→어지 ✘
+        if (opt.do_palatalization
+            and B.V=='ᅵ'
+            and B.L in {'ᄃ','ᄐ'}
+            and i in liaison_boundaries):   # ★ chỉ khi có liaison trước đó
             set_onset(B, 'ᄌ' if B.L=='ᄃ' else 'ᄎ')
             tokens[i+1]=(B,"H"); rule_tags.append(f"palatalize:(d/t)+i@{i+1}")
 
@@ -271,11 +325,27 @@ def normalize_clean(
         # ===== 6) ㅎ-탈락 & 7) 격음화 =====
         if opt.do_h_deletion or opt.do_h_aspiration:
             tail = last_coda_unit(A.T)
-            if opt.do_h_deletion and tail=='ᇂ' and has_vowel_onset(B):
-                first_unit = first
-                set_coda(A, first_unit if first_unit!="\0" else "\0")
-                tokens[i]=(A,"H"); rule_tags.append(f"h-deletion@{i}")
-            tail = last_coda_unit(A.T)
+
+            # 6a) ㅎ-탈락: coda = ㅎ và sau là nguyên âm
+            if opt.do_h_deletion and has_vowel_onset(B) and tail == 'ᇂ':
+                # 'first' là đơn vị đầu của coda gốc; với ᆭ/ᆶ sẽ là ᆫ/ᆯ
+                if first != "\0":  # tức là coda gốc là 겹받침 có ㅎ như ᆭ/ᆶ
+                    move_cho = jong_to_cho(first)
+                    if move_cho:
+                        set_coda(A, "\0")
+                        set_onset(B, move_cho)
+                        tokens[i]   = (A, "H")
+                        tokens[i+1] = (B, "H")
+                        rule_tags.append(f"liaison:complex-h(drop ㅎ, move {first})->{i+1}")
+                        liaison_boundaries.add(i)
+                else:
+                    # coda chỉ là ㅎ đơn (ᇂ) ⇒ chỉ xóa ㅎ (좋아요→조아요)
+                    first_unit = first  # '\0'
+                    set_coda(A, first_unit if first_unit != "\0" else "\0")
+                    tokens[i] = (A, "H")
+                    rule_tags.append(f"h-deletion@{i}")
+
+            # 6b) onset có ㅎ: h+onset -> aspirated onset (giữ quy tắc cũ)
             if opt.do_h_aspiration and tail=='ᇂ' and B.L in {'ᄀ','ᄃ','ᄇ','ᄌ'}:
                 asp = aspirate(B.L)
                 if asp:
@@ -283,10 +353,26 @@ def normalize_clean(
                     first_unit = first
                     set_coda(A, first_unit if first_unit!="\0" else "\0")
                     tokens[i]=(A,"H"); rule_tags.append(f"h+onset->asp@{i+1}")
+
             tail = last_coda_unit(A.T)
-            if opt.do_h_aspiration and B.L=='ᄒ' and tail in K_LIKE_TAIL.union({'ᆮ','ᇀ'}):
-                set_onset(B, 'ᄏ' if tail in K_LIKE_TAIL else 'ᄐ')
-                tokens[i+1]=(B,"H"); rule_tags.append(f"coda+h->asp@{i+1}")
+
+            # 6c) NEW — coda + ㅎ(히) → aspirated onset (K/T/P) + liaison; cập nhật lại coda A
+            # - K-like tails (…ᆨ류)  → ᄏ (막히다→마키다)
+            # - T-like tails (…ᆮ/ᇀ류)→ ᄐ
+            # - P-like tails (…ᆸ류)  → ᄑ (밟히다→발피다)
+            if opt.do_h_aspiration and B.L=='ᄒ' and B.V=='ᅵ' and tail in K_LIKE_TAIL.union(T_LIKE_TAIL).union(P_LIKE_TAIL):
+                if tail in K_LIKE_TAIL:
+                    new_onset = 'ᄏ'
+                elif tail in T_LIKE_TAIL:
+                    new_onset = 'ᄐ'
+                else:
+                    new_onset = 'ᄑ'
+                set_onset(B, new_onset)          # ㅋ/ㅌ/ㅍ
+                tokens[i+1] = (B, "H")
+                first_unit = first
+                set_coda(A, first_unit if first_unit!="\0" else "\0")
+                tokens[i] = (A, "H")
+                rule_tags.append(f"coda+h(i)->asp+liaison@{i+1}")
 
         # ===== 8) 경음화 =====
         if opt.do_tensification and B.L in {'ᄀ','ᄃ','ᄇ','ᄉ','ᄌ'}:
@@ -429,7 +515,7 @@ def explain_clean_for_user(text: str, opt=None):
                 "note":"ㅎ-탈락", "tag": tag
             })
             continue
-        if "h+onset->asp@" in tag or "coda+h->asp@" in tag:
+        if "h+onset->asp@" in tag or "coda+h->asp@" in tag or "coda+h(i)->asp+liaison@" in tag:
             i = int(re.search(r"@(\d+)", tag).group(1)) - 1
             lb, rb = _pair(ref, i)
             la, ra = _pair(cln, i)
@@ -491,13 +577,17 @@ if __name__ == "__main__":
         ("담요", None),                # 담뇨
         ("색연필", None),              # 생년필
         ("한여름", None),              # 한녀름
-        ("옷이", None),                # 오시  (skip ㄴ-첨가 vì '이' là tiểu từ cuối)
-        ("많이", None),                # 마니 (NEW: ㅎ-탈락 ưu tiên, không chèn ㄴ thừa)
-        ("밟아", None),                # 발바 (NEW: ᆶ=ㄹㅎ → drop ㅎ, liaise ㄹ)
+        ("옷이", None),                # 오시 (skip ㄴ-첨가 vì '이' là tiểu từ cuối)
+        ("많이", None),                # 마니 (겹받침 ㄴㅎ: drop ㅎ, liaise ㄴ)
+        ("밟아", None),                # 발바 (겹받침 ㄹㅎ: drop ㅎ, liaise ㄹ)
+        ("어디 가요?", None),         # 구개음화 X → vẫn "어디 가요?"
+        ("막히다", None),             # 마키다 (ㄱ + 히 → ㅋ)
+        ("밟히다", None),             # 발피다 (ᆲ + 히 → ㄹ giữ, ㅂ→ㅍ onset)
+        ("싫어", None),
+        ("진짜 맛있다", None),
     ]
     for txt, opt in tests:
         out, tags = explain_clean_for_user(txt, opt)
-        # tất cả note (giữ thứ tự):
         notes_unique = list(dict.fromkeys(
                 n.strip() for n in (e.get("note") for e in tags)
                 if isinstance(n, str) and n.strip()

@@ -1,0 +1,9 @@
+transformers>=4.42.4
+trl>=0.9.6
+peft>=0.11.1
+accelerate>=0.31.0
+bitsandbytes>=0.43.1 ; platform_system != 'Windows'
+datasets>=2.20.0
+torch>=2.1.0
+numpy
+ujson

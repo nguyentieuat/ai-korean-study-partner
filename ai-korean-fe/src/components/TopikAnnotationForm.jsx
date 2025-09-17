@@ -34,12 +34,12 @@ const typeMappingTopik1 = [
   { display: "43~45번: Chọn nội dung đúng (Đọc)", jsonType: "Doc_NoidungDung" },
   { display: "46~48번: Chọn ý chính (Đọc)", jsonType: "Doc_YChinh" },
   { display: "57~58번: Sắp xếp thứ tự (Đọc)", jsonType: "Doc_SapXep" },
-  { display: "49~68번: Điền + chủ đề (Đọc)", jsonType: "Doc_Dien_ChuDe" },
+  { display: "59~62번: Điền + chủ đề (Đọc)", jsonType: "Doc_Dien_ChuDe" },
   {
     display: "63~64번: Mục đích viết + nội dung (Đọc)",
     jsonType: "Doc_MucDich",
   },
-  { display: "69~70번: Điền + suy luận (Đọc)", jsonType: "Doc_Dien_SuyLuan" },
+  { display: "65~70번: Điền + suy luận (Đọc)", jsonType: "Doc_Dien_SuyLuan" },
 ];
 
 const typeMappingTopik2 = [

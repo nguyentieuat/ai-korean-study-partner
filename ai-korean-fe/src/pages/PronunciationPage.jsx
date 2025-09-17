@@ -34,7 +34,7 @@ const PronunciationPage = () => {
 
   // Lưu audio & evaluation theo từng index
   const [userAudioByIndex, setUserAudioByIndex] = useState({});
-  const [evaluationByIndex, setEvaluationByIndex] = useState({});
+  const [evaluationByIndex, setEvaluationByIndex] = useState({}); // { [index]: { ...response } }
 
   const [levelsMeta, setLevelsMeta] = useState([]);
   const [levelsLoading, setLevelsLoading] = useState(false);
@@ -67,42 +67,38 @@ const PronunciationPage = () => {
     try {
       const event_id =
         crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
-      const body = JSON.stringify({ event_id, ...payload });
+      const bodyObj = { event_id, ...payload };
+      Object.keys(bodyObj).forEach(
+        (k) => bodyObj[k] === undefined && delete bodyObj[k]
+      );
+      const body = JSON.stringify(bodyObj);
       const res = await fetch(TRACK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
       });
-      // không chặn UI nếu lỗi
       return await res.json().catch(() => ({ ok: false }));
     } catch {
       return { ok: false };
     }
   }
 
-  // Trích các phoneme điểm thấp từ kết quả chấm (threshold 0.8)
+  // Trích các phoneme điểm thấp từ kết quả chấm (threshold 0.8) — dùng cho tracking
   function extractProblemPhones(result, threshold = 0.8) {
     const out = new Set();
     if (Array.isArray(result?.details_collapsed)) {
       for (const syl of result.details_collapsed) {
         const ph = syl?.phonemes || [];
-        const sc = syl?.scores || [];
+        const sc = (syl?.scores || []).map(Number);
         for (let i = 0; i < Math.min(ph.length, sc.length); i++) {
-          const s = Number(sc[i] ?? 0);
-          if (s < threshold && ph[i]) out.add(ph[i]);
+          if (sc[i] < threshold && ph[i]) out.add(ph[i]);
         }
-      }
-    } else if (Array.isArray(result?.details)) {
-      for (const d of result.details) {
-        const s = Number(d?.score ?? d?.conf ?? 0);
-        const lab = d?.phoneme_surface || d?.phoneme;
-        if (lab && s < threshold) out.add(lab);
       }
     }
     return Array.from(out);
   }
 
-  // Gom lời khuyên/tip (nếu backend trả về)
+  // Gom lời khuyên/tip (nếu backend trả về) — dùng cho tracking
   function extractTipsShown(result) {
     const tips = new Set();
     if (Array.isArray(result?.notes)) {
@@ -125,52 +121,20 @@ const PronunciationPage = () => {
   // Chủ đề tĩnh
   const dataByTopic = {
     "Sinh hoạt": [
-      {
-        text: "밥 먹었어요?",
-        notes: "Bạn đã ăn cơm chưa?",
-        pronunciation: "bap meo-geo-sseo-yo",
-      },
-      {
-        text: "집에 가요.",
-        notes: "Tôi về nhà.",
-        pronunciation: "jib-e ga-yo",
-      },
+      { text: "밥 먹었어요?", notes: "Bạn đã ăn cơm chưa?", pronunciation: "bap meo-geo-sseo-yo" },
+      { text: "집에 가요.", notes: "Tôi về nhà.", pronunciation: "jib-e ga-yo" },
     ],
     "Du lịch": [
-      {
-        text: "이 호텔 예약했어요.",
-        notes: "Tôi đã đặt phòng khách sạn.",
-        pronunciation: "i hotel ye-yak-hae-sseo-yo",
-      },
-      {
-        text: "공항으로 가 주세요.",
-        notes: "Làm ơn đưa tôi đến sân bay.",
-        pronunciation: "gong-hang-eu-ro ga ju-se-yo",
-      },
+      { text: "이 호텔 예약했어요.", notes: "Tôi đã đặt phòng khách sạn.", pronunciation: "i hotel ye-yak-hae-sseo-yo" },
+      { text: "공항으로 가 주세요.", notes: "Làm ơn đưa tôi đến sân bay.", pronunciation: "gong-hang-eu-ro ga ju-se-yo" },
     ],
     "Nhà hàng": [
-      {
-        text: "메뉴 좀 보여 주세요.",
-        notes: "Cho tôi xem thực đơn.",
-        pronunciation: "me-nyu jom bo-yeo ju-se-yo",
-      },
-      {
-        text: "계산서 부탁해요.",
-        notes: "Làm ơn tính tiền.",
-        pronunciation: "gye-san-seo bu-tak-hae-yo",
-      },
+      { text: "메뉴 좀 보여 주세요.", notes: "Cho tôi xem thực đơn.", pronunciation: "me-nyu jom bo-yeo ju-se-yo" },
+      { text: "계산서 부탁해요.", notes: "Làm ơn tính tiền.", pronunciation: "gye-san-seo bu-tak-hae-yo" },
     ],
     "Công xưởng": [
-      {
-        text: "안전모를 착용하세요.",
-        notes: "Hãy đội mũ bảo hộ.",
-        pronunciation: "an-jeon-mo-reul chak-yong-ha-se-yo",
-      },
-      {
-        text: "작업을 시작합니다.",
-        notes: "Bắt đầu làm việc.",
-        pronunciation: "jak-eob-eul si-jak-ham-ni-da",
-      },
+      { text: "안전모를 착용하세요.", notes: "Hãy đội mũ bảo hộ.", pronunciation: "an-jeon-mo-reul chak-yong-ha-se-yo" },
+      { text: "작업을 시작합니다.", notes: "Bắt đầu làm việc.", pronunciation: "jak-eob-eul si-jak-ham-ni-da" },
     ],
   };
 
@@ -204,7 +168,7 @@ const PronunciationPage = () => {
       };
       tick();
 
-      // cảnh báo nếu 1s chưa có âm thanh
+      // cảnh báo nếu 3s chưa có âm thanh
       silenceTimerRef.current = setTimeout(() => {
         if (!soundDetectedRef.current) {
           window.alert(
@@ -255,9 +219,7 @@ const PronunciationPage = () => {
         if (!ignore) setLevelsLoading(false);
       }
     })();
-    return () => {
-      ignore = true;
-    };
+    return () => { ignore = true; };
   }, []);
 
   // dọn dẹp khi unmount
@@ -448,17 +410,25 @@ const PronunciationPage = () => {
       formData.append("audio", file);
       formData.append("text", current.text || "");
 
+      const tReqStartRef = performance.now();
       try {
         const res = await fetch(`${backendUrl}/pronunciation/evaluate`, {
           method: "POST",
           body: formData,
         });
-        const result = await res.json();
-        console.log("Kết quả chấm điểm:", result);
 
-        // Lưu audio & evaluation theo index
+        // Có thể status != 200 nhưng vẫn trả json message
+        const result = await res
+          .json()
+          .catch(() => ({ ok: false, message: "Không phân tích được phản hồi." }));
+
+        console.log(result);
+
+        // Lưu audio & evaluation theo index (kể cả khi chỉ có message)
         setUserAudioByIndex((prev) => ({ ...prev, [selectedIndex]: audioUrl }));
         setEvaluationByIndex((prev) => ({ ...prev, [selectedIndex]: result }));
+
+        const tResponse = Math.round(performance.now() - tReqStartRef);
 
         // ======= TRACK SỰ KIỆN PRONUN =======
         const itemId =
@@ -483,6 +453,11 @@ const PronunciationPage = () => {
         });
       } catch (err) {
         console.error("Lỗi chấm điểm:", err);
+        // vẫn lưu message để hiển thị
+        setEvaluationByIndex((prev) => ({
+          ...prev,
+          [selectedIndex]: { ok: false, message: "Lỗi kết nối khi chấm điểm." },
+        }));
       } finally {
         setEvaluating(false);
       }
@@ -503,441 +478,124 @@ const PronunciationPage = () => {
     setEvaluationByIndex({});
   };
 
-  // --- Hangeul utils & constants ---
-  const CHOSEONG = 0x1100,
-    JUNGSEONG = 0x1161,
-    JONGSEONG = 0x11a7;
-  const SBase = 0xac00,
-    LCount = 19,
-    VCount = 21,
-    TCount = 28,
-    NCount = VCount * TCount;
+  /** ====== PHẦN RÚT GỌN DÙNG details_collapsed ====== */
+  const ADVICE_THRESHOLD = 0.8;
 
-  function isHangulSyllable(ch) {
-    const code = ch.codePointAt(0);
-    return code >= SBase && code <= 0xd7a3;
-  }
-  function splitHangulSyllable(syllable) {
-    const code = syllable.codePointAt(0);
-    if (!isHangulSyllable(syllable)) return [syllable];
-    const SIndex = code - SBase;
-    const L = Math.floor(SIndex / NCount);
-    const V = Math.floor((SIndex % NCount) / TCount);
-    const T = SIndex % TCount;
-    const chars = [
-      String.fromCharCode(CHOSEONG + L),
-      String.fromCharCode(JUNGSEONG + V),
-    ];
-    if (T !== 0) chars.push(String.fromCharCode(JONGSEONG + T));
-    return chars; // [L, V, (T?)]
+  /** Lấy details_collapsed nếu có */
+  function getCollapsed(evaluation) {
+    return Array.isArray(evaluation?.details_collapsed)
+      ? evaluation.details_collapsed
+      : null;
   }
 
-  const SILENT_ONSET = "\u110B"; // ᄋ
-  const COMPLEX_VOWELS = new Set([
-    "\u1163",
-    "\u1164",
-    "\u1167",
-    "\u1168",
-    "\u116D",
-    "\u1172",
-    "\u116A",
-    "\u116B",
-    "\u116C",
-    "\u116F",
-    "\u1170",
-    "\u1171",
-    "\u1174",
-  ]);
-  const PUNCTS = "?.!,;:~…—-()[]{}";
-
-  // Bảng tách 받침 kép (Jongseong -> [trái, phải])
-  const JONG_SPLIT = {
-    "\u11AA": ["\u11A8", "\u11BA"], // ᆪ = ㄱ + ㅅ
-    "\u11AC": ["\u11AB", "\u11BD"], // ᆬ = ㄴ + ㅈ
-    "\u11AD": ["\u11AB", "\u11C2"], // ᆭ = ㄴ + ㅎ
-    "\u11B0": ["\u11AF", "\u11A8"], // ᆰ = ㄹ + ㄱ
-    "\u11B1": ["\u11AF", "\u11B7"], // ᆱ = ㄹ + ㅁ
-    "\u11B2": ["\u11AF", "\u11B8"], // ᆲ = ㄹ + ㅂ
-    "\u11B3": ["\u11AF", "\u11BA"], // ᆳ = ㄹ + ㅅ
-    "\u11B4": ["\u11AF", "\u11C0"], // ᆴ = ㄹ + ㅌ
-    "\u11B5": ["\u11AF", "\u11C1"], // ᆵ = ㄹ + ㅍ
-    "\u11B6": ["\u11AF", "\u11C2"], // ᆶ = ㄹ + ㅎ
-    "\u11B9": ["\u11B8", "\u11BA"], // ᆹ = ㅂ + ㅅ
-  };
-
-  // ㅎ ở phần phải (ᆭ, ᆶ) gặp ᄋ phía sau → KHÔNG đẩy
-  function rightPartMoves(rightJong) {
-    return rightJong !== "\u11C2"; // ᇂ
+  /** Màu theo điểm */
+  function scoreColor(s) {
+    if (s >= 0.8) return "green";
+    if (s >= 0.6) return "orange";
+    return "red";
   }
 
-  /** Lập kế hoạch resyllabify: đẩy đúng phần phải sang âm tiết sau nếu sau là ᄋ */
-  function buildResyllabifiedPlan(text) {
-    const sylls = []; // [{L,V,T, nonHangul, hangulLetters, moveRight:null|{rightJong, toSylIdx, whole,leftJong}}]
-    const order = [];
-    for (const ch of text) {
-      if (ch === " " || PUNCTS.includes(ch)) {
-        order.push({ type: "space" });
-        continue;
-      }
-      const letters = splitHangulSyllable(ch);
-      if (letters.length === 1) {
-        const idx = sylls.length;
-        sylls.push({
-          L: null,
-          V: null,
-          T: null,
-          nonHangul: true,
-          hangulLetters: [{ hangul: ch }],
-          moveRight: null,
-        });
-        order.push({ type: "syl", idx });
-      } else {
-        const [L, V, T] = letters;
-        const idx = sylls.length;
-        const hangulLetters = [{ hangul: L }, { hangul: V }];
-        if (T) hangulLetters.push({ hangul: T });
-        sylls.push({
-          L,
-          V,
-          T,
-          nonHangul: false,
-          hangulLetters,
-          moveRight: null,
-        });
-        order.push({ type: "syl", idx });
-      }
-    }
+  /**
+   * Map text -> mảng ký tự, gắn từng ký tự Hangul với 1 item ở details_collapsed theo thứ tự.
+   * Non-Hangul giữ nguyên, không tooltip.
+   * Nếu thiếu/thừa phần tử, các ký tự ngoài phạm vi collapsed sẽ không có tooltip.
+   */
+  function mapForTooltipCollapsed(text, collapsed) {
+    const chars = Array.from(text);
+    const out = [];
+    let k = 0;
 
-    // Xác định phần đẩy
-    for (let i = 0; i < sylls.length - 1; i++) {
-      const cur = sylls[i],
-        nxt = sylls[i + 1];
-      if (cur.nonHangul || nxt.nonHangul) continue;
-      if (!cur.T) continue;
-      if (nxt.L !== SILENT_ONSET) continue;
+    for (let i = 0; i < chars.length; i++) {
+      const ch = chars[i];
+      const cp = ch.codePointAt(0);
+      const isHangul = cp >= 0xAC00 && cp <= 0xD7A3;
 
-      // T đơn: đẩy hết
-      if (!JONG_SPLIT[cur.hangulLetters[2]?.hangul]) {
-        cur.moveRight = {
-          rightJong: cur.hangulLetters[2]?.hangul,
-          toSylIdx: i + 1,
-          whole: true,
-        };
-        continue;
-      }
-      // T kép: đẩy phần phải (trừ ㅎ)
-      const [left, right] = JONG_SPLIT[cur.hangulLetters[2].hangul];
-      if (rightPartMoves(right)) {
-        cur.moveRight = {
-          rightJong: right,
-          toSylIdx: i + 1,
-          leftJong: left,
-          whole: false,
-        };
-      } else {
-        cur.moveRight = null; // ㅎ rơi → không đẩy
-      }
-    }
-
-    // Sinh tokens theo hiển thị (onset → preOnset → nucleus → coda còn lại)
-    const tokens = []; // {sylIdx, char, slot}
-    const preOnset = new Map(); // sylIdx -> tokens onset chèn trước nucleus
-
-    // Chuẩn bị preOnset từ moveRight (neo vào nguyên âm âm tiết nhận)
-    sylls.forEach((s, i) => {
-      if (!s.moveRight) return;
-      const { rightJong, toSylIdx } = s.moveRight;
-      if (!preOnset.has(toSylIdx)) preOnset.set(toSylIdx, []);
-      const hostV =
-        sylls[toSylIdx]?.V ||
-        sylls[toSylIdx]?.hangulLetters?.[1]?.hangul ||
-        null;
-      preOnset.get(toSylIdx).push({
-        sylIdx: toSylIdx,
-        char: hostV,
-        slot: "onset",
-        fromRightJong: rightJong,
-      });
-    });
-
-    order.forEach((it) => {
-      if (it.type === "space") return;
-      const i = it.idx,
-        s = sylls[i];
-
-      if (s.nonHangul) {
-        tokens.push({
-          sylIdx: i,
-          char: s.hangulLetters[0].hangul,
-          slot: "nucleus",
-        });
-        return;
-      }
-
-      // onset (bỏ ᄋ)
-      if (s.L && s.L !== SILENT_ONSET) {
-        tokens.push({ sylIdx: i, char: s.L, slot: "onset" });
-      }
-
-      // chèn liaison onset (nếu có) TRƯỚC nucleus
-      if (preOnset.has(i)) preOnset.get(i).forEach((tk) => tokens.push(tk));
-
-      // === NUCLEUS ===
-      const hasRealOnset =
-        (s.L && s.L !== SILENT_ONSET) || preOnset.get(i)?.length > 0;
-
-      if (s.V) {
-        const isComplex = COMPLEX_VOWELS.has(s.V);
-        const nucleusCount = isComplex && !hasRealOnset ? 2 : 1;
-        for (let k = 0; k < nucleusCount; k++) {
-          tokens.push({ sylIdx: i, char: s.V, slot: "nucleus" });
-        }
-      }
-
-      // === CODA === (phần còn lại sau khi đẩy)
-      if (s.T) {
-        const Tchar = s.hangulLetters[2].hangul;
-        if (!s.moveRight) {
-          tokens.push({ sylIdx: i, char: Tchar, slot: "coda" });
-        } else {
-          if (s.moveRight.whole) {
-            // đẩy hết → không còn coda
-          } else {
-            tokens.push({ sylIdx: i, char: Tchar, slot: "coda" });
-          }
-        }
-      }
-    });
-
-    return { sylls, order, tokens };
-  }
-
-  /** mapForTooltip: dùng plan sau resyllabify để hiển thị tooltip đúng chỗ */
-  function mapForTooltip(text, detailsOrCollapsed) {
-    const dets = Array.isArray(detailsOrCollapsed) ? detailsOrCollapsed : [];
-    const isCollapsed =
-      dets.length > 0 &&
-      Array.isArray(dets[0]?.phonemes) &&
-      Array.isArray(dets[0]?.scores);
-
-    const { sylls, order, tokens } = buildResyllabifiedPlan(text);
-    const syllables = sylls.map((s) => ({
-      hangulLetters: s.hangulLetters,
-      phonemes: [],
-    }));
-
-    if (isCollapsed) {
-      // ----- dữ liệu theo âm tiết (details_collapsed) -----
-      const sylIdxSeq = order.filter((x) => x.type === "syl").map((x) => x.idx);
-      const K = Math.min(dets.length, sylIdxSeq.length);
-
-      for (let i = 0; i < K; i++) {
-        const sylIdx = sylIdxSeq[i];
-        const sylTokens = tokens.filter((t) => t.sylIdx === sylIdx);
-        const phs = dets[i].phonemes || [];
-        const scs = dets[i].scores || [];
-        const n = Math.min(sylTokens.length, phs.length);
-
-        for (let j = 0; j < n; j++) {
-          const tk = sylTokens[j];
-          const ph = phs[j];
-          const sc = Number(scs[j] ?? 0);
-          syllables[sylIdx].phonemes.push({
-            phoneme: ph,
-            phoneme_surface: ph,
-            score: sc,
-            slot: tk.slot,
-            hangulChar: tk.char,
-            position: tk.slot,
-            color: sc >= 0.8 ? "green" : sc >= 0.6 ? "yellow" : "red",
-          });
-        }
-      }
-    } else {
-      // ----- dữ liệu phẳng cũ (details) — fallback giữ nguyên hành vi -----
-      let p = 0;
-      for (const tk of tokens) {
-        if (p >= dets.length) break;
-        const d = dets[p++];
-        const lab = d.phoneme_surface || d.phoneme || "?";
-        syllables[tk.sylIdx].phonemes.push({
-          ...d,
-          phoneme: lab,
-          slot: d.slot || d.position || tk.slot,
-          hangulChar: d.hangulChar || tk.char,
-        });
-      }
-      if (p < dets.length && syllables.length > 0) {
-        const last = syllables.length - 1;
-        while (p < dets.length) {
-          const d = dets[p++],
-            lab = d.phoneme_surface || d.phoneme || "?";
-          syllables[last].phonemes.push({
-            ...d,
-            phoneme: lab,
-            slot: d.slot || d.position || "nucleus",
-            hangulChar: syllables[last]?.hangulLetters?.[1]?.hangul || null,
-          });
-        }
-      }
-    }
-
-    const result = [];
-    order.forEach((it) => {
-      if (it.type === "space") {
-        result.push({ hangulLetters: [], phonemes: [], avgScore: 1 });
-      } else {
-        const s = syllables[it.idx] || { hangulLetters: [], phonemes: [] };
-        const phs = s.phonemes || [];
-        const avg = phs.length
-          ? phs.reduce((a, x) => a + Number(x?.score ?? 0), 0) / phs.length
-          : 1;
-        result.push({
-          hangulLetters: s.hangulLetters,
-          phonemes: phs,
-          avgScore: avg,
-        });
-      }
-    });
-    return result;
-  }
-
-  /** Nhóm theo jamo trong âm tiết (để hiện lỗi đúng chỗ) */
-  function groupPhonemesByJamo(hangulLetters, phonemes) {
-    const groups = (hangulLetters || []).map((l) => ({
-      jamo: l.hangul,
-      items: [],
-    }));
-    (phonemes || []).forEach((p) => {
-      const idx = groups.findIndex((g) => g.jamo === p.hangulChar);
-      if (idx >= 0) groups[idx].items.push(p);
-    });
-    return groups;
-  }
-
-  /** mapForIssues: trả list lỗi (score<threshold) sau khi đẩy 받침 */
-  function mapForIssues(text, detailsOrCollapsed, threshold = 0.8) {
-    const dets = Array.isArray(detailsOrCollapsed) ? detailsOrCollapsed : [];
-    const isCollapsed =
-      dets.length > 0 &&
-      Array.isArray(dets[0]?.phonemes) &&
-      Array.isArray(dets[0]?.scores);
-
-    // ----------- CASE 1: dùng details_collapsed -----------
-    if (isCollapsed) {
-      const { order, tokens } = buildResyllabifiedPlan(text);
-      const sylIdxSeq = order.filter((x) => x.type === "syl").map((x) => x.idx);
-      const K = Math.min(dets.length, sylIdxSeq.length);
-
-      const groups = [];
-      for (let i = 0; i < K; i++) {
-        const sylIdx = sylIdxSeq[i];
-        const sylTokens = tokens.filter((t) => t.sylIdx === sylIdx);
-
-        const label = dets[i]?.label ?? "";
-        const phs = dets[i]?.phonemes || [];
-        const scs = dets[i]?.scores || [];
-        const advLists = Array.isArray(dets[i]?.advice) ? dets[i].advice : [];
-        const n = Math.min(sylTokens.length, phs.length);
-
-        const getAdviceFor = (j) => {
-          if (Array.isArray(advLists[j])) return advLists[j];
-          if (
-            Array.isArray(advLists) &&
-            typeof advLists[0] === "string" &&
-            phs.length === 1
-          )
-            return advLists;
-          return [];
-        };
-
-        const avgScore =
-          typeof dets[i]?.avg_score === "number"
-            ? dets[i].avg_score
-            : scs.length
-            ? scs.reduce((a, b) => a + Number(b || 0), 0) / scs.length
+      if (isHangul && k < collapsed.length) {
+        const item = collapsed[k++];
+        const scores = (item?.scores || []).map(Number);
+        const avg =
+          typeof item?.avg_score === "number"
+            ? Number(item.avg_score)
+            : scores.length
+            ? scores.reduce((a, b) => a + b, 0) / scores.length
             : 1;
 
-        const items = [];
-        for (let j = 0; j < n; j++) {
-          const sc = Number(scs[j] ?? 0);
-          if (sc < threshold) {
-            const tk = sylTokens[j];
-            items.push({
-              key: `${i}:${j}`,
-              phoneme: phs[j],
-              score: sc,
-              advice: getAdviceFor(j),
-              position: tk.slot,
-              hangulChar: tk.char,
-              color: sc >= 0.8 ? "green" : sc >= 0.6 ? "yellow" : "red",
-            });
-          }
-        }
+        out.push({
+          ch,
+          isHangul: true,
+          label: item?.label ?? ch,
+          phonemes: item?.phonemes || [],
+          scores,
+          avg,
+        });
+      } else {
+        out.push({
+          ch,
+          isHangul: false,
+          label: ch,
+          phonemes: [],
+          scores: [],
+          avg: 1,
+        });
+      }
+    }
+    return out;
+  }
 
-        if (avgScore < threshold || items.length > 0) {
-          groups.push({
-            groupKey: `g${i}`,
-            label,
-            syllableIndex: sylIdx,
-            avgScore,
-            items,
+  /** Gom lỗi (score<threshold) trực tiếp từ details_collapsed */
+  const lowGroups = React.useMemo(() => {
+    const collapsed = getCollapsed(currentEvaluation);
+    if (!collapsed || !current?.text) return [];
+
+    const result = [];
+    collapsed.forEach((syl, i) => {
+      const scores = (syl?.scores || []).map(Number);
+      const phonemes = syl?.phonemes || [];
+      const adv = Array.isArray(syl?.advice) ? syl.advice : [];
+      const items = [];
+
+      for (let j = 0; j < Math.min(scores.length, phonemes.length); j++) {
+        if (scores[j] < ADVICE_THRESHOLD) {
+          const adviceForJ = Array.isArray(adv[j])
+            ? adv[j]
+            : (Array.isArray(adv) && typeof adv[0] === "string" && phonemes.length === 1)
+              ? adv
+              : [];
+          items.push({
+            key: `${i}:${j}`,
+            phoneme: phonemes[j],
+            score: scores[j],
+            advice: adviceForJ,
+            color: scoreColor(scores[j]),
           });
         }
       }
-      return groups;
-    }
 
-    // Fallback
-    const mapped = mapForTooltip(text, dets);
-    const groups = [];
-    mapped.forEach((syl, i) => {
-      const phs = syl.phonemes || [];
-      const items = [];
-      phs.forEach((p, j) => {
-        const sc = Number(p?.score ?? 0);
-        if (sc < threshold) {
-          items.push({
-            key: `${i}:${j}`,
-            phoneme: p?.phoneme || p?.phoneme_surface || "?",
-            score: sc,
-            advice: Array.isArray(p?.advice) ? p.advice : [],
-            position: p?.slot ?? p?.position ?? null,
-            hangulChar: p?.hangulChar ?? null,
-            color: p?.color || undefined,
-          });
-        }
-      });
-      if (items.length > 0) {
-        const label = (syl.hangulLetters || []).map((x) => x.hangul).join("");
-        groups.push({
+      const avg =
+        typeof syl?.avg_score === "number"
+          ? Number(syl.avg_score)
+          : scores.length
+          ? scores.reduce((a, b) => a + b, 0) / scores.length
+          : 1;
+
+      if (avg < ADVICE_THRESHOLD || items.length > 0) {
+        result.push({
           groupKey: `g${i}`,
-          label,
+          label: syl?.label || "",
           syllableIndex: i,
-          avgScore: syl.avgScore ?? 1,
+          avgScore: avg,
           items,
         });
       }
     });
-    return groups;
-  }
 
-  // 2) Gom lỗi (score<threshold)
-  const ADVICE_THRESHOLD = 0.8;
-  const lowGroups = React.useMemo(() => {
-    const src =
-      currentEvaluation?.details_collapsed ?? currentEvaluation?.details;
-    if (!src || !current?.text) return [];
-    return mapForIssues(current.text, src, ADVICE_THRESHOLD);
-  }, [
-    currentEvaluation?.details_collapsed,
-    currentEvaluation?.details,
-    current?.text,
-  ]);
+    return result;
+  }, [currentEvaluation?.details_collapsed, current?.text]);
 
   // Khoá UI khi đang ghi
   const uiDisabled = recording;
 
+  // ====== UI ======
   return (
     <div className="container mt-4">
       <h2>
@@ -1013,9 +671,7 @@ const PronunciationPage = () => {
             <button
               className={`btn ${recording ? "btn-danger" : "btn-warning"}`}
               onClick={recording ? handleStop : handleStart}
-              disabled={
-                uiDisabled ? false : loading || !current.text || evaluating
-              }
+              disabled={uiDisabled ? false : loading || !current.text || evaluating}
             >
               {recording ? "⏹ Dừng ghi âm" : "🎙️ Ghi âm"}
             </button>
@@ -1037,168 +693,168 @@ const PronunciationPage = () => {
             </div>
           )}
 
-          {currentEvaluation?.details && (
-            <div className="mt-3 p-3 border rounded">
-              <h6>📊 Kết quả đánh giá:</h6>
+          {/* === KẾT QUẢ / THÔNG ĐIỆP TỪ BACKEND === */}
+          {(() => {
+            const collapsed = getCollapsed(currentEvaluation);
+            const hasScores =
+              collapsed && collapsed.length > 0 &&
+              Array.isArray(collapsed[0]?.scores);
 
-              <p>
-                <strong>Điểm trung bình:</strong>{" "}
-                {((currentEvaluation.avg_score ?? 0) * 100).toFixed(0)}%
-              </p>
-
-              {/* Dòng chữ có tô màu theo từng âm tiết */}
-              <div
-                style={{
-                  fontSize: "1.5rem",
-                  lineHeight: "2rem",
-                  position: "relative",
-                }}
-              >
-                {mapForTooltip(
-                  current.text,
-                  currentEvaluation?.details_collapsed
-                ).map((s, idx) => {
-                  const { hangulLetters, phonemes, avgScore } = s;
-                  let color =
-                    avgScore >= 0.8
-                      ? "green"
-                      : avgScore >= 0.6
-                      ? "orange"
-                      : "red";
-                  return (
-                    <span
-                      key={idx}
-                      style={{
-                        color,
-                        marginRight: "0.05rem",
-                        position: "relative",
-                      }}
-                    >
-                      {hangulLetters.map((l, i) => (
-                        <span
-                          key={i}
-                          style={{ cursor: "pointer" }}
-                          onMouseEnter={() => setHoveredWordIndex(idx)}
-                          onMouseLeave={() => setHoveredWordIndex(null)}
-                        >
-                          {l.hangul}
-                        </span>
-                      ))}
-                      {hoveredWordIndex === idx && phonemes.length > 0 && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "-2rem",
-                            left: 0,
-                            background: "white",
-                            border: "1px solid #ccc",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            fontSize: "0.9rem",
-                            zIndex: 10,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {phonemes
-                            .map((p) => {
-                              const pct = ((p.score ?? 0) * 100).toFixed(0);
-                              const lab = p.phoneme_surface || p.phoneme || "?";
-                              return `${lab}_${pct}%`;
-                            })
-                            .join(" ")}
-                        </div>
-                      )}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* Notes */}
-              {(currentEvaluation?.notes || current?.notes) && (
-                <div className="mt-3">
-                  <h6>📝 Notes</h6>
-                  {Array.isArray(currentEvaluation?.notes) ? (
-                    <ul className="mt-1">
-                      {currentEvaluation.notes.map((n, i) => (
-                        <li key={i}>{n}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mb-0">
-                      {currentEvaluation?.notes ?? current?.notes}
-                    </p>
-                  )}
+            // Nếu không có dữ liệu chấm → hiển thị message (nếu có)
+            if (!hasScores) {
+              const msg = currentEvaluation?.message || currentEvaluation?.error || null;
+              return msg ? (
+                <div className="mt-3 p-3 border rounded bg-light">
+                  <h6>ℹ️ Thông báo</h6>
+                  <p className="mb-0">{String(msg)}</p>
                 </div>
-              )}
+              ) : null;
+            }
 
-              {/* Danh sách âm/từ phát âm kém + advice */}
-              <div className="mt-3">
-                <h6>⚠️ Âm/từ cần cải thiện</h6>
-                {lowGroups.length === 0 ? (
-                  <div className="text-success">
-                    Tuyệt vời! Không có âm/từ nào dưới 80%.
-                  </div>
-                ) : (
-                  <div className="d-flex flex-column gap-3">
-                    {lowGroups.map((g) => (
-                      <div key={g.groupKey} className="p-2 border rounded">
-                        <div className="d-flex align-items-center justify-content-between">
-                          <div>
-                            <strong style={{ fontSize: "1.1rem" }}>
-                              {g.label || "(âm tiết)"}
-                            </strong>
-                          </div>
+            // Có dữ liệu chấm: hiển thị điểm + dòng chữ tô màu + issues
+            const overall =
+              Number(currentEvaluation?.avg_score ?? currentEvaluation?.score ?? 0) || 0;
+            const mapped = mapForTooltipCollapsed(current.text, collapsed);
+
+            return (
+              <div className="mt-3 p-3 border rounded">
+                <h6>📊 Kết quả đánh giá:</h6>
+                <p>
+                  <strong>Điểm trung bình:</strong>{" "}
+                  {(overall * 100).toFixed(0)}%
+                </p>
+
+                {/* Dòng chữ có tô màu theo từng âm tiết (simple by details_collapsed) */}
+                <div
+                  style={{
+                    fontSize: "1.5rem",
+                    lineHeight: "2rem",
+                    position: "relative",
+                  }}
+                >
+                  {mapped.map((m, idx) => {
+                    const color = m.isHangul ? scoreColor(m.avg) : undefined;
+                    const isHoverable = m.isHangul && m.phonemes.length > 0;
+
+                    return (
+                      <span
+                        key={idx}
+                        style={{
+                          color,
+                          marginRight: "0.05rem",
+                          position: "relative",
+                          cursor: isHoverable ? "pointer" : "default",
+                        }}
+                        onMouseEnter={() => isHoverable && setHoveredWordIndex(idx)}
+                        onMouseLeave={() => isHoverable && setHoveredWordIndex(null)}
+                      >
+                        {m.ch}
+                        {hoveredWordIndex === idx && isHoverable && (
                           <div
-                            title="Điểm trung bình của âm tiết"
-                            style={{ minWidth: 90, textAlign: "right" }}
+                            style={{
+                              position: "absolute",
+                              top: "-2rem",
+                              left: 0,
+                              background: "white",
+                              border: "1px solid #ccc",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "0.9rem",
+                              zIndex: 10,
+                              whiteSpace: "nowrap",
+                            }}
                           >
-                            {(g.avgScore * 100).toFixed(0)}%
+                            {m.phonemes
+                              .map((p, i) => {
+                                const s = ((m.scores[i] ?? 0) * 100).toFixed(0);
+                                return `${p}_${s}%`;
+                              })
+                              .join(" ")}
                           </div>
-                        </div>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
 
-                        {/* phoneme issues trong label */}
-                        <div className="mt-2 d-flex flex-column gap-2">
-                          {g.items.map((it) => (
+                {/* Notes */}
+                {(currentEvaluation?.notes || current?.notes) && (
+                  <div className="mt-3">
+                    <h6>📝 Notes</h6>
+                    {Array.isArray(currentEvaluation?.notes) ? (
+                      <ul className="mt-1">
+                        {currentEvaluation.notes.map((n, i) => (
+                          <li key={i}>{n}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mb-0">
+                        {currentEvaluation?.notes ?? current?.notes}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Danh sách âm/từ phát âm kém + advice */}
+                <div className="mt-3">
+                  <h6>⚠️ Âm/từ cần cải thiện</h6>
+                  {lowGroups.length === 0 ? (
+                    <div className="text-success">
+                      Tuyệt vời! Không có âm/từ nào dưới 80%.
+                    </div>
+                  ) : (
+                    <div className="d-flex flex-column gap-3">
+                      {lowGroups.map((g) => (
+                        <div key={g.groupKey} className="p-2 border rounded">
+                          <div className="d-flex align-items-center justify-content-between">
+                            <div>
+                              <strong style={{ fontSize: "1.1rem" }}>
+                                {g.label || "(âm tiết)"}
+                              </strong>
+                            </div>
                             <div
-                              key={it.key}
-                              className="p-2 border rounded"
-                              style={{ background: "#fafafa" }}
+                              title="Điểm trung bình của âm tiết"
+                              style={{ minWidth: 90, textAlign: "right" }}
                             >
-                              <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                  <code style={{ fontSize: "0.95rem" }}>
-                                    {it.phoneme}
-                                  </code>
-                                  {it.position && (
-                                    <span className="badge text-bg-light ms-2">
-                                      {it.position}
-                                    </span>
-                                  )}
+                              {(g.avgScore * 100).toFixed(0)}%
+                            </div>
+                          </div>
+
+                          <div className="mt-2 d-flex flex-column gap-2">
+                            {g.items.map((it) => (
+                              <div
+                                key={it.key}
+                                className="p-2 border rounded"
+                                style={{ background: "#fafafa" }}
+                              >
+                                <div className="d-flex align-items-center justify-content-between">
+                                  <div>
+                                    <code style={{ fontSize: "0.95rem" }}>
+                                      {it.phoneme}
+                                    </code>
+                                  </div>
+                                  <div style={{ minWidth: 70, textAlign: "right" }}>
+                                    {(it.score * 100).toFixed(0)}%
+                                  </div>
                                 </div>
-                                <div
-                                  style={{ minWidth: 70, textAlign: "right" }}
-                                >
-                                  {(it.score * 100).toFixed(0)}%
-                                </div>
-                              </div>
-                              {Array.isArray(it.advice) &&
-                                it.advice.length > 0 && (
+                                {Array.isArray(it.advice) && it.advice.length > 0 && (
                                   <ul className="mt-2 mb-0 ps-3">
                                     {it.advice.map((a, i) => (
                                       <li key={i}>{a}</li>
                                     ))}
                                   </ul>
                                 )}
-                            </div>
-                          ))}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           <div className="mt-4">
             <button
