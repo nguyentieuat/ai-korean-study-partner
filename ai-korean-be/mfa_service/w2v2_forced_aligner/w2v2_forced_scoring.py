@@ -1,3 +1,11 @@
+
+"""
+CTC-only pronunciation scoring (Jamo-aware, robust gating).
+- Works with a Wav2Vec2-CTC model trained on NFD Jamo vocab.
+- Produces per-jamo and per-syllable confidences; attaches advice for low-scoring jamo.
+- If a TextGrid reference is provided, uses duration priors per jamo to bias CTC alignment.
+"""
+
 # w2v2_forced_scoring.py — CTC-only pronunciation scoring (Jamo-aware, robust gating)
 # Python 3.9+
 
@@ -195,6 +203,125 @@ def _filtered_for_sentence(confs: List[float], ref_chunks: Optional[List[Tuple[s
             idx += 1
     return keep if keep else confs
 
+# ===== TextGrid helpers (optional) =====
+def _load_textgrid_intervals(path: str) -> List[Tuple[str, float, float]]:
+    """
+    Try to read a Praat TextGrid file. Returns list of (label, start, end) intervals.
+    Prefers a tier named 'syllable'/'phones' if present; otherwise the first non-empty interval tier.
+    """
+    # Try libraries if available
+    try:
+        import textgrid  # praat-textgrids
+        tg = textgrid.TextGrid.fromFile(path)
+        # heuristic for tier
+        tier = None
+        for name in ["syllable", "Syllable", "syll", "phones", "phone", "segments"]:
+            try:
+                tier = tg.getFirst(name)
+                if tier: break
+            except Exception:
+                continue
+        if tier is None:
+            # find first interval tier that has items
+            for t in tg.tiers:
+                if getattr(t, "intervals", None) and len(t.intervals) > 0:
+                    tier = t; break
+        if tier is None:
+            return []
+        out = []
+        for iv in tier.intervals:
+            mark = (iv.mark or "").strip()
+            out.append((mark, float(iv.minTime), float(iv.maxTime)))
+        # filter empty spans
+        return [(m,s,e) for (m,s,e) in out if e>s]
+    except Exception:
+        pass
+    try:
+        import tgt  # textgrid (tgt)
+        tg = tgt.io.read_textgrid(path)
+        tier = None
+        for name in ["syllable", "Syllable", "syll", "phones", "phone", "segments"]:
+            tier = tg.get_tier_by_name(name) if tg.has_tier(name) else None
+            if tier: break
+        if tier is None:
+            tiers = tg.get_tier_names()
+            if tiers:
+                tier = tg.get_tier_by_name(tiers[0])
+        if tier is None:
+            return []
+        out = []
+        for iv in tier.intervals:
+            mark = (iv.text or "").strip()
+            out.append((mark, float(iv.start_time), float(iv.end_time)))
+        return [(m,s,e) for (m,s,e) in out if e>s]
+    except Exception:
+        pass
+    # Fallback: naive parse (TextGrid is plaintext)
+    try:
+        lines = open(path, "r", encoding="utf-8").read().splitlines()
+    except Exception:
+        return []
+    intervals = []
+    cur = {}
+    for ln in lines:
+        ls = ln.strip()
+        if ls.startswith("intervals ["):
+            cur = {}
+        elif ls.startswith("xmin ="):
+            cur["xmin"] = float(ls.split("=")[1].strip())
+        elif ls.startswith("xmax ="):
+            cur["xmax"] = float(ls.split("=")[1].strip())
+        elif ls.startswith("text ="):
+            txt = ls.split("=",1)[1].strip().strip('"')
+            cur["text"] = txt
+            if "xmin" in cur and "xmax" in cur:
+                intervals.append((cur.get("text",""), cur["xmin"], cur["xmax"]))
+                cur = {}
+    return [(m,s,e) for (m,s,e) in intervals if e>s]
+
+def _priors_from_textgrid_for_chunks(ref_chunks: Optional[List[Tuple[str, List[str]]]],
+                                     tg_path: Optional[str]) -> Optional[List[Tuple[float,float]]]:
+    """
+    Given ref_chunks [(syllable, [jamo...]),...], and a TextGrid containing syllable or phone intervals,
+    produce a per-jamo list of (start_sec, end_sec) aligned to the flattened jamo sequence.
+    Heuristic: if intervals count equals syllable count, we split each syllable evenly across its jamo.
+    If there are phone-level marks matching len(flat_jamo), we use them directly.
+    """
+    if not tg_path or not os.path.exists(tg_path):
+        return None
+    intervals = _load_textgrid_intervals(tg_path)
+    if not intervals:
+        return None
+
+    # flatten jamo
+    flat = []
+    by_syl = []
+    for syl_text, jamos in (ref_chunks or []):
+        arr = [j for j in (jamos or []) if j]
+        by_syl.append(arr)
+        flat.extend(arr)
+
+    # 1) If exact length match to flattened jamo, use directly
+    phones_like = [(m,s,e) for (m,s,e) in intervals if (e>s)]
+    if len(phones_like) == len(flat):
+        return [(s,e) for (_,s,e) in phones_like]
+
+    # 2) If counts match syllables, split evenly across jamo per syllable
+    if len(intervals) == len(by_syl) and len(by_syl) > 0:
+        priors: List[Tuple[float,float]] = []
+        for (label, s, e), jamos in zip(intervals, by_syl):
+            if not jamos:
+                continue
+            dur = (e - s) / len(jamos)
+            for i in range(len(jamos)):
+                js = s + i * dur
+                je = js + dur
+                priors.append((js, je))
+        return priors
+
+    # 3) Otherwise we cannot confidently create priors
+    return None
+
 # ===== Public =====
 def score_pronunciation_forced(
     wav_path: Optional[str] = None,
@@ -219,6 +346,7 @@ def score_pronunciation_forced(
     Robust scoring với CTC gate:
     - Gate fail -> trả sàn điểm + breakdown=0.
     - Gate pass -> Viterbi-local jamo confidences + (tuỳ chọn) CER penalty.
+    - If ref_textgrid_path is provided and readable, use it as duration priors per jamo.
     """
     assert (wav_path is not None) or (waveform is not None), "Provide wav_path or waveform"
     if waveform is None:
@@ -268,11 +396,12 @@ def score_pronunciation_forced(
         }
 
     # 3) Gate pass: per-jamo confidences
+    priors_sec = _priors_from_textgrid_for_chunks(ref_chunks, ref_textgrid_path)
     char_confs = ctc_char_confidences_from_waveform(
         waveform, waveform_sr, reference_text,
         blank_vad_thresh=BLANK_VAD_THRESH, vad_pad_ms=VAD_PAD_MS,
-        temp=LOGIT_TEMP, use_confusables=True
-        # (không truyền ref_jamo_seq để giữ tương thích hàm hiện có)
+        temp=LOGIT_TEMP, use_confusables=True,
+        priors_sec=priors_sec
     )
 
     # 3.1) Bỏ ᄋ onset khi tính điểm câu

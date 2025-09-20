@@ -1,3 +1,11 @@
+"""
+FastAPI endpoint for W2V2 forced pronunciation scoring (CTC-only, Jamo-aware).
+- Decodes uploaded audio -> mono 16k waveform (robust to 16/24/32-bit PCM & float).
+- Builds NFD Jamo reference and ref_chunks via MFA dictionary helper.
+- Calls score_pronunciation_forced() to obtain per-jamo/syllable breakdown.
+NOTE: This endpoint only scores against a given target text — it is not a general ASR.
+"""
+
 # api_evaluateW2v2Forced.py
 from __future__ import annotations
 
@@ -86,8 +94,6 @@ def _decode_upload_to_tensor(upload: UploadFile) -> Tuple[torch.Tensor, int]:
     seg = seg.set_channels(1).set_frame_rate(TARGET_SR)
 
     sample_width = seg.sample_width
-    frame_count = len(seg.get_array_of_samples())
-
     # Lấy bytes gốc để tự chuyển theo sample_width
     pcm_bytes = seg.raw_data
 
@@ -189,7 +195,7 @@ def evaluate_pronunciation_forced(
             mfa_dict = load_mfa_dict(MFA_DICT_PATH)
         except Exception:
             mfa_dict = {}
-        ref_chunks, notes = text_to_jamo_chunks(text)
+        ref_chunks, notes = text_to_jamo_chunks(text, mfa_dict)
 
         print("Text:", text)
         print("Ref Chunks:", ref_chunks)
