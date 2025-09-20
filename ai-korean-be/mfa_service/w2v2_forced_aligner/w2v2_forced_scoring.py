@@ -1,4 +1,3 @@
-
 """
 CTC-only pronunciation scoring (Jamo-aware, robust gating).
 - Works with a Wav2Vec2-CTC model trained on NFD Jamo vocab.
@@ -57,10 +56,11 @@ def extract_features_from_waveform(waveform: torch.Tensor, sr: int) -> Tuple[tor
 MISSING_THRESHOLD = float(os.getenv("W2V_MISSING_THRESHOLD", "0.08"))
 MIN_SCORE_FLOOR = float(os.getenv("W2V_MIN_SCORE_FLOOR", "0.0"))   # floor=0 để tránh mặc định 45
 ADVICE_THRESHOLD = float(os.getenv("W2V_ADVICE_THRESHOLD", "0.7"))
+W2V_CTC_REF_NLL_THR = float(os.getenv("W2V_CTC_REF_NLL_THR", "2.2"))
 CTC_LOSS_CHAR_THRESHOLD = float(os.getenv("W2V_CTC_LOSS_CHAR_THRESHOLD", "2.0"))
 CTC_CER_THRESHOLD = float(os.getenv("W2V_CTC_CER_THRESHOLD", "0.65"))
 BLANK_VAD_THRESH = float(os.getenv("W2V_BLANK_VAD_THRESH", "0.85"))
-VAD_PAD_MS = float(os.getenv("W2V_VAD_PAD_MS", "150.0"))
+VAD_PAD_MS = float(os.getenv("W2V_VAD_PAD_MS", "280.0"))
 LOGIT_TEMP = float(os.getenv("W2V_LOGIT_TEMP", "0.5"))
 ADVICE_JAMO_THRESHOLD = 0.75
 
@@ -336,6 +336,7 @@ def score_pronunciation_forced(
     min_score_floor: float = MIN_SCORE_FLOOR,
     advice_threshold: float = ADVICE_THRESHOLD,
     use_ctc_gate: bool = True,
+    ref_nll_threshold: float = W2V_CTC_REF_NLL_THR,
     ctc_loss_char_threshold: float = CTC_LOSS_CHAR_THRESHOLD,
     ctc_cer_threshold: float = CTC_CER_THRESHOLD,
     ctc_mix_mode: str = "ctc_only",
@@ -344,7 +345,7 @@ def score_pronunciation_forced(
 ) -> Dict[str, Any]:
     """
     Robust scoring với CTC gate:
-    - Gate fail -> trả sàn điểm + breakdown=0.
+    - Gate fail -> score chính thức = 0 nhưng vẫn tính breakdown + score_soft (cap thấp).
     - Gate pass -> Viterbi-local jamo confidences + (tuỳ chọn) CER penalty.
     - If ref_textgrid_path is provided and readable, use it as duration priors per jamo.
     """
@@ -363,7 +364,8 @@ def score_pronunciation_forced(
     g = ctc_gate_global_from_waveform(
         waveform, waveform_sr, reference_text,
         cer_threshold=ctc_cer_threshold,
-        loss_char_threshold=ctc_loss_char_threshold
+        loss_char_threshold=ctc_loss_char_threshold,
+        ref_nll_threshold=ref_nll_threshold
     )
     # Tương thích mọi biến thể return
     cer_val = float(g.get("cer", 1.0))
@@ -375,24 +377,59 @@ def score_pronunciation_forced(
     )
 
     if not gate_pass and use_ctc_gate:
-        # Gate fail: trả sàn + breakdown = 0
-        zeros = [0.0] * n_ref
+        # Gate fail: giữ score nghiêm ngặt = 0, nhưng vẫn tính per-jamo để feedback
+        soft_cap = int(float(os.getenv("W2V_SOFT_CAP", "35")))  # cap cho score_soft
+
+        priors_sec = _priors_from_textgrid_for_chunks(ref_chunks, ref_textgrid_path)
+        char_confs_raw = ctc_char_confidences_from_waveform(
+            waveform, waveform_sr, reference_text,
+            blank_vad_thresh=BLANK_VAD_THRESH, vad_pad_ms=VAD_PAD_MS,
+            temp=LOGIT_TEMP, use_confusables=True,
+            priors_sec=priors_sec
+        )
+        # Bỏ ᄋ onset khi tính điểm câu
+        char_confs_eff = _filtered_for_sentence(char_confs_raw, ref_chunks)
+        miss_ratio = float(np.mean([c < missing_threshold for c in char_confs_eff])) if len(char_confs_eff) > 0 else 1.0
+
+        # Tính soft score (tham khảo), rồi cap
+        soft = _score_sentence(
+            char_confs_eff, cer_val,
+            tau=tau_char_power, lam_edit=lam_edit,
+            n_ref_chars=len(char_confs_eff)
+        )
+        soft = min(int(round(soft)), soft_cap)
+
+        # Breakdown + advice để UI tô màu jamo
+        syllables = _syllable_scores_from_chunks(ref_chunks, char_confs_raw, tau=tau_char_power)
+        syllables = _attach_advices_to_syllables(syllables, thr=ADVICE_JAMO_THRESHOLD)
+
+        # Len mismatch theo dữ liệu thực tế
+        len_mismatch = (len(_flatten_ref_chunks(ref_chunks)) != len(char_confs_raw))
+
         return {
-            "score": int(round(100.0 * min_score_floor)),
+            "score": int(round(100.0 * min_score_floor)),  # điểm chính thức nghiêm ngặt = 0
+            "score_soft": soft,                            # điểm tham khảo để hiển thị feedback
+            "gate_pass": False,
             "details": {
                 "reason": "gate_fail",
                 **g,
-                "missing_ratio": 1.0,
-                "lens": {"ref_jamo": n_ref, "ctc_char_confs": n_ref},
+                "missing_ratio": miss_ratio,
+                "len_mismatch": bool(len_mismatch),
+                "lens": {
+                    "ref_jamo": len(_flatten_ref_chunks(ref_chunks)),
+                    "ctc_char_confs": len(char_confs_raw),
+                },
                 "params": {
                     "tau_char_power": tau_char_power,
                     "lam_edit": lam_edit,
                     "blank_vad_thresh": BLANK_VAD_THRESH,
                     "vad_pad_ms": VAD_PAD_MS,
-                }
+                    "soft_cap": soft_cap,
+                },
+                "note": "Gate fail: score (chính thức) = 0; score_soft là tham khảo để góp ý phát âm."
             },
-            "message": "Âm thanh không khớp câu tham chiếu (nghi ngờ nói bừa hoặc đọc sai nội dung).",
-            "details_collapsed": _syllable_scores_from_chunks(ref_chunks, zeros, tau=tau_char_power)
+            "message": "Bạn chưa đọc đúng câu tham chiếu (điểm chính thức = 0). Dưới đây là góp ý phát âm tham khảo.",
+            "details_collapsed": syllables
         }
 
     # 3) Gate pass: per-jamo confidences

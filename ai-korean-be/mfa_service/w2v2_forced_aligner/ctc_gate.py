@@ -15,6 +15,8 @@ import numpy as np
 import torch
 import torchaudio
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
+import unicodedata as ud
+import torch.nn as nn
 
 _log = logging.getLogger(__name__)
 if not _log.handlers:
@@ -37,6 +39,90 @@ PRIOR_EDGE_PAD_SEC = float(os.getenv("W2V_PRIOR_EDGE_PAD_SEC", "0.02"))
 _processor: Optional[Wav2Vec2Processor] = None
 _model: Optional[Wav2Vec2ForCTC] = None
 _blank_id: int = 0
+
+import unicodedata as ud
+import torch.nn as nn
+
+def _to_nfd_jamo_only(s: str) -> str:
+    # Chuẩn hoá mạnh → lọc đúng Jamo NFD
+    s = ud.normalize("NFKD", s)
+    return "".join(ch for ch in s if 0x1100 <= ord(ch) <= 0x11FF)
+
+def _is_vocab_nfd(vocab: Dict[str, int]) -> bool:
+    # Heuristic: nếu có ᄋ (U+110B) thì là NFD; nếu chỉ có ㅇ (U+3147) là compatibility
+    return ("ᄋ" in vocab) or ("ᄀ" in vocab)
+
+def _map_ref_to_vocab_space(ref_nfd: str, vocab: Dict[str, int]) -> str:
+    # Nếu tokenizer dùng Compatibility Jamo, map NFD → Compatibility để target vào đúng vocab
+    if _is_vocab_nfd(vocab):
+        return ref_nfd
+    out = []
+    for ch in ref_nfd:
+        cp = ord(ch)
+        if 0x1100 <= cp <= 0x1112:  # choseong
+            base_map = {
+                0x1100: 0x3131, 0x1102: 0x3134, 0x1103: 0x3137, 0x1105: 0x3139,
+                0x1106: 0x3141, 0x1107: 0x3142, 0x1109: 0x3145, 0x110B: 0x3147,
+                0x110C: 0x3148, 0x110E: 0x314A, 0x110F: 0x314B, 0x1110: 0x314C,
+                0x1111: 0x314D, 0x1112: 0x314E,
+            }
+            out.append(chr(base_map.get(cp, cp)))
+        elif 0x1161 <= cp <= 0x1175:  # vowels
+            out.append(chr(cp - 0x1161 + 0x314F))
+        elif 0x11A8 <= cp <= 0x11C2:  # jong
+            jong_map = {
+                0x11A8: 0x3131, 0x11AB: 0x3134, 0x11AE: 0x3137, 0x11AF: 0x3139,
+                0x11B7: 0x3141, 0x11B8: 0x3142, 0x11BA: 0x3145, 0x11BC: 0x3147,
+                0x11BD: 0x3148, 0x11BE: 0x314A, 0x11BF: 0x314B, 0x11C0: 0x314C,
+                0x11C1: 0x314D, 0x11C2: 0x314E,
+            }
+            out.append(chr(jong_map.get(cp, cp)))
+        # ký tự khác bỏ qua
+    return "".join(out)
+
+def _cer(a: str, b: str) -> float:
+    if not b:
+        return 1.0 if a else 0.0
+    # Levenshtein
+    if a == b:
+        return 0.0
+    if len(a) < len(b):
+        a, b = b, a
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            ins = cur[j-1] + 1
+            dele = prev[j] + 1
+            rep = prev[j-1] + (ca != cb)
+            cur.append(min(ins, dele, rep))
+        prev = cur
+    return prev[-1] / max(1, len(b))
+
+def _cer_skeleton(nfd_a: str, nfd_b: str) -> float:
+    # CER chỉ trên bộ khung CV (bỏ jong 0x11A8..0x11C2) để khoan dung mất jong nhẹ
+    a = "".join(ch for ch in nfd_a if (0x1100 <= ord(ch) <= 0x1112) or (0x1161 <= ord(ch) <= 0x1175))
+    b = "".join(ch for ch in nfd_b if (0x1100 <= ord(ch) <= 0x1112) or (0x1161 <= ord(ch) <= 0x1175))
+    return _cer(a, b)
+
+def _ctc_ref_nll_per_char(logprobs: torch.Tensor, vocab: Dict[str,int],
+                          ref_text_nfd: str, blank_id: int) -> float:
+    """
+    Tính CTCLoss (NLL) của câu ref trực tiếp trên logprobs, chia theo số ký tự target.
+    Không phụ thuộc decode; rất hợp để gate.
+    """
+    tgt_str = _map_ref_to_vocab_space(_to_nfd_jamo_only(ref_text_nfd), vocab)
+    ref_ids = [vocab[ch] for ch in tgt_str if ch in vocab]
+    if len(ref_ids) == 0 or logprobs.shape[0] == 0:
+        return 10.0  # cực xấu
+    # PyTorch CTCLoss expects (T, N, C)
+    logp = logprobs.unsqueeze(1)  # (T,1,V)
+    input_lengths = torch.tensor([logp.shape[0]], dtype=torch.long, device=logp.device)
+    target_lengths = torch.tensor([len(ref_ids)], dtype=torch.long, device=logp.device)
+    targets = torch.tensor(ref_ids, dtype=torch.long, device=logp.device)
+    ctc_loss = nn.CTCLoss(blank=blank_id, reduction="sum", zero_infinity=True)
+    loss = ctc_loss(logp, targets, input_lengths, target_lengths)  # scalar
+    return float(loss.item() / max(1, len(ref_ids)))
 
 # ============ Utils ============
 def _ensure_sr(waveform: torch.Tensor, sr: int) -> torch.Tensor:
@@ -78,6 +164,75 @@ def _blank_posterior_vad(logprobs: torch.Tensor, blank_id: int, thresh: float = 
         return slice(start, end)
 
 # ============ Jamo helpers ============
+import unicodedata as ud
+
+def _to_nfd_jamo_only(s: str) -> str:
+    # Chuẩn hoá về NFKD để tách Compatibility Jamo thành NFD Jamo, rồi lọc vùng U+1100..U+11FF
+    s = ud.normalize("NFKD", s)
+    return "".join(ch for ch in s if 0x1100 <= ord(ch) <= 0x11FF)
+
+def _is_vocab_nfd(vocab: Dict[str, int]) -> bool:
+    # Nếu vocab có 'ᄋ' (U+110B) là NFD; nếu không nhưng có 'ㅇ' (U+3147) thì là Compatibility
+    return ("ᄋ" in vocab) or ("ᄀ" in vocab)  # heuristic nhẹ cho NFD
+
+def _map_ref_to_vocab_space(ref_nfd: str, vocab: Dict[str, int]) -> str:
+    """
+    Nếu vocab là Compatibility, chuyển từng Jamo NFD → Compatibility Jamo 1-1.
+    Nếu vocab là NFD, giữ nguyên.
+    """
+    if _is_vocab_nfd(vocab):
+        return ref_nfd  # vocab NFD → giữ nguyên
+    # vocab Compatibility → map từng Jamo
+    out = []
+    for ch in ref_nfd:
+        cp = ord(ch)
+        # Leading consonants U+1100..U+1112 → U+3131..U+314E (approx)
+        if 0x1100 <= cp <= 0x1112:
+            # Bảng ánh xạ tối thiểu cho phụ âm đầu
+            base_map = {
+                0x1100: 0x3131,  # ᄀ → ㄱ
+                0x1102: 0x3134,  # ᄂ → ㄴ
+                0x1103: 0x3137,  # ᄃ → ㄷ
+                0x1105: 0x3139,  # ᄅ → ㄹ
+                0x1106: 0x3141,  # ᄆ → ㅁ
+                0x1107: 0x3142,  # ᄇ → ㅂ
+                0x1109: 0x3145,  # ᄉ → ㅅ
+                0x110B: 0x3147,  # ᄋ → ㅇ
+                0x110C: 0x3148,  # ᄌ → ㅈ
+                0x110E: 0x314A,  # ᄎ → ㅊ
+                0x110F: 0x314B,  # ᄏ → ㅋ
+                0x1110: 0x314C,  # ᄐ → ㅌ
+                0x1111: 0x314D,  # ᄑ → ㅍ
+                0x1112: 0x314E,  # ᄒ → ㅎ
+            }
+            out.append(chr(base_map.get(cp, cp)))
+        # Vowels U+1161..U+1175 → U+314F..U+3163
+        elif 0x1161 <= cp <= 0x1175:
+            out.append(chr(cp - 0x1161 + 0x314F))
+        # Final consonants U+11A8..U+11C2 → Compatibility tương ứng (xấp xỉ)
+        elif 0x11A8 <= cp <= 0x11C2:
+            jong_map = {
+                0x11A8: 0x3131,  # ㄱ
+                0x11AB: 0x3134,  # ㄴ
+                0x11AE: 0x3137,  # ㄷ
+                0x11AF: 0x3139,  # ㄹ
+                0x11B7: 0x3141,  # ㅁ
+                0x11B8: 0x3142,  # ㅂ
+                0x11BA: 0x3145,  # ㅅ
+                0x11BC: 0x3147,  # ㅇ
+                0x11BD: 0x3148,  # ㅈ
+                0x11BE: 0x314A,  # ㅊ
+                0x11BF: 0x314B,  # ㅋ
+                0x11C0: 0x314C,  # ㅌ
+                0x11C1: 0x314D,  # ㅍ
+                0x11C2: 0x314E,  # ㅎ
+            }
+            out.append(chr(jong_map.get(cp, cp)))
+        else:
+            # Bỏ ký tự ngoài Jamo
+            pass
+    return "".join(out)
+
 def _to_nfd_jamo(text: str) -> List[str]:
     """Assume input already normalized to NFD Jamo upstream; keep as-is."""
     return list(text)
@@ -216,9 +371,8 @@ def ctc_char_confidences_from_waveform(waveform: torch.Tensor, sr: int, ref_text
                                        ) -> List[float]:
     """
     Return per-jamo confidences for NFD Jamo reference (CTC-only).
-    If priors_sec is provided, it should be a list aligned with the ref Jamo tokens
-    (after filtering by vocab). Each item is (start_sec, end_sec) relative to the
-    original waveform timeline. We will crop to VAD slice automatically.
+    + Chuẩn hoá/mapping ref → đúng vocab.
+    + Fallback no-VAD nếu VAD cắt rỗng.
     """
     _init()
     blank_thr = BLANK_VAD_THRESH if blank_vad_thresh is None else blank_vad_thresh
@@ -233,30 +387,41 @@ def ctc_char_confidences_from_waveform(waveform: torch.Tensor, sr: int, ref_text
         logits = _model(input_values).logits[0]  # [T_full, V]
         logprobs_full = _log_softmax(logits, temp=Ttemp)
 
-        # VAD
+        # --- VAD crop (lần 1) ---
         vslice = _blank_posterior_vad(logprobs_full, _blank_id, thresh=blank_thr, pad_ms=pad_ms)
         logprobs = logprobs_full[vslice]  # [T_crop, V]
         T_full = logprobs_full.shape[0]
-        T_crop = logprobs.shape[0]
         sec_per_frame = total_sec / max(1, T_full)
         crop_start_sec = vslice.start * sec_per_frame
 
-        # map ref jamo → ids (ignore symbols not in vocab)
+        # --- map ref → vocab space ---
         vocab = _processor.tokenizer.get_vocab()
-        ref_tokens_all = [t for t in _to_nfd_jamo(ref_text_nfd) if t.strip() != ""]
-        ref_ids = []
+        ref_clean = _to_nfd_jamo_only(ref_text_nfd)
+        ref_text_for_vocab = _map_ref_to_vocab_space(ref_clean, vocab)
+
+        ref_tokens_all = [t for t in list(ref_text_for_vocab) if t]
+        ref_ids = [vocab[t] for t in ref_tokens_all if t in vocab]
         aligned_priors: List[Optional[Tuple[float,float]]] = []
-        if ref_tokens_all:
-            for idx, t in enumerate(ref_tokens_all):
-                if t in vocab:
-                    ref_ids.append(vocab[t])
-                    # align prior list if provided (skip those for OOV tokens)
-                    if priors_sec is not None and idx < len(priors_sec):
-                        aligned_priors.append(priors_sec[idx])
-                    elif priors_sec is not None:
+        if priors_sec is not None:
+            # căn chỉnh priors theo các token còn giữ lại
+            j = 0
+            for ch in list(ref_clean):
+                if 0x1100 <= ord(ch) <= 0x11FF:
+                    mapped = _map_ref_to_vocab_space(ch, vocab)
+                    if j < len(priors_sec) and mapped in ref_tokens_all:
+                        aligned_priors.append(priors_sec[j])
+                    elif j < len(priors_sec):
                         aligned_priors.append(None)
-        if len(ref_ids) == 0 or logprobs.shape[0] == 0:
-            return [0.0] * max(1, len(ref_tokens_all))
+                    j += 1
+
+        # --- Fallback nếu VAD rỗng hoặc ref_ids rỗng ---
+        if logprobs.shape[0] == 0 or len(ref_ids) == 0:
+            # thử lại không VAD
+            logprobs = logprobs_full
+            crop_start_sec = 0.0
+            if len(ref_ids) == 0:
+                # nếu vẫn 0 sau khi map → trả zero theo độ dài ref (để FE không vỡ)
+                return [0.0] * max(1, len(ref_tokens_all))
 
         # Build confusable map (Jamo only)
         conf_ids = None
@@ -266,20 +431,29 @@ def ctc_char_confidences_from_waveform(waveform: torch.Tensor, sr: int, ref_text
                 if t in vocab:
                     conf_ids[vocab[t]] = [vocab[a] for a in alts if a in vocab]
 
-        # Build bias for priors
+        # Build bias for priors (nếu có)
         bias_ext = None
         if aligned_priors and any(p is not None for p in aligned_priors):
             bias_ext = _build_bias_ext_for_priors(
-                T_crop, _expand_ref_with_blanks(ref_ids, _blank_id), _blank_id,
+                logprobs.shape[0], _expand_ref_with_blanks(ref_ids, _blank_id), _blank_id,
                 aligned_priors, sec_per_frame, crop_start_sec,
                 out_penalty=PRIOR_OUT_PENALTY, edge_pad_sec=PRIOR_EDGE_PAD_SEC
             )
 
         confs = _forced_ctc_jamo_confidences(logprobs, ref_ids, _blank_id, confusable_ids=conf_ids, bias_ext=bias_ext)
 
-        # pad to original jamo length if some were unknown
+        # pad để giữ đúng độ dài ref_tokens_all cho FE
         if len(confs) < len(ref_tokens_all):
             confs = confs + [0.0] * (len(ref_tokens_all) - len(confs))
+
+        # debug nhẹ để bạn thấy nguyên nhân nếu 0
+        try:
+            print(f"[ctc_char_conf] T_full={T_full}, T_crop={logprobs.shape[0]}, "
+                  f"len(ref_tokens_all)={len(ref_tokens_all)}, len(ref_ids)={len(ref_ids)}, "
+                  f"mean_conf={float(np.mean(confs)) if len(confs)>0 else -1}")
+        except Exception:
+            pass
+
         return confs
 
 def ctc_char_confidences(wav_path: str, ref_text_nfd: str, **kwargs) -> List[float]:
@@ -321,42 +495,71 @@ def _cer(hyp: str, ref: str) -> float:
     return _levenshtein_distance(hyp, ref) / max(1, len(ref))
 
 def ctc_gate_global_from_waveform(waveform: torch.Tensor, sr: int, ref_text_nfd: str,
-                                  cer_threshold: float = 0.65, loss_char_threshold: float = 2.0) -> Dict[str, float]:
-    """Global signals for gating (CTC-only, Jamo vocab): CER(best-path jamo vs ref jamo) and mean neglogp."""
+                                  cer_threshold: float = 0.65,
+                                  loss_char_threshold: float = 2.0,
+                                  ref_nll_threshold: float = float(os.getenv("W2V_CTC_REF_NLL_THR", "2.2")),
+                                  short_syll_cer_bonus: float = 0.05) -> Dict[str, float]:
+    """
+    Gate “lai”: pass nếu (A) CER_NFD + mean_neglogp đạt, hoặc (B) CTC-NLL/ref_char thấp.
+    Với câu ngắn (<=5 âm tiết) nới nhẹ CER một chút để tránh mất âm đầu/cuối do VAD.
+    """
     _init()
     wav = _ensure_sr(waveform, sr)
     with torch.inference_mode():
         inputs = _processor(wav.squeeze(0), sampling_rate=TARGET_SR, return_tensors="pt", padding=False)
         input_values = inputs.input_values.to(DEVICE)
         logits = _model(input_values).logits[0]
-        logprobs = _log_softmax(logits, temp=LOGIT_TEMP)
+        logprobs_full = _log_softmax(logits, temp=LOGIT_TEMP)
 
-        sl = _blank_posterior_vad(logprobs, _blank_id, thresh=BLANK_VAD_THRESH, pad_ms=VAD_PAD_MS)
-        logprobs = logprobs[sl]
+        sl = _blank_posterior_vad(logprobs_full, _blank_id, thresh=BLANK_VAD_THRESH, pad_ms=VAD_PAD_MS)
+        logprobs = logprobs_full[sl]
 
         vocab = _processor.tokenizer.get_vocab()
         id2tok = {v: k for k, v in vocab.items()}
-        hyp = _best_path_decode(logprobs, id2tok)         # jamo string
 
-        print("Hyp:", hyp)
+        # Best-path chỉ để logging / CER tham khảo
+        hyp = _best_path_decode(logprobs, id2tok)      # theo vocab thực tế
+        hyp_nfd = _to_nfd_jamo_only(hyp)              # đưa về NFD để CER công bằng
+        ref_nfd = _to_nfd_jamo_only(ref_text_nfd)
 
-        ref = "".join(_to_nfd_jamo(ref_text_nfd))         # jamo string
+        cer = _cer(hyp_nfd, ref_nfd)
+        cer_skel = _cer_skeleton(hyp_nfd, ref_nfd)
 
-        cer = _cer(hyp, ref)
-
-        ref_ids = [vocab[ch] for ch in ref if ch in vocab]
-        if len(ref_ids) == 0 or logprobs.shape[0] == 0:
+        # mean_neglogp như cũ (thô theo trung bình posterior)
+        ref_ids_for_mean = [vocab[ch] for ch in _map_ref_to_vocab_space(ref_nfd, vocab) if ch in vocab]
+        if len(ref_ids_for_mean) == 0 or logprobs.shape[0] == 0:
             mean_neglogp = 10.0
         else:
             tok_post = logprobs.exp().mean(0)  # [V]
-            pick = tok_post[ref_ids].clamp_min(1e-6)
+            pick = tok_post[ref_ids_for_mean].clamp_min(1e-6)
             mean_neglogp = float((-pick.log()).mean().item())
+
+        # NLL theo CTC trực tiếp trên câu tham chiếu (độc lập decode)
+        ref_nll_pc = _ctc_ref_nll_per_char(logprobs, vocab, ref_nfd, _blank_id)
+
+        # Nới nhẹ CER cho câu ngắn (<=5 âm tiết ~ 15 jamo)
+        n_syl_est = max(1, len(ref_nfd) // 3)
+        cer_thr_eff = cer_threshold + (short_syll_cer_bonus if n_syl_est <= 5 else 0.0)
+
+        # Gate logic: đạt 1 trong 3 nhánh là pass
+        gate_by_pair = (cer < cer_thr_eff and mean_neglogp < loss_char_threshold)
+        gate_by_nll = (ref_nll_pc < ref_nll_threshold)
+        gate_by_short = (n_syl_est <= 2 and cer_skel < 0.6)  # cực ngắn thì chỉ cần khung CV khớp
+
+        gate_pass = bool(gate_by_pair or gate_by_nll or gate_by_short)
+
+        # Log cho dễ debug
+        print(f"Hyp: {hyp} | Hyp_NFD: {hyp_nfd}")
 
         return {
             "cer": float(cer),
-            "mean_neglogp": mean_neglogp,
-            "pass_lenient": (len(ref) <= 2 and cer < 1.0) or (cer < cer_threshold and mean_neglogp < loss_char_threshold),
-            "gate_pass": (len(ref) <= 2 and cer < 1.0) or (cer < cer_threshold and mean_neglogp < loss_char_threshold),
+            "cer_skeleton": float(cer_skel),
+            "mean_neglogp": float(mean_neglogp),
+            "ref_nll_per_char": float(ref_nll_pc),
+            "gate_by_pair": bool(gate_by_pair),
+            "gate_by_nll": bool(gate_by_nll),
+            "gate_by_short": bool(gate_by_short),
+            "gate_pass": gate_pass,
         }
 
 def ctc_gate_global(wav_path: str, ref_text_nfd: str, **kwargs) -> Dict[str, float]:

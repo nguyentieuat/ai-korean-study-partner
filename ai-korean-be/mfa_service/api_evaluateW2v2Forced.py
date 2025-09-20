@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import io
 import re
-import unicodedata
+import unicodedata as ud
 import traceback
 from pathlib import Path
 from typing import Tuple, List, Dict, Any
@@ -68,18 +68,69 @@ async def _warmup_models() -> None:
     """
     init_w2v2()  # idempotent
 
+    # ==== Char classes ====
+def _is_jamo(ch: str) -> bool:
+    cp = ord(ch); return 0x1100 <= cp <= 0x11FF  # NFD Jamo
+def _is_choseong(ch: str) -> bool:
+    cp = ord(ch); return 0x1100 <= cp <= 0x1112
+def _is_vowel(ch: str) -> bool:
+    cp = ord(ch); return 0x1161 <= cp <= 0x1175
+def _is_jong(ch: str) -> bool:
+    cp = ord(ch); return 0x11A8 <= cp <= 0x11C2
+def _is_invisible(ch: str) -> bool:
+    # Zs/Zl/Zp = whitespace, Cf = format (U+200B, U+FEFF, ...)
+    return ud.category(ch) in {"Zs", "Zl", "Zp", "Cf"}
+
 # =========================
 # Helpers
 # =========================
+def _remove_invisibles(s: str) -> str:
+    return "".join(ch for ch in s if not _is_invisible(ch))
 
-def _to_nfd_jamo(s: str) -> str:
-    """Convert to NFD Jamo string (keep only U+1100..U+11FF and spaces)."""
-    s = unicodedata.normalize("NFD", s)
-    # Keep Jamo range and spaces only
-    s = re.sub(r"[^\u1100-\u11FF\s]", "", s)
-    s = re.sub(r"\s+", " ", s).strip()
+def _collapse_stray_duplicate_onset(nfd: str) -> str:
+    """
+    Xoá choseong đứng lẻ trùng ngay trước cụm (choseong + nguyên âm),
+    CHO PHÉP có ký tự vô hình ở giữa.
+    Ví dụ: ᄒ [U+200B] 하  → bỏ ᄒ đầu.
+    """
+    out = []
+    i, L = 0, len(nfd)
+    while i < L:
+        ch = nfd[i]
+        if _is_choseong(ch):
+            # nhìn về phía trước, bỏ invisibles
+            j = i + 1
+            while j < L and _is_invisible(nfd[j]):
+                j += 1
+            # cần tối thiểu 2 ký tự tiếp theo: choseong trùng + nguyên âm
+            if j + 1 < L and nfd[j] == ch and _is_vowel(nfd[j+1]):
+                # bỏ choseong lẻ tại i
+                i += 1
+                continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+def to_nfd_jamo_clean(s: str) -> str:
+    # 1) NFKD để “bẻ” hết tổ hợp/compat
+    s = ud.normalize("NFKD", s)
+    # 2) Bỏ toàn bộ invisibles (kể cả U+200B/FEFF…)
+    s = _remove_invisibles(s)
+    # 3) Chỉ giữ Jamo NFD
+    s = "".join(ch for ch in s if _is_jamo(ch))
+    # 4) Vá lỗi duplicate onset có thể còn sót (kể cả có invisibles chen giữa)
+    s = _collapse_stray_duplicate_onset(s)
     return s
 
+def nfd_from_ref_chunks(ref_chunks):
+    # [('안',['ᄋ','ᅡ','ᆫ']), ...] -> "안녕..."
+    raw = "".join(j for _, jamos in ref_chunks for j in (jamos or []) if j)
+    # làm sạch lần nữa cho chắc
+    return to_nfd_jamo_clean(raw)
+
+def debug_dump(s: str):
+    for i, ch in enumerate(s):
+        print(i, f"U+{ord(ch):04X}", ud.name(ch, "<?>"), ud.category(ch), repr(ch))
 
 def _decode_upload_to_tensor(upload: UploadFile) -> Tuple[torch.Tensor, int]:
     """
@@ -147,6 +198,21 @@ def _decode_upload_to_tensor(upload: UploadFile) -> Tuple[torch.Tensor, int]:
 # =========================
 # Endpoint
 # =========================
+
+TARGET_SR = 16000
+import torchaudio
+
+def load_wav_mono_16k(path: str):
+    wav, sr = torchaudio.load(path)              # wav: [C, T]
+    if wav.dim() == 2 and wav.size(0) > 1:
+        wav = wav.mean(dim=0, keepdim=True)      # mono
+    if sr != TARGET_SR:
+        wav = torchaudio.functional.resample(wav, sr, TARGET_SR)
+        sr = TARGET_SR
+    if wav.dim() == 1:
+        wav = wav.unsqueeze(0)                   # [1, T]
+    return wav, sr
+
 @router.post("/evaluate-w2v2-forced")
 def evaluate_pronunciation_forced(
     text: str = Form(...),
@@ -160,6 +226,11 @@ def evaluate_pronunciation_forced(
     """
     try:
         # 1) Decode audio -> waveform tensor (mono, 16k)
+        # audio = "data/first/mfa_labwav/level4_pronunciation_data_15.wav"
+        # text = "안녕하세요"
+
+        # wav, sr = load_wav_mono_16k(audio)
+
         wav, sr = _decode_upload_to_tensor(audio)
 
         # 2) Extract features (để biết tổng thời lượng) — không ghi file
@@ -199,13 +270,13 @@ def evaluate_pronunciation_forced(
 
         print("Text:", text)
         print("Ref Chunks:", ref_chunks)
-
+    
         print({
             "dbg_peak": float(wav.abs().max().item()),
             "dbg_rms": float((wav.pow(2).mean().sqrt()).item()),
             "dbg_len_sec": float(wav.shape[-1]) / TARGET_SR,
             "dbg_text_norm": text,
-            "dbg_text_nfd": _to_nfd_jamo(text)
+            "dbg_text_nfd": to_nfd_jamo_clean(text)
             })
 
         # 7) Chấm điểm (forced + CTC gate)
@@ -213,7 +284,7 @@ def evaluate_pronunciation_forced(
             wav_path=None,
             waveform=wav, waveform_sr=sr,
             vectors_user=vectors_user,
-            reference_text=_to_nfd_jamo(text),
+            reference_text=to_nfd_jamo_clean(text),
             ref_chunks=ref_chunks,
             ref_textgrid_path=str(ref_tg_path) if ref_tg_path else None,
             missing_threshold=MISSING_THRESHOLD,
