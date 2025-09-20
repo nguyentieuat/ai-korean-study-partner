@@ -1,10 +1,10 @@
-# w2v2_forced_aligner/ctc_gate.py
-# (JAMO_NFD version) — normalize reference & hypothesis to NFD Jamo (U+1100..U+11FF)
-# to match typical Korean CTC vocabularies and stabilize CER/loss on short utterances.
+# ctc_gate.py — CTC-only gate & confidences for Korean (NFD/Compat Jamo)
+# - Blank-posterior VAD (no energy)
+# - Viterbi-local CTC for per-jamo confidences
+# - Multi-signal gating: voiced, avg top1, coverage, repetition, duration, CER/neglogp
+# Python 3.9+
 
 import os
-import re
-import unicodedata as ud
 import logging
 from typing import List, Dict, Optional, Tuple
 
@@ -13,372 +13,384 @@ import torch
 import torchaudio
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 
-# ===================== Perf & Globals =====================
-NUM_THREADS = int(os.getenv("TORCH_NUM_THREADS", "4"))
-torch.set_num_threads(NUM_THREADS)
-os.environ.setdefault("OMP_NUM_THREADS", str(NUM_THREADS))
-os.environ.setdefault("MKL_NUM_THREADS", str(NUM_THREADS))
-
-TARGET_SR = 16000
-MODEL_NAME = os.getenv("W2V_MODEL", "kresnik/wav2vec2-large-xlsr-korean")
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Fixed choice: JAMO_NFD (드, 니, …)
-CTC_TEXT_FORM = "JAMO_NFD"
-
 _log = logging.getLogger(__name__)
 if not _log.handlers:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
+# ============ Config ============
+MODEL_NAME = os.getenv("W2V_MODEL", "Kkonjeong/wav2vec2-base-korean")  # NFD/Compat đều OK, code tự map
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+TARGET_SR = 16000
+VAD_PAD_MS = float(os.getenv("W2V_VAD_PAD_MS", "120.0"))
+BLANK_VAD_THRESH = float(os.getenv("W2V_BLANK_VAD_THRESH", "0.7"))
+LOGIT_TEMP = float(os.getenv("W2V_LOGIT_TEMP", "1.0"))
+
+# Gating thresholds (có thể override bằng env)
+VOICED_MIN = float(os.getenv("W2V_GATE_VOICED_MIN", "0.20"))        # >= 20% khung non-blank
+TOP1_NONBLANK_MIN = float(os.getenv("W2V_GATE_TOP1_MIN", "0.35"))    # >= 0.35 trung bình top-1 (non-blank)
+COVERAGE_MIN = float(os.getenv("W2V_GATE_COVERAGE_MIN", "0.40"))     # >= 40% jamo có conf > missing_thr
+REP_RUN_MAX = float(os.getenv("W2V_GATE_REPRUN_MAX", "0.85"))        # <= 85% cho chuỗi lặp dài nhất
+DUR_PER_JAMO_MS = float(os.getenv("W2V_GATE_DUR_PER_JAMO_MS", "70")) # 70ms/jamo kỳ vọng
+DUR_TOL_LOW = float(os.getenv("W2V_GATE_DUR_TOL_LOW", "0.45"))       # voiced >= 45% expected
+DUR_TOL_HIGH = float(os.getenv("W2V_GATE_DUR_TOL_HIGH", "2.5"))      # voiced <= 2.5x expected
+MISSING_THR = float(os.getenv("W2V_MISSING_THRESHOLD", "0.08"))
+
+# Globals (lazy)
 _processor: Optional[Wav2Vec2Processor] = None
-_ctc_model: Optional[Wav2Vec2ForCTC] = None
-_blank_id: Optional[int] = None
-_warmed_up: bool = False
+_model: Optional[Wav2Vec2ForCTC] = None
+_blank_id: int = 0
 
-_RESAMPLERS: Dict[Tuple[int, int], torchaudio.transforms.Resample] = {}
-def _get_resampler(sr_src: int, sr_tgt: int):
-    if sr_src == sr_tgt:
-        return None
-    k = (sr_src, sr_tgt)
-    if k not in _RESAMPLERS:
-        _RESAMPLERS[k] = torchaudio.transforms.Resample(sr_src, sr_tgt)
-    return _RESAMPLERS[k]
+# ============ Utils ============
+def _ensure_sr(waveform: torch.Tensor, sr: int) -> torch.Tensor:
+    if waveform.ndim == 2 and waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+    if sr != TARGET_SR:
+        waveform = torchaudio.functional.resample(waveform, sr, TARGET_SR)
+    if waveform.ndim == 1:
+        waveform = waveform.unsqueeze(0)
+    return waveform
 
-# ===================== Text helpers (JAMO_NFD) =====================
-# Keep Hangul syllables + modern Jamo + compat Jamo + space (for stripping)
-_HANGUL_KEEP = re.compile(r"[^\uAC00-\uD7A3\u1100-\u11FF\u3130-\u318F\s]")
-
-def _strip_keep_hangul(text: str) -> str:
-    t = text.strip()
-    t = _HANGUL_KEEP.sub("", t)
-    t = re.sub(r"\s+", " ", t).strip()
-    return t
-
-def _to_jamo_nfd_no_space(text: str) -> str:
-    """
-    Normalize to NFD Jamo (U+1100..U+11FF), remove spaces.
-    Example: '드 니' -> '드니'
-    """
-    t = _strip_keep_hangul(text)
-    t = ud.normalize("NFD", t)
-    return t.replace(" ", "")
-
-def _normalize_hyp_to_jamo_nfd(text: str) -> str:
-    """
-    Normalize hypothesis to NFD Jamo, keep only Hangul/Jamo, remove spaces.
-    """
-    t = ud.normalize("NFD", text)
-    t = _strip_keep_hangul(t)
-    return t.replace(" ", "")
-
-def _encode_ctc_ids(text: str) -> Tuple[List[int], str]:
-    """
-    Encode text in NFD Jamo (no spaces) for CTC. Returns (ids, ref_text_used).
-    """
-    assert _processor is not None
-    t2 = _to_jamo_nfd_no_space(text)
-    if not t2:
-        return [], ""
-    ids = _processor.tokenizer(t2, add_special_tokens=False)["input_ids"]
-    ids = [i for i in ids if i is not None]
-    return ids, t2
-
-# ===================== Init =====================
-def init_ctc() -> None:
-    global _processor, _ctc_model, _blank_id, _warmed_up
-    if _processor is None:
+def _init():
+    global _processor, _model, _blank_id
+    if _processor is None or _model is None:
+        _log.info(f"Loading W2V2 model: {MODEL_NAME}")
         _processor = Wav2Vec2Processor.from_pretrained(MODEL_NAME)
-    if _ctc_model is None:
-        _ctc_model = Wav2Vec2ForCTC.from_pretrained(MODEL_NAME).to(DEVICE).eval()
+        _model = Wav2Vec2ForCTC.from_pretrained(MODEL_NAME).to(DEVICE)
+        _model.eval()
+        _blank_id = int(getattr(_model.config, "pad_token_id", 0) or 0)
 
-    # Determine blank id robustly: prefer config.*blank*, then pad_token_id, else 0
-    bid = None
-    for key in ("blank_token_id", "ctc_blank_token_id", "pad_token_id"):
-        val = getattr(_ctc_model.config, key, None)
-        if isinstance(val, int) and val >= 0:
-            bid = val
-            break
-    if bid is None:
-        tok = getattr(_processor, "tokenizer", None)
-        if tok is not None:
-            bid = getattr(tok, "pad_token_id", None)
-    _blank_id = int(bid) if isinstance(bid, int) and bid >= 0 else 0
+def _log_softmax(logits: torch.Tensor, temp: float = 1.0) -> torch.Tensor:
+    if temp != 1.0:
+        logits = logits / max(1e-6, temp)
+    return torch.log_softmax(logits, dim=-1)
 
-    if not _warmed_up:
-        try:
-            with torch.inference_mode():
-                dummy = torch.zeros(1, TARGET_SR, dtype=torch.float32, device=DEVICE)
-                _ = _ctc_model(
-                    _processor(dummy, sampling_rate=TARGET_SR, return_tensors="pt").input_values.to(DEVICE)
-                )
-            _warmed_up = True
-            _log.info(
-                "CTC warmup done for %s on %s (blank_id=%s, threads=%d)",
-                MODEL_NAME, DEVICE, _blank_id, NUM_THREADS
-            )
-        except Exception as e:
-            _warmed_up = True
-            _log.warning("CTC warmup failed (continue): %s", e)
+def _blank_posterior_vad(logprobs: torch.Tensor, blank_id: int, thresh: float = 0.7, pad_ms: float = 120.0) -> slice:
+    with torch.no_grad():
+        blank_post = logprobs.exp()[:, blank_id]  # [T]
+        non_blank = (blank_post < thresh).nonzero(as_tuple=False).squeeze(-1)
+        if non_blank.numel() == 0:
+            return slice(0, logprobs.shape[0])
+        start = non_blank[0].item()
+        end = non_blank[-1].item() + 1
+        pad_frames = int(round(pad_ms / 20.0))
+        start = max(0, start - pad_frames)
+        end = min(logprobs.shape[0], end + pad_frames)
+        return slice(start, end)
 
-# ===================== Light VAD (less aggressive) =====================
-def _light_vad(mono: torch.Tensor, sr: int, pad_ms: float = 80.0) -> torch.Tensor:
-    """
-    Trim silence very lightly to avoid chopping short onsets/codas.
-    """
-    x = mono.detach().cpu().float().numpy()
-    if x.size == 0:
-        return mono
-    frame = max(1, int(round(20 * sr / 1000.0)))
-    hop = max(1, int(round(10 * sr / 1000.0)))
-    frames = [x[i:i + frame] for i in range(0, max(1, len(x) - frame + 1), hop)] or [x]
-    rms = np.sqrt(np.mean(np.stack(frames, 0) ** 2, axis=1))
-    thr = np.quantile(rms, 0.10)  # lenient
-    idx = np.where(rms > thr)[0]
-    if idx.size == 0:
-        return mono
-    i0, i1 = int(idx[0]), int(idx[-1]) + 1
-    pad = max(1, int(round(pad_ms * sr / 1000.0 / hop)))
-    s = max(0, (i0 - pad) * hop)
-    e = min(len(x), (i1 + pad) * hop)
-    y = torch.from_numpy(x[s:e]).to(mono.dtype)
-    peak = float(y.abs().max().item() or 1.0)
-    if peak > 0:
-        y = (y / peak).clamp_(-1.0, 1.0)
-    return y
+# ============ Jamo helpers ============
+def _to_nfd_jamo(text: str) -> List[str]:
+    return list(text)
 
-# ===================== Core APIs =====================
-@torch.inference_mode()
-def ctc_gate_global(wav_path: str, reference_text: str) -> Dict[str, float]:
-    init_ctc()
-    wav, sr = torchaudio.load(wav_path)
-    if wav.ndim == 2 and wav.shape[0] > 1:
-        wav = wav.mean(dim=0, keepdim=True)
-    if sr != TARGET_SR:
-        rs = _get_resampler(sr, TARGET_SR)
-        wav = rs(wav) if rs is not None else wav
-        sr = TARGET_SR
-    return ctc_gate_global_from_waveform(wav.squeeze(0), sr, reference_text)
+# NFD <-> Compatibility mapping (để chịu được cả 2 loại vocab)
+import unicodedata as _ud
+_LEADS_NFD  = "ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
+_LEADS_COMP = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
+_VOWS_NFD   = "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
+_VOWS_COMP  = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
+_TRLS_NFD   = ["ᆨ","ᆩ","ᆪ","ᆫ","ᆬ","ᆭ","ᆮ","ᆯ","ᆰ","ᆱ","ᆲ","ᆳ","ᆴ","ᆵ","ᆶ","ᆷ","ᆸ","ᆹ","ᆺ","ᆻ","ᆼ","ᆽ","ᆾ","ᆿ","ᇀ","ᇁ","ᇂ"]
+_TRLS_COMP  = ["ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"]
+_NFD2COMP = {n:c for n,c in zip(_LEADS_NFD, _LEADS_COMP)}
+_NFD2COMP.update({n:c for n,c in zip(_VOWS_NFD, _VOWS_COMP)})
+_NFD2COMP.update({n:c for n,c in zip(_TRLS_NFD, _TRLS_COMP)})
 
-@torch.inference_mode()
-def ctc_gate_global_from_waveform(x: torch.Tensor, sr: int, reference_text: str) -> Dict[str, float]:
-    """
-    Returns:
-      - loss_per_char: average CTC loss per target char (ids length)
-      - cer: CER on id sequence (bounded in [0,1])
-      - cer_text: CER on decoded text normalized to NFD Jamo (bounded in [0,1])
-    """
-    init_ctc()
+def _map_char_to_vocab(ch: str, vocab: Dict[str,int]) -> Optional[str]:
+    if ch in vocab:
+        return ch
+    alt = _NFD2COMP.get(ch)
+    if alt and (alt in vocab):
+        return alt
+    return None
 
-    mono = x.squeeze(0) if x.ndim == 2 else x
-    mono = mono.to(torch.float32).clamp_(-1, 1)
-    if sr != TARGET_SR:
-        rs = _get_resampler(sr, TARGET_SR)
-        mono = rs(mono.unsqueeze(0)).squeeze(0) if rs is not None else mono
-    mono = _light_vad(mono, TARGET_SR)
-
-    # Short/silent safeguard + AUTO-GAIN for tiny inputs
-    dur_sec = float(mono.numel()) / TARGET_SR if mono.numel() else 0.0
-    rms = float(mono.pow(2).mean().sqrt().item()) if mono.numel() else 0.0
-
-    # nếu RMS quá nhỏ, khuếch đại nhẹ để model "nghe thấy" (giới hạn 10x)
-    if 0.0 < rms < 0.012:
-        target_rms = 0.06
-        gain = min(12.0, target_rms / max(rms, 1e-6))
-        mono = (mono * gain).clamp_(-1.0, 1.0)
-        rms = float(mono.pow(2).mean().sqrt().item())
-
-    # Quá ngắn/yếu -> coi như off-text (để tầng trên hard-reject).
-    if dur_sec < 0.12 or rms < 1e-4:
-        return {"loss_per_char": 99.0, "cer": 1.0, "cer_text": 1.0}
-
-    inputs = _processor(mono, sampling_rate=TARGET_SR, return_tensors="pt").input_values.to(DEVICE)
-    logits = _ctc_model(inputs).logits                     # [1, T, V]
-    log_probs = torch.log_softmax(logits, dim=-1)          # [1, T, V]
-    T = log_probs.shape[1]
-
-    # Encode reference in JAMO_NFD (no spaces)
-    labels, ref_text_used = _encode_ctc_ids(reference_text)
-    if len(labels) == 0:
-        return {"loss_per_char": 99.0, "cer": 1.0, "cer_text": 1.0}
-
-    input_lengths = torch.tensor([T], dtype=torch.long, device=log_probs.device)
-    target = torch.tensor([labels], dtype=torch.long, device=log_probs.device)
-    target_lengths = torch.tensor([len(labels)], dtype=torch.long, device=log_probs.device)
-
-    loss = torch.nn.functional.ctc_loss(
-        log_probs.transpose(0, 1),  # [T, B, V]
-        target,
-        input_lengths,
-        target_lengths,
-        blank=_blank_id or 0,
-        reduction="mean",
-        zero_infinity=True,
-    )
-    loss_per_char = float(loss.item() / max(1, len(labels)))
-
-    # ==== CER id-level (bounded) ====
-    blank = _blank_id or 0
-    pred_ids = log_probs.argmax(dim=-1)[0].detach().cpu().tolist()
-    collapsed, prev = [], None
-    for t in pred_ids:
-        if t == blank:
-            prev = None
-            continue
-        if t != prev:
-            collapsed.append(t)
-            prev = t
-
-    dp = np.zeros((len(collapsed) + 1, len(labels) + 1), dtype=np.int32)
-    dp[:, 0] = np.arange(len(collapsed) + 1)
-    dp[0, :] = np.arange(len(labels) + 1)
-    for i in range(1, len(collapsed) + 1):
-        ai = collapsed[i - 1]
-        for j in range(1, len(labels) + 1):
-            c = 0 if ai == labels[j - 1] else 1
-            dp[i, j] = min(dp[i - 1, j] + 1, dp[i, j - 1] + 1, dp[i - 1, j - 1] + c)
-    cer_id = float(dp[-1, -1]) / max(1, len(labels), len(collapsed))
-    cer_id = max(0.0, min(1.0, cer_id))
-
-    # ==== CER text-level on NFD Jamo (bounded) ====
-    def _decode_text(lprobs: torch.Tensor, blank_id: int) -> str:
-        ids = lprobs.argmax(dim=-1)[0].detach().cpu().tolist()
-        out, prev = [], None
-        for t in ids:
-            if t == blank_id:
-                prev = None
-                continue
-            if t != prev:
-                out.append(t)
-                prev = t
-        try:
-            return _processor.tokenizer.decode(out, skip_special_tokens=True)
-        except Exception:
-            return "".join(map(str, out))
-
-    hyp_decoded = _decode_text(log_probs, blank)
-    print("hyp_decoded:", repr(hyp_decoded), "|| ref_text_used:", repr(ref_text_used))
-    hyp_norm = _normalize_hyp_to_jamo_nfd(hyp_decoded)
-    print("hyp_norm:", repr(hyp_norm), "|| ref_text_used:", repr(ref_text_used))
-    ref_norm = ref_text_used  # already Jamo NFD without spaces
-
-    dp2 = np.zeros((len(hyp_norm) + 1, len(ref_norm) + 1), dtype=np.int32)
-    dp2[:, 0] = np.arange(len(hyp_norm) + 1)
-    dp2[0, :] = np.arange(len(ref_norm) + 1)
-    for i in range(1, len(hyp_norm) + 1):
-        for j in range(1, len(ref_norm) + 1):
-            c = 0 if hyp_norm[i - 1] == ref_norm[j - 1] else 1
-            dp2[i, j] = min(dp2[i - 1, j] + 1, dp2[i, j - 1] + 1, dp2[i - 1, j - 1] + c)
-    cer_text = float(dp2[-1, -1]) / max(1, len(ref_norm), len(hyp_norm))
-    cer_text = max(0.0, min(1.0, cer_text))
-
-    return {
-        "loss_per_char": loss_per_char,
-        "cer": float(cer_id),
-        "cer_text": float(cer_text),
-    }
-
-@torch.inference_mode()
-def ctc_char_confidences(wav_path: str, reference_text: str) -> List[float]:
-    init_ctc()
-    wav, sr = torchaudio.load(wav_path)
-    if wav.ndim == 2 and wav.shape[0] > 1:
-        wav = wav.mean(dim=0, keepdim=True)
-    if sr != TARGET_SR:
-        rs = _get_resampler(sr, TARGET_SR)
-        wav = rs(wav) if rs is not None else wav
-        sr = TARGET_SR
-    return ctc_char_confidences_from_waveform(wav.squeeze(0), sr, reference_text)
-
-@torch.inference_mode()
-def ctc_char_confidences_from_waveform(x: torch.Tensor, sr: int, reference_text: str) -> List[float]:
-    """
-    Compute per-char posteriors for the Jamo-NFD reference sequence using
-    forward-backward on the extended target. Map back to reference chars.
-    """
-    init_ctc()
-
-    mono = x.squeeze(0) if x.ndim == 2 else x
-    mono = mono.to(torch.float32).clamp_(-1, 1)
-    if sr != TARGET_SR:
-        rs = _get_resampler(sr, TARGET_SR)
-        mono = rs(mono.unsqueeze(0)).squeeze(0) if rs is not None else mono
-    mono = _light_vad(mono, TARGET_SR)
-    if mono.numel() == 0:
-        return [0.0] * max(1, len(reference_text))
-
-    inputs = _processor(mono, sampling_rate=TARGET_SR, return_tensors="pt").input_values.to(DEVICE)
-    logits = _ctc_model(inputs).logits
-    log_probs = torch.log_softmax(logits, dim=-1).squeeze(0).detach().cpu().numpy()  # [T, V]
-    T, V = log_probs.shape
-
-    labels, ref_used = _encode_ctc_ids(reference_text)
-    if not labels:
-        return [0.0] * max(1, len(reference_text))
-    blank = _blank_id or 0
-
-    # Build extended target: b y1 b y2 b ... yU b
-    ext = [blank]
-    for y in labels:
-        ext += [y, blank]
-    L = len(ext)
-
-    # Forward
-    alpha = np.full((T, L), -np.inf, dtype=np.float32)
-    alpha[0, 0] = log_probs[0, ext[0]]
-    if L > 1:
-        alpha[0, 1] = log_probs[0, ext[1]]
-    for t in range(1, T):
-        for s in range(L):
-            stay = alpha[t - 1, s]
-            move = alpha[t - 1, s - 1] if s - 1 >= 0 else -np.inf
-            skip = -np.inf
-            if s - 2 >= 0 and not (ext[s] == blank or ext[s] == ext[s - 2]):
-                skip = alpha[t - 1, s - 2]
-            m = max(stay, move, skip)
-            alpha[t, s] = m + log_probs[t, ext[s]]
-
-    # Backward
-    beta = np.full((T, L), -np.inf, dtype=np.float32)
-    beta[T - 1, L - 1] = log_probs[T - 1, ext[L - 1]]
-    if L > 1:
-        beta[T - 1, L - 2] = log_probs[T - 1, ext[L - 2]]
-    for t in range(T - 2, -1, -1):
-        for s in range(L):
-            stay = beta[t + 1, s]
-            move = beta[t + 1, s + 1] if s + 1 < L else -np.inf
-            skip = -np.inf
-            if s + 2 < L and not (ext[s] == blank or ext[s] == ext[s + 2]):
-                skip = beta[t + 1, s + 2]
-            m = max(stay, move, skip)
-            beta[t, s] = m + log_probs[t, ext[s]]
-
-    # Posterior
-    logZ = np.logaddexp(alpha[T - 1, L - 1], alpha[T - 1, L - 2] if L - 2 >= 0 else -np.inf)
-    post = alpha + beta - logZ
-    post = np.exp(np.clip(post, -30, 30))  # numeric stability
-
-    U = len(labels)
-    conf = np.zeros(U, dtype=np.float32)
-    for u in range(U):
-        s = 2 * u + 1  # position of label y_u in extended sequence
-        if s < L:
-            conf[u] = float(post[:, s].mean())
-    if conf.sum() > 1e-8:
-        conf = conf / conf.max()
-    conf = np.clip(conf, 0.0, 1.0)
-
-    # Map confidences to the Jamo-NFD reference string (ref_used)
-    # One confidence per reference jamo char.
-    out = []
-    i = 0
-    for _c in ref_used:
-        # ref_used is already Jamo NFD, 1 char ↔ 1 label approximately.
-        if i < U:
-            out.append(float(conf[i] ** 0.7))
-            i += 1
+def _map_ref_jamo_seq_to_vocab(ref_jamo_seq: List[str], vocab: Dict[str,int]) -> Tuple[List[str], List[int]]:
+    tokens_mapped, pos_map = [], []
+    for t in ref_jamo_seq:
+        if not t or t.isspace():
+            pos_map.append(-1); continue
+        mt = _map_char_to_vocab(t, vocab)
+        if mt is None:
+            pos_map.append(-1)
         else:
-            out.append(0.6)  # fallback if mismatch (should be rare)
+            pos_map.append(len(tokens_mapped))
+            tokens_mapped.append(mt)
+    return tokens_mapped, pos_map
+
+def _build_confusable_ids_dynamic(vocab: Dict[str,int]) -> Optional[Dict[int, List[int]]]:
+    base = {
+        "ᄂ": ["ᄅ"], "ᄅ": ["ᄂ"], "ᄇ": ["ᄑ"], "ᄑ": ["ᄇ"],
+        "ᄃ": ["ᄐ","ᄌ","ᄎ"], "ᄐ": ["ᄃ","ᄌ","ᄎ"], "ᄌ": ["ᄃ","ᄐ","ᄎ"], "ᄎ": ["ᄃ","ᄐ","ᄌ"],
+        "ㄴ": ["ㄹ"], "ㄹ": ["ㄴ"], "ㅂ": ["ㅍ"], "ㅍ": ["ㅂ"],
+        "ㄷ": ["ㅌ","ㅈ","ㅊ"], "ㅌ": ["ㄷ","ㅈ","ㅊ"], "ㅈ": ["ㄷ","ㅌ","ㅊ"], "ㅊ": ["ㄷ","ㅌ","ㅈ"],
+    }
+    out: Dict[int, List[int]] = {}
+    for t, alts in base.items():
+        if t in vocab:
+            ids = [vocab[a] for a in alts if a in vocab]
+            if ids:
+                out[vocab[t]] = sorted(set(ids))
+    return out or None
+
+# ========= Viterbi-local CTC =========
+def _expand_ref_with_blanks(ref_ids: List[int], blank_id: int) -> List[int]:
+    out = []
+    for tid in ref_ids:
+        out.append(blank_id)
+        out.append(tid)
+    out.append(blank_id)
     return out
+
+def _forced_ctc_viterbi_path(logprobs: torch.Tensor, ext: List[int]) -> torch.Tensor:
+    T, M = logprobs.shape[0], len(ext)
+    dp = torch.full((T, M), -1e9, device=logprobs.device)
+    bp = torch.full((T, M), -1, device=logprobs.device, dtype=torch.long)
+    dp[0, 0] = logprobs[0, ext[0]]
+    if M > 1:
+        dp[0, 1] = logprobs[0, ext[1]]
+        bp[0, 1] = 0
+    for t in range(1, T):
+        stay = dp[t-1]
+        prev = torch.cat([torch.tensor([-1e9], device=dp.device), dp[t-1, :-1]], dim=0)
+        prev2 = torch.cat([torch.tensor([-1e9, -1e9], device=dp.device), dp[t-1, :-2]], dim=0)
+        mask = torch.ones(M, dtype=torch.bool, device=dp.device)
+        mask[2:] = torch.tensor([ext[m] != ext[m-2] for m in range(2, M)], device=dp.device)
+        prev2 = torch.where(mask, prev2, torch.full_like(prev2, -1e9))
+        cand = torch.stack([stay, prev, prev2], 0)
+        best, arg = cand.max(0)
+        dp[t] = best + logprobs[t, ext]
+        bp[t] = arg
+    m = M-1 if M > 1 else 0
+    if M > 1 and dp[T-1, M-2] > dp[T-1, M-1]:
+        m = M-2
+    m_path = torch.empty(T, dtype=torch.long, device=dp.device)
+    m_path[-1] = m
+    for t in range(T-2, -1, -1):
+        move = bp[t+1, m]
+        if move == 1: m -= 1
+        elif move == 2: m -= 2
+        m_path[t] = m
+    return m_path
+
+def _forced_ctc_jamo_confidences(logprobs: torch.Tensor, ref_ids: List[int], blank_id: int,
+                                 confusable_ids: Optional[Dict[int, List[int]]] = None) -> List[float]:
+    ext = _expand_ref_with_blanks(ref_ids, blank_id)
+    m_path = _forced_ctc_viterbi_path(logprobs, ext)
+    confs: List[float] = []
+    for i in range(len(ref_ids)):
+        m_idx = 2*i + 1
+        mask = (m_path == m_idx)
+        if not mask.any():
+            confs.append(0.0); continue
+        seg = logprobs[mask]
+        num = seg[:, ext[m_idx]].exp().sum()
+        den = (1.0 - seg[:, blank_id].exp()).clamp_min(1e-6).sum()
+        ci = float((num / den).item())
+        if confusable_ids and ref_ids[i] in confusable_ids:
+            alts = confusable_ids[ref_ids[i]]
+            if len(alts) > 0:
+                alt_mass = seg[:, alts].exp().sum()
+                ci = float(np.clip(ci + 0.5 * float((alt_mass / den).item()), 0.0, 1.0))
+        confs.append(ci)
+    return confs
+
+# ========= Extra gating features =========
+def _gate_features(logprobs: torch.Tensor, vocab: Dict[str,int], ref_ids: List[int]) -> Dict[str, float]:
+    with torch.no_grad():
+        probs = logprobs.exp()                           # [T, V]
+        blank = probs[:, _blank_id]                      # [T]
+        nonblank = 1.0 - blank                           # [T]
+        T = probs.shape[0]
+        # voiced ratio
+        voiced_ratio = float((nonblank > 0.3).float().mean().item())
+        # avg top1 (non-blank frames)
+        top1_vals, top1_ids = probs.max(dim=-1)          # [T]
+        nb_mask = (top1_ids != _blank_id)
+        avg_top1_nonblank = float((top1_vals[nb_mask].mean().item() if nb_mask.any() else 0.0))
+        # repetition run longest/T
+        if T > 0:
+            ids = top1_ids.cpu().numpy().tolist()
+            longest = 1; cur = 1
+            for i in range(1, T):
+                if ids[i] == ids[i-1]:
+                    cur += 1
+                    if cur > longest: longest = cur
+                else:
+                    cur = 1
+            repetition_run = float(longest / T)
+        else:
+            repetition_run = 1.0
+        # voiced sec (xấp xỉ 20ms/frame)
+        voiced_sec = float(nonblank.sum().item() * 0.02)
+        return {
+            "voiced_ratio": voiced_ratio,
+            "avg_top1_nonblank": avg_top1_nonblank,
+            "repetition_run": repetition_run,
+            "voiced_sec": voiced_sec,
+        }
+
+# ============ Public API ============
+def ctc_char_confidences_from_waveform(
+    waveform: torch.Tensor,
+    sr: int,
+    ref_text_nfd: str,
+    blank_vad_thresh: float = None,
+    vad_pad_ms: float = None,
+    temp: float = None,
+    use_confusables: bool = True,
+    ref_jamo_seq: Optional[List[str]] = None,
+) -> List[float]:
+    _init()
+    blank_thr = BLANK_VAD_THRESH if blank_vad_thresh is None else blank_vad_thresh
+    pad_ms = VAD_PAD_MS if vad_pad_ms is None else vad_pad_ms
+    Ttemp = LOGIT_TEMP if temp is None else temp
+
+    wav = _ensure_sr(waveform, sr)
+    with torch.inference_mode():
+        inputs = _processor(wav.squeeze(0), sampling_rate=TARGET_SR, return_tensors="pt", padding=False)
+        input_values = inputs.input_values.to(DEVICE)
+        logits = _model(input_values).logits[0]
+        logprobs = _log_softmax(logits, temp=Ttemp)
+
+        vslice = _blank_posterior_vad(logprobs, _blank_id, thresh=blank_thr, pad_ms=pad_ms)
+        logprobs = logprobs[vslice]
+
+        vocab = _processor.tokenizer.get_vocab()
+        if ref_jamo_seq is None:
+            ref_tokens_src = [t for t in _to_nfd_jamo(ref_text_nfd) if t.strip() != ""]
+        else:
+            ref_tokens_src = [t for t in ref_jamo_seq if t and not t.isspace()]
+
+        mapped_tokens, pos_map = _map_ref_jamo_seq_to_vocab(ref_tokens_src, vocab)
+        if len(mapped_tokens) == 0 or logprobs.shape[0] == 0:
+            return [0.0] * max(1, len(ref_tokens_src))
+
+        ref_ids = [vocab[tok] for tok in mapped_tokens]
+        conf_ids = _build_confusable_ids_dynamic(vocab) if use_confusables else None
+
+        confs_mapped = _forced_ctc_jamo_confidences(logprobs, ref_ids, _blank_id, confusable_ids=conf_ids)
+
+        out: List[float] = []
+        for p in pos_map:
+            out.append(float(confs_mapped[p]) if p != -1 else 0.0)
+        return out
+
+def ctc_char_confidences(wav_path: str, ref_text_nfd: str, **kwargs) -> List[float]:
+    wav, sr = torchaudio.load(wav_path)
+    return ctc_char_confidences_from_waveform(wav, sr, ref_text_nfd, **kwargs)
+
+def _best_path_decode(logprobs: torch.Tensor, vocab_id2tok: Dict[int, str]) -> str:
+    ids = logprobs.argmax(dim=-1).tolist()
+    out = []
+    prev = None
+    for i in ids:
+        if i == _blank_id:
+            prev = i; continue
+        if i != prev:
+            out.append(vocab_id2tok.get(i, ""))
+        prev = i
+    return "".join(out)
+
+def _levenshtein_distance(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    if len(a) < len(b):
+        a, b = b, a
+    previous = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        current = [i]
+        for j, cb in enumerate(b, 1):
+            insert = current[j-1] + 1
+            delete = previous[j] + 1
+            replace = previous[j-1] + (ca != cb)
+            current.append(min(insert, delete, replace))
+        previous = current
+    return previous[-1]
+
+def _cer(hyp: str, ref: str) -> float:
+    if not ref:
+        return 1.0 if hyp else 0.0
+    return _levenshtein_distance(hyp, ref) / max(1, len(ref))
+
+def ctc_gate_global_from_waveform(
+    waveform: torch.Tensor,
+    sr: int,
+    ref_text_nfd: str,
+    cer_threshold: float = 0.65,
+    loss_char_threshold: float = 2.0
+) -> Dict[str, float]:
+    """Multi-signal gate; trả về các chỉ số + cờ gate_pass."""
+    _init()
+    wav = _ensure_sr(waveform, sr)
+    with torch.inference_mode():
+        inputs = _processor(wav.squeeze(0), sampling_rate=TARGET_SR, return_tensors="pt", padding=False)
+        input_values = inputs.input_values.to(DEVICE)
+        logits = _model(input_values).logits[0]
+        logprobs = _log_softmax(logits, temp=LOGIT_TEMP)
+
+        sl = _blank_posterior_vad(logprobs, _blank_id, thresh=BLANK_VAD_THRESH, pad_ms=VAD_PAD_MS)
+        logprobs = logprobs[sl]
+
+        vocab = _processor.tokenizer.get_vocab()
+        id2tok = {v: k for k, v in vocab.items()}
+        hyp = _best_path_decode(logprobs, id2tok)
+
+        print("Hyp:", hyp)
+
+        ref_tokens_src = [t for t in _to_nfd_jamo(ref_text_nfd) if t.strip() != ""]
+        mapped_tokens, _ = _map_ref_jamo_seq_to_vocab(ref_tokens_src, vocab)
+        ref_mapped = "".join(mapped_tokens)
+
+        cer = _cer(hyp, ref_mapped)
+
+        # mean neglogp (trên ref tokens)
+        ref_ids = [vocab[ch] for ch in mapped_tokens if ch in vocab]
+        if len(ref_ids) == 0 or logprobs.shape[0] == 0:
+            mean_neglogp = 10.0
+        else:
+            tok_post = logprobs.exp().mean(0)
+            pick = tok_post[ref_ids].clamp_min(1e-6)
+            mean_neglogp = float((-pick.log()).mean().item())
+
+        # extra gate signals
+        gf = _gate_features(logprobs, vocab, ref_ids)
+        voiced_ratio = gf["voiced_ratio"]
+        avg_top1_nonblank = gf["avg_top1_nonblank"]
+        repetition_run = gf["repetition_run"]
+        voiced_sec = gf["voiced_sec"]
+
+        # coverage ratio từ Viterbi-local confidences
+        coverage_ratio = 0.0
+        if ref_ids:
+            conf_ids = _build_confusable_ids_dynamic(vocab)
+            confs_ref = _forced_ctc_jamo_confidences(logprobs, ref_ids, _blank_id, confusable_ids=conf_ids)
+            coverage_ratio = float(np.mean([c > MISSING_THR for c in confs_ref])) if len(confs_ref) > 0 else 0.0
+
+        # duration sanity
+        expected_sec = max(0.0, len(mapped_tokens)) * (DUR_PER_JAMO_MS / 1000.0)
+        dur_ok = True
+        if expected_sec >= 0.35:  # đừng áp quy tắc quá chặt với câu cực ngắn
+            dur_ok = (voiced_sec >= DUR_TOL_LOW * expected_sec) and (voiced_sec <= DUR_TOL_HIGH * expected_sec)
+
+        # quyết định gate
+        gate_pass = (
+            (voiced_ratio >= VOICED_MIN) and
+            (avg_top1_nonblank >= TOP1_NONBLANK_MIN) and
+            (coverage_ratio >= COVERAGE_MIN) and
+            (repetition_run <= REP_RUN_MAX) and
+            dur_ok and
+            ((cer < cer_threshold) or (mean_neglogp < loss_char_threshold))
+        )
+
+        return {
+            "gate_pass": bool(gate_pass),
+            "cer": float(cer),
+            "mean_neglogp": float(mean_neglogp),
+            "voiced_ratio": float(voiced_ratio),
+            "avg_top1_nonblank": float(avg_top1_nonblank),
+            "repetition_run": float(repetition_run),
+            "voiced_sec": float(voiced_sec),
+            "expected_sec": float(expected_sec),
+            "coverage_ratio": float(coverage_ratio),
+        }
+
+def ctc_gate_global(wav_path: str, ref_text_nfd: str, **kwargs) -> Dict[str, float]:
+    wav, sr = torchaudio.load(wav_path)
+    return ctc_gate_global_from_waveform(wav, sr, ref_text_nfd, **kwargs)

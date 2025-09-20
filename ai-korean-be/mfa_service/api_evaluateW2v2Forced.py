@@ -18,22 +18,18 @@ from pydub import AudioSegment
 from w2v2_forced_aligner.w2v2_forced_scoring import (
     init_w2v2,
     extract_features_from_waveform,                         # no I/O
-    estimate_char_confidences_from_energy_from_waveform,    # no I/O
     score_pronunciation_forced,                             # chấm forced; gọi CTC gate qua ctc_gate.*
 )
-
-# === CTC init riêng: sau khi split, init_ctc nằm ở ctc_gate.py ===
-from w2v2_forced_aligner.ctc_gate import init_ctc
 
 # === REF mapping: text -> (ref_wav, ref_textgrid) (nếu có, dùng priors) ===
 from data.first.mapping_data_first import get_paths_by_text
 
 # === G2P (MFA) để tạo ref_chunks ===
 try:
-    from utils.utils import load_mfa_dict, text_to_phonemes_mfa
+    from utils.utils import load_mfa_dict, text_to_jamo_chunks
 except Exception:
     def load_mfa_dict(_): return {}
-    def text_to_phonemes_mfa(text, mfa_dict, return_by_word=False):
+    def text_to_jamo_chunks(text, mfa_dict, return_by_word=False):
         if return_by_word:
             return [(text, [])], []
         return []
@@ -63,20 +59,19 @@ async def _warmup_models() -> None:
     Khởi tạo encoder (W2V2) và CTC để giảm latency cho request đầu tiên.
     """
     init_w2v2()  # idempotent
-    init_ctc()   # idempotent
 
 # =========================
 # Helpers
 # =========================
-def _normalize_korean_text(s: str) -> str:
-    """
-    Giữ Hangul + khoảng trắng, loại bỏ ký tự ngoài (dấu câu/ký tự Latin...)
-    nhằm ổn định số ký tự/syllable khi chia spans.
-    """
-    s = unicodedata.normalize("NFC", s).strip()
-    s = re.sub(r"[^\uAC00-\uD7A3\s]", "", s)
-    s = re.sub(r"\s+", " ", s)
+
+def _to_nfd_jamo(s: str) -> str:
+    """Convert to NFD Jamo string (keep only U+1100..U+11FF and spaces)."""
+    s = unicodedata.normalize("NFD", s)
+    # Keep Jamo range and spaces only
+    s = re.sub(r"[^\u1100-\u11FF\s]", "", s)
+    s = re.sub(r"\s+", " ", s).strip()
     return s
+
 
 def _decode_upload_to_tensor(upload: UploadFile) -> Tuple[torch.Tensor, int]:
     """
@@ -173,17 +168,17 @@ def evaluate_pronunciation_forced(
             "end": float(total_sec),
         }]
 
-        # 3) Chuẩn hoá text cho năng lượng & G2P; vẫn trả text gốc ra JSON
-        text_norm = _normalize_korean_text(text)
+        # # 3) Chuẩn hoá text cho năng lượng & G2P; vẫn trả text gốc ra JSON
+        # text_norm = _normalize_korean_text(text)
 
-        # 4) Ước lượng char confidences theo năng lượng (không I/O)
-        char_confs_energy = estimate_char_confidences_from_energy_from_waveform(
-            wav, sr, text_norm
-        )
+        # # 4) Ước lượng char confidences theo năng lượng (không I/O)
+        # char_confs_energy = estimate_char_confidences_from_energy_from_waveform(
+        #     wav, sr, text_norm
+        # )
 
         # 5) Optional: TextGrid REF → priors
         ref_tg_path = None
-        ref_paths = get_paths_by_text(text) or get_paths_by_text(text_norm)
+        ref_paths = get_paths_by_text(text) or get_paths_by_text(text)
         if ref_paths:
             _ref_wav, _ref_tg = ref_paths
             if _ref_tg and Path(_ref_tg).exists():
@@ -194,13 +189,17 @@ def evaluate_pronunciation_forced(
             mfa_dict = load_mfa_dict(MFA_DICT_PATH)
         except Exception:
             mfa_dict = {}
-        ref_chunks, notes = text_to_phonemes_mfa(text_norm, mfa_dict, return_by_word=True)
+        ref_chunks, notes = text_to_jamo_chunks(text)
+
+        print("Text:", text)
+        print("Ref Chunks:", ref_chunks)
 
         print({
             "dbg_peak": float(wav.abs().max().item()),
             "dbg_rms": float((wav.pow(2).mean().sqrt()).item()),
             "dbg_len_sec": float(wav.shape[-1]) / TARGET_SR,
-            "dbg_text_norm": text_norm
+            "dbg_text_norm": text,
+            "dbg_text_nfd": _to_nfd_jamo(text)
             })
 
         # 7) Chấm điểm (forced + CTC gate)
@@ -208,17 +207,17 @@ def evaluate_pronunciation_forced(
             wav_path=None,
             waveform=wav, waveform_sr=sr,
             vectors_user=vectors_user,
-            reference_text=text_norm,
+            reference_text=_to_nfd_jamo(text),
             ref_chunks=ref_chunks,
             ref_textgrid_path=str(ref_tg_path) if ref_tg_path else None,
-            char_confidences=char_confs_energy,
             missing_threshold=MISSING_THRESHOLD,
             min_score_floor=MIN_SCORE_FLOOR,
             advice_threshold=ADVICE_THRESHOLD,
-            use_ctc_gate=True,
+            use_ctc_gate=False,   # KHÔNG dùng gate tắt → chấm forced luôn
             ctc_loss_char_threshold=CTC_LOSS_CHAR_THRESHOLD,
             ctc_cer_threshold=CTC_CER_THRESHOLD,
             ctc_mix_mode=CTC_MIX_MODE,
+            lam_edit=0
         )
 
         return JSONResponse({

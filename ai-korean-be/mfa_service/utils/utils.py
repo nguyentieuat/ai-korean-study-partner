@@ -22,226 +22,172 @@ except Exception:
     # fallback stub nếu module không có (để không vỡ import trong môi trường build)
     def explain_clean_for_user(text: str, opt=None):
         return text, []
+import unicodedata as ud
+import re
+from typing import List, Tuple
 
-_SBASE = 0xAC00
-_LBASE = 0x1100  # choseong
-_VBASE = 0x1161  # jungseong
-_TBASE = 0x11A7  # jongseong (T=0: no coda)
-_LCOUNT, _VCOUNT, _TCOUNT = 19, 21, 28
-_NCOUNT = _VCOUNT * _TCOUNT
+# các ký tự zero-width hay gặp
+_ZW_CODES = [0x200B, 0x200C, 0x200D, 0xFEFF]  # ZWSP, ZWNJ, ZWJ, BOM
+
+def _strip_invisibles(s: str) -> str:
+    tbl = {code: None for code in _ZW_CODES}
+    # có thể tẩy thêm non-breaking space:
+    tbl[0x00A0] = None
+    return s.translate(tbl)
+
+def _nfd(s: str) -> str:
+    return ud.normalize("NFD", s)
 
 def _is_hangul_syllable(ch: str) -> bool:
-    return ch and _SBASE <= ord(ch) <= 0xD7A3
+    cp = ord(ch)
+    return 0xAC00 <= cp <= 0xD7A3
 
-def _decompose_hangul_syllable(syll: str):
-    S = ord(syll) - _SBASE
-    L = _LBASE + (S // _NCOUNT)
-    V = _VBASE + ((S % _NCOUNT) // _TCOUNT)
-    T_idx = S % _TCOUNT
-    T = (_TBASE + T_idx) if T_idx != 0 else None
-    return L, V, T  # codepoints (ints)
+def _is_jamo(ch: str) -> bool:
+    cp = ord(ch)
+    return 0x1100 <= cp <= 0x11FF
 
-# Onset (choseong)
-_CHOSEONG_TO_IPA = {
-    0x1100:"k", 0x1101:"k͈", 0x1102:"n", 0x1103:"t", 0x1104:"t͈", 0x1105:"ɾ",
-    0x1106:"m", 0x1107:"p", 0x1108:"p͈", 0x1109:"s", 0x110A:"s͈", 0x110B:"Ø",
-    0x110C:"t͡ɕ", 0x110D:"t͡ɕ͈", 0x110E:"t͡ɕʰ", 0x110F:"kʰ", 0x1110:"tʰ",
-    0x1111:"pʰ", 0x1112:"h",
-}
+def _syllable_to_jamos_nfd(syl: str) -> List[str]:
+    return [c for c in _nfd(syl) if _is_jamo(c)]
 
-# Vowel (jungseong)
-_JUNGSEONG_TO_IPA = {
-    0x1161:["a"], 0x1162:["ɛ"], 0x1163:["j","a"], 0x1164:["j","ɛ"],
-    0x1165:["ʌ"], 0x1166:["e"], 0x1167:["j","ʌ"], 0x1168:["j","e"],
-    0x1169:["o"], 0x116A:["w","a"], 0x116B:["w","ɛ"], 0x116C:["w","e"],
-    0x116D:["j","o"], 0x116E:["u"], 0x116F:["w","ʌ"], 0x1170:["w","e"],
-    0x1171:["w","i"], 0x1172:["j","u"], 0x1173:["ɯ"], 0x1174:["ɯ","i"],
-    0x1175:["i"],
-}
-
-# Coda (jongseong) — base unreleased
-_JONGSEONG_TO_IPA = {
-    None: None,
-    0x11A8:"k̚", 0x11A9:"k̚", 0x11AA:"k̚",
-    0x11AB:"n",  0x11AC:"n",  0x11AD:"n",
-    0x11AE:"t̚",
-    0x11AF:"l",  0x11B0:"k̚", 0x11B1:"m",  0x11B2:"p̚",
-    0x11B3:"t̚", 0x11B4:"t̚", 0x11B5:"p̚", 0x11B6:"l",
-    0x11B7:"m",  0x11B8:"p̚", 0x11B9:"p̚",
-    0x11BA:"t̚", 0x11BB:"t̚", 0x11BC:"ŋ",  0x11BD:"t̚",
-    0x11BE:"t̚", 0x11BF:"k̚", 0x11C0:"t̚", 0x11C1:"p̚", 0x11C2:"t̚",
-}
-
-def _emit_onset(L: int, seq: list):
-    ipa = _CHOSEONG_TO_IPA.get(L)
-    if ipa and ipa != "Ø":  # ㅇ silent onset
-        seq.append(ipa)
-
-def _emit_vowel(V: int, seq: list):
-    seq.extend(_JUNGSEONG_TO_IPA.get(V, ["?"]))
-
-def _emit_coda(T: Optional[int], seq: list):
-    ipa = _JONGSEONG_TO_IPA.get(T)
-    if ipa:
-        seq.append(ipa)
-
-# Chuẩn hoá một số ký hiệu từ điển về “chuẩn hiển thị”
-_SANITIZE = {"ɐ":"a"}
-def _sanitize(seq):
-    out=[]
-    for x in seq:
-        out.append(_SANITIZE.get(x, x))
-    return out
-
-def _g2p_token(token: str, mfa_dict: dict) -> List[str]:
-    """G2P cho một 'token' (đÃ clean). Ưu tiên tra whole-word."""
-    res: List[str] = []
-    if isinstance(mfa_dict, dict) and token in mfa_dict:
-        phs = mfa_dict[token]
-        res.extend(_sanitize(phs if isinstance(phs, (list,tuple)) else [phs]))
-        return res
-    for ch in token:
+# Dấu câu phổ biến để gắn vào NHÃN mảnh cuối cùng
+_PUNCT = set(".,!?;:…“”\"'()[]{}-–—~·•、，。；：？！《》〈〉『』「」")
+def _first_hangul_index(s: str) -> int:
+    for idx, ch in enumerate(s):
         if _is_hangul_syllable(ch):
-            L,V,T = _decompose_hangul_syllable(ch)
-            _emit_onset(L, res)
-            _emit_vowel(V, res)
-            _emit_coda(T, res)
+            return idx
+    return -1
+
+def _trim_invis_and_space_left(s: str) -> str:
+    # bỏ invisible + khoảng trắng ở đầu
+    i = 0
+    L = len(s)
+    while i < L:
+        ch = s[i]
+        if ch.isspace() or ord(ch) in _ZW_CODES or ord(ch) == 0x00A0:
+            i += 1
         else:
-            if isinstance(mfa_dict, dict) and ch in mfa_dict:
-                phs = mfa_dict[ch]
-                res.extend(_sanitize(phs if isinstance(phs,(list,tuple)) else [phs]))
-    return res
+            break
+    return s[i:]
 
-# --- SMART CHUNKING cho return_by_word=True ---
-_CHO_ㅇ = 0x110B
-_JONG_ㅅ = 0x11BA
-_JONG_ㅆ = 0x11BB
-
-def _chunkify_word_with_s_liaison(word_ref: str, word_clean: str) -> List[Tuple[str, List[str]]]:
+def _repair_chunks(chunks: List[Tuple[str, List[str]]]) -> List[Tuple[str, List[str]]]:
     """
-    Tách một từ Hangul thành các mảnh (mỗi âm tiết 1 mảnh), nhưng:
-      - Nếu âm tiết i có 받침 ㅅ/ㅆ và âm tiết i+1 là nguyên âm (onset ㅇ),
-        thì đem ㅅ/ㅆ sang làm onset của mảnh i+1 (→ s / s͈) thay cho coda 't̚'.
-      - Nhãn: mặc định là âm tiết gốc (từ word_ref).
-        Riêng pattern ... '어' + '요' → nhãn mảnh '어' hiển thị '어요' (phoneme chỉ cho '어').
-    Phoneme phát sinh dựa trên *word_clean* (sau normalize_clean) để ổn định.
+    Mỗi mảnh:
+      - Loại mọi ký tự đứng TRƯỚC âm tiết Hangul đầu tiên trong label.
+      - Phần 'lead' đó sẽ được đẩy vào mảnh trước (nếu có), hoặc bỏ nếu không có.
+      - Chỉ giữ đúng 1 âm tiết Hangul ở đầu; phần còn lại (dấu câu sau âm tiết) giữ nguyên.
     """
+    fixed: List[Tuple[str, List[str]]] = []
+    for label, jamos in chunks:
+        if not label:
+            continue
 
-    # Lấy danh sách âm tiết Hangul (giữ thứ tự)
-    syls_ref  = [ch for ch in word_ref  if _is_hangul_syllable(ch)]
-    syls_clean= [ch for ch in word_clean if _is_hangul_syllable(ch)]
-    if not syls_clean:
-        # không phải hangul → trả 1 mảnh đơn giản
-        return [(word_ref, _g2p_token(word_clean, {}))]
+        # tỉa invisible/space đầu nhãn trước khi xét
+        label = _trim_invis_and_space_left(label)
 
-    # Nếu độ dài lệch, cố gắng dùng min; còn lại gộp vào mảnh cuối
-    n = min(len(syls_ref), len(syls_clean))
-    chunks: List[Tuple[str, List[str]]] = []
-    carry_next: List[str] = []
+        hi = _first_hangul_index(label)
+        if hi == -1:
+            # nhãn không có Hangul → gắn vào mảnh trước (nếu có), bỏ nếu không
+            if fixed:
+                pl, pj = fixed[-1]
+                fixed[-1] = (pl + label, pj)
+            continue
 
-    for i in range(n):
-        sr = syls_ref[i]
-        sc = syls_clean[i]
-        Lc, Vc, Tc = _decompose_hangul_syllable(sc)  # dùng clean cho phoneme
-        # Nhãn mặc định theo ref
-        label = sr
+        lead = label[:hi]    # rác/ngoặc/space/invisible trước Hangul
+        core = label[hi:]    # từ Hangul đầu tiên trở đi
 
-        phones: List[str] = []
-        # prepend carry (s hoặc s͈) nếu có
-        if carry_next:
-            phones.extend(carry_next)
-            carry_next = []
+        head = core[0]       # đúng 1 âm tiết Hangul làm đầu nhãn
+        tail = core[1:]      # phần sau (dấu câu...), giữ nguyên
 
-        # onset (bỏ ㅇ)
-        _emit_onset(Lc, phones)
-        # vowel
-        _emit_vowel(Vc, phones)
+        # đẩy phần 'lead' sang mảnh trước (nếu có)
+        if lead:
+            if fixed:
+                pl, pj = fixed[-1]
+                fixed[-1] = (pl + lead, pj)
+            # nếu không có mảnh trước thì bỏ 'lead'
 
-        # quyết định coda / carry sang sau
-        # cần dựa vào *ref* (vì liaison ㅅ/ㅆ là hiện tượng hình thái/âm vị chữ viết)
-        Lr, Vr, Tr = _decompose_hangul_syllable(sr)
-        next_is_vowel = False
-        if (i+1) < n:
-            Ln, Vn, Tn = _decompose_hangul_syllable(syls_clean[i+1])
-            next_is_vowel = (Ln == _CHO_ㅇ)
+        fixed.append((head + tail, jamos))
+    return fixed
+def _sanitize_labels_inplace(chunks):
+    for i in range(len(chunks)):
+        lab, jamos = chunks[i]
+        # cắt toàn bộ ký tự đứng trước âm tiết Hangul đầu tiên
+        k = 0
+        while k < len(lab) and not _is_hangul_syllable(lab[k]):
+            k += 1
+        lab = lab[k:] if k < len(lab) else lab
+        chunks[i] = (lab, jamos)
 
-        if next_is_vowel and Tr in (_JONG_ㅅ, _JONG_ㅆ):
-            # KHÔNG phát coda t̚; thay vào đó chuẩn bị carry onset cho mảnh sau
-            carry_next = ["s͈"] if Tr == _JONG_ㅆ else ["s"]
-        else:
-            # phát coda bình thường (nếu có)
-            _emit_coda(Tc, phones)
-
-        chunks.append((label, _sanitize(phones)))
-
-    # Nếu còn dư âm tiết (do ref dài hơn clean), gộp vào mảnh cuối
-    if len(syls_ref) > n:
-        rest_label = "".join(syls_ref[n:])
-        if chunks:
-            last_label, last_phs = chunks[-1]
-            chunks[-1] = (last_label + rest_label, last_phs)
-        else:
-            chunks.append((rest_label, []))
-
-    # Nếu trong word còn non-Hangul (dấu câu...), gắn vào mảnh cuối để giữ nhãn
-    tail_non_h = "".join([ch for ch in word_ref if not _is_hangul_syllable(ch)])
-    if tail_non_h and chunks:
-        last_label, last_phs = chunks[-1]
-        chunks[-1] = (last_label + tail_non_h, last_phs)
-
-    return chunks
-
-def text_to_phonemes_mfa(
-    text_ref: str,
-    mfa_dict: dict,
-    *,
-    return_by_word: bool = False
-) -> Union[List[str], List[Tuple[str, List[str]]]]:
+def text_to_jamo_chunks(text_ref: str) -> List[Tuple[str, List[str]]]:
     """
-    G2P với hỗ trợ clean text & trả về theo mảnh trong từ (smart) khi return_by_word=True.
-
-    - Luôn clean trước: normalize_clean(text_ref) -> text_clean
-    - return_by_word=False (mặc định): trả List[str] (phoneme phẳng) như cũ.
-    - return_by_word=True: trả List[ (label_mảnh, [phonemes]) ].
-      *Mảnh* thường là mỗi âm tiết Hangul
-
-    Ghi chú:
-    - Nếu từ có non-Hangul, mảnh cuối sẽ được ghép phần non-H vào nhãn để giữ nguyên hiển thị.
+    - Duyệt ref: MỖI âm tiết Hangul -> 1 mảnh.
+      label = chính âm tiết đó + CHỈ các dấu câu ngay SAU nó (.,!?…)
+      jamo_list = jamo của âm tiết TƯƠNG ỨNG trong clean (nếu thiếu thì fallback về ref)
+    - Không bao giờ gắn ký tự ĐỨNG TRƯỚC vào nhãn.
+    - Bỏ qua khoảng trắng, invisible, và ký tự rác đứng trước.
     """
-    # 0) Clean text
+    # 0) lấy clean (để tách jamo) + tẩy invisible
     try:
-        text_clean, _tags = explain_clean_for_user(text_ref)
+        _text_clean, _tags = explain_clean_for_user(text_ref)
     except Exception:
-        text_clean = text_ref
+        _text_clean, _tags = text_ref, []
 
-    if not return_by_word:
-        # Phẳng: ưu tiên tra theo từ trong dict, fallback phân rã âm tiết
-        res: List[str] = []
-        for word in text_clean.strip().split():
-            res.extend(_g2p_token(word, mfa_dict))
-        return res
+    ref = _strip_invisibles(text_ref)
+    cln = _strip_invisibles(_text_clean)
 
-    # by "word" (nhưng tách smart theo âm tiết bên trong)
-    out: List[Tuple[str, List[str]]] = []
-    ref_tokens   = text_ref.strip().split()
-    clean_tokens = text_clean.strip().split()
-    n = max(len(ref_tokens), len(clean_tokens))
-    if len(ref_tokens)   < n: ref_tokens   += [""]*(n-len(ref_tokens))
-    if len(clean_tokens) < n: clean_tokens += [""]*(n-len(clean_tokens))
+    # 1) gom âm tiết Hangul từ clean (nguồn jamo)
+    clean_sylls = [c for c in cln if _is_hangul_syllable(c)]
+    k = 0  # con trỏ clean
 
-    for w_ref, w_clean in zip(ref_tokens, clean_tokens):
-        # Nếu toàn Hangul → tách smart theo âm tiết + ㅅ/ㅆ liaison
-        if all(_is_hangul_syllable(ch) for ch in w_ref) and all(_is_hangul_syllable(ch) for ch in w_clean):
-            chunks = _chunkify_word_with_s_liaison(w_ref, w_clean)
-            # Nếu từ có trong từ điển MFA nguyên từ, có thể cân nhắc override phones theo dict.
-            # Ở đây ta giữ phones theo tách-âm-tiết để bám sát ví dụ mong muốn.
-            out.extend(chunks)
-        else:
-            # Không phải thuần Hangul → trả một mảnh theo cả từ
-            out.append((w_ref, _g2p_token(w_clean, mfa_dict)))
-    
+    chunks: List[Tuple[str, List[str]]] = []
+    j = 0
+    n = len(ref)
+
+    def _skip_ws_and_invis(idx: int) -> int:
+        while idx < n:
+            ch = ref[idx]
+            if ch.isspace() or ord(ch) in _ZW_CODES or ord(ch) == 0x00A0:
+                idx += 1
+            else:
+                break
+        return idx
+
+    while j < n:
+        # BỎ MỌI thứ đứng TRƯỚC (space/invisible/rác) — không gắn vào đâu
+        j = _skip_ws_and_invis(j)
+        if j >= n:
+            break
+
+        ch = ref[j]
+
+        if _is_hangul_syllable(ch):
+            # 2) tạo mảnh: nhãn = âm tiết hiện tại + dấu câu NGAY SAU nó
+            label = ch
+            j += 1
+
+            # kéo các dấu câu NGAY SAU (chỉ sau, không bao giờ lấy ký tự trước)
+            while j < n and (ref[j] in _PUNCT):
+                label += ref[j]
+                j += 1
+
+            # 3) jamo từ clean (nếu hết clean thì fallback ref)
+            if k < len(clean_sylls):
+                ch_c = clean_sylls[k]
+                k += 1
+            else:
+                ch_c = ch
+            jamos = _syllable_to_jamos_nfd(ch_c)
+
+            chunks.append((label, jamos))
+            continue
+
+        # Không phải Hangul: bỏ qua (không đính vào mảnh sắp tới)
+        j += 1
+
+    # Ghi chú nếu bạn cần dùng:
     notes_ = list(dict.fromkeys(
-                n.strip() for n in (e.get("note") for e in _tags)
-                if isinstance(n, str) and n.strip()
-            ))
-    return out, notes_
+        n.strip() for n in (e.get("note") for e in _tags)
+        if isinstance(n, str) and n.strip()
+    ))
+    chunks = _repair_chunks(chunks)
+    _sanitize_labels_inplace(chunks)
+    return chunks, notes_

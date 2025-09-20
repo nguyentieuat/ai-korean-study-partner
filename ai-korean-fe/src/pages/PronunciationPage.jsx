@@ -121,20 +121,52 @@ const PronunciationPage = () => {
   // Chủ đề tĩnh
   const dataByTopic = {
     "Sinh hoạt": [
-      { text: "밥 먹었어요?", notes: "Bạn đã ăn cơm chưa?", pronunciation: "bap meo-geo-sseo-yo" },
-      { text: "집에 가요.", notes: "Tôi về nhà.", pronunciation: "jib-e ga-yo" },
+      {
+        text: "밥 먹었어요?",
+        notes: "Bạn đã ăn cơm chưa?",
+        pronunciation: "bap meo-geo-sseo-yo",
+      },
+      {
+        text: "집에 가요.",
+        notes: "Tôi về nhà.",
+        pronunciation: "jib-e ga-yo",
+      },
     ],
     "Du lịch": [
-      { text: "이 호텔 예약했어요.", notes: "Tôi đã đặt phòng khách sạn.", pronunciation: "i hotel ye-yak-hae-sseo-yo" },
-      { text: "공항으로 가 주세요.", notes: "Làm ơn đưa tôi đến sân bay.", pronunciation: "gong-hang-eu-ro ga ju-se-yo" },
+      {
+        text: "이 호텔 예약했어요.",
+        notes: "Tôi đã đặt phòng khách sạn.",
+        pronunciation: "i hotel ye-yak-hae-sseo-yo",
+      },
+      {
+        text: "공항으로 가 주세요.",
+        notes: "Làm ơn đưa tôi đến sân bay.",
+        pronunciation: "gong-hang-eu-ro ga ju-se-yo",
+      },
     ],
     "Nhà hàng": [
-      { text: "메뉴 좀 보여 주세요.", notes: "Cho tôi xem thực đơn.", pronunciation: "me-nyu jom bo-yeo ju-se-yo" },
-      { text: "계산서 부탁해요.", notes: "Làm ơn tính tiền.", pronunciation: "gye-san-seo bu-tak-hae-yo" },
+      {
+        text: "메뉴 좀 보여 주세요.",
+        notes: "Cho tôi xem thực đơn.",
+        pronunciation: "me-nyu jom bo-yeo ju-se-yo",
+      },
+      {
+        text: "계산서 부탁해요.",
+        notes: "Làm ơn tính tiền.",
+        pronunciation: "gye-san-seo bu-tak-hae-yo",
+      },
     ],
     "Công xưởng": [
-      { text: "안전모를 착용하세요.", notes: "Hãy đội mũ bảo hộ.", pronunciation: "an-jeon-mo-reul chak-yong-ha-se-yo" },
-      { text: "작업을 시작합니다.", notes: "Bắt đầu làm việc.", pronunciation: "jak-eob-eul si-jak-ham-ni-da" },
+      {
+        text: "안전모를 착용하세요.",
+        notes: "Hãy đội mũ bảo hộ.",
+        pronunciation: "an-jeon-mo-reul chak-yong-ha-se-yo",
+      },
+      {
+        text: "작업을 시작합니다.",
+        notes: "Bắt đầu làm việc.",
+        pronunciation: "jak-eob-eul si-jak-ham-ni-da",
+      },
     ],
   };
 
@@ -219,7 +251,9 @@ const PronunciationPage = () => {
         if (!ignore) setLevelsLoading(false);
       }
     })();
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   // dọn dẹp khi unmount
@@ -418,9 +452,10 @@ const PronunciationPage = () => {
         });
 
         // Có thể status != 200 nhưng vẫn trả json message
-        const result = await res
-          .json()
-          .catch(() => ({ ok: false, message: "Không phân tích được phản hồi." }));
+        const result = await res.json().catch(() => ({
+          ok: false,
+          message: "Không phân tích được phản hồi.",
+        }));
 
         console.log(result);
 
@@ -479,7 +514,7 @@ const PronunciationPage = () => {
   };
 
   /** ====== PHẦN RÚT GỌN DÙNG details_collapsed ====== */
-  const ADVICE_THRESHOLD = 0.8;
+  const ADVICE_THRESHOLD = 0.75;
 
   /** Lấy details_collapsed nếu có */
   function getCollapsed(evaluation) {
@@ -500,41 +535,52 @@ const PronunciationPage = () => {
    * Non-Hangul giữ nguyên, không tooltip.
    * Nếu thiếu/thừa phần tử, các ký tự ngoài phạm vi collapsed sẽ không có tooltip.
    */
+  const to01 = (x) => {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return 0;
+    return n > 0 ? n / 100 : n;
+  };
+
+  // 0..1 hay 0..100 đều nhận; trả về % (0..100, int)
+  const toPct = (x) => {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return 0;
+    return n > 1 ? Math.round(n) : Math.round(n * 100);
+  };
+
   function mapForTooltipCollapsed(text, collapsed) {
     const chars = Array.from(text);
     const out = [];
-    let k = 0;
+    let k = 0; // index âm tiết trong collapsed
 
     for (let i = 0; i < chars.length; i++) {
       const ch = chars[i];
       const cp = ch.codePointAt(0);
-      const isHangul = cp >= 0xAC00 && cp <= 0xD7A3;
+      const isHangul = cp >= 0xac00 && cp <= 0xd7a3;
 
       if (isHangul && k < collapsed.length) {
-        const item = collapsed[k++];
-        const scores = (item?.scores || []).map(Number);
-        const avg =
-          typeof item?.avg_score === "number"
-            ? Number(item.avg_score)
-            : scores.length
-            ? scores.reduce((a, b) => a + b, 0) / scores.length
-            : 1;
+        const syl = collapsed[k++];
+        const avg = to01(syl?.score ?? syl?.avg_score); // 0..1
+        const jamoArr = Array.isArray(syl?.jamo) ? syl.jamo : [];
 
         out.push({
           ch,
           isHangul: true,
-          label: item?.label ?? ch,
-          phonemes: item?.phonemes || [],
-          scores,
-          avg,
+          label: syl?.text ?? ch,
+          // chuẩn hoá từng jamo
+          jamo: jamoArr.map((j) => ({
+            jamo: String(j?.jamo ?? ""),
+            conf01: to01(j?.score),
+            pct: toPct(j?.score),
+          })),
+          avg, // 0..1 cho tô màu
         });
       } else {
         out.push({
           ch,
           isHangul: false,
           label: ch,
-          phonemes: [],
-          scores: [],
+          jamo: [],
           avg: 1,
         });
       }
@@ -545,45 +591,36 @@ const PronunciationPage = () => {
   /** Gom lỗi (score<threshold) trực tiếp từ details_collapsed */
   const lowGroups = React.useMemo(() => {
     const collapsed = getCollapsed(currentEvaluation);
-    if (!collapsed || !current?.text) return [];
+    if (!Array.isArray(collapsed) || !current?.text) return [];
 
     const result = [];
     collapsed.forEach((syl, i) => {
-      const scores = (syl?.scores || []).map(Number);
-      const phonemes = syl?.phonemes || [];
-      const adv = Array.isArray(syl?.advice) ? syl.advice : [];
+      const jamoArr = Array.isArray(syl?.jamo) ? syl.jamo : [];
       const items = [];
 
-      for (let j = 0; j < Math.min(scores.length, phonemes.length); j++) {
-        if (scores[j] < ADVICE_THRESHOLD) {
-          const adviceForJ = Array.isArray(adv[j])
-            ? adv[j]
-            : (Array.isArray(adv) && typeof adv[0] === "string" && phonemes.length === 1)
-              ? adv
-              : [];
+      jamoArr.forEach((j, jidx) => {
+        const s01 = to01(j?.score);
+        if (s01 < ADVICE_THRESHOLD) {
+          const jamoAdvice = Array.isArray(j?.advice) ? j.advice
+                        : [];
+          debugger
           items.push({
-            key: `${i}:${j}`,
-            phoneme: phonemes[j],
-            score: scores[j],
-            advice: adviceForJ,
-            color: scoreColor(scores[j]),
+            key: `${i}:${jidx}`,
+            jamo: String(j?.jamo ?? ""),
+            score: s01, // 0..1
+            color: scoreColor(s01),
+            advice: jamoAdvice, // (nếu backend sau có advice, đưa vào đây)
           });
         }
-      }
+      });
 
-      const avg =
-        typeof syl?.avg_score === "number"
-          ? Number(syl.avg_score)
-          : scores.length
-          ? scores.reduce((a, b) => a + b, 0) / scores.length
-          : 1;
-
-      if (avg < ADVICE_THRESHOLD || items.length > 0) {
+      const avg = to01(syl?.score ?? syl?.avg_score);
+      if (items.length > 0 || avg < ADVICE_THRESHOLD) {
         result.push({
           groupKey: `g${i}`,
-          label: syl?.label || "",
+          label: syl?.text ?? "",
           syllableIndex: i,
-          avgScore: avg,
+          avgScore: avg, // 0..1
           items,
         });
       }
@@ -671,7 +708,9 @@ const PronunciationPage = () => {
             <button
               className={`btn ${recording ? "btn-danger" : "btn-warning"}`}
               onClick={recording ? handleStop : handleStart}
-              disabled={uiDisabled ? false : loading || !current.text || evaluating}
+              disabled={
+                uiDisabled ? false : loading || !current.text || evaluating
+              }
             >
               {recording ? "⏹ Dừng ghi âm" : "🎙️ Ghi âm"}
             </button>
@@ -697,12 +736,14 @@ const PronunciationPage = () => {
           {(() => {
             const collapsed = getCollapsed(currentEvaluation);
             const hasScores =
-              collapsed && collapsed.length > 0 &&
-              Array.isArray(collapsed[0]?.scores);
+              Array.isArray(collapsed) &&
+              collapsed.length > 0 &&
+              Array.isArray(collapsed[0]?.jamo);
 
             // Nếu không có dữ liệu chấm → hiển thị message (nếu có)
             if (!hasScores) {
-              const msg = currentEvaluation?.message || currentEvaluation?.error || null;
+              const msg =
+                currentEvaluation?.message || currentEvaluation?.error || null;
               return msg ? (
                 <div className="mt-3 p-3 border rounded bg-light">
                   <h6>ℹ️ Thông báo</h6>
@@ -712,16 +753,18 @@ const PronunciationPage = () => {
             }
 
             // Có dữ liệu chấm: hiển thị điểm + dòng chữ tô màu + issues
-            const overall =
-              Number(currentEvaluation?.avg_score ?? currentEvaluation?.score ?? 0) || 0;
+            const overallRaw =
+              Number(
+                currentEvaluation?.score ?? currentEvaluation?.avg_score ?? 0
+              ) || 0;
+            const overallPct = toPct(overallRaw);
             const mapped = mapForTooltipCollapsed(current.text, collapsed);
 
             return (
               <div className="mt-3 p-3 border rounded">
                 <h6>📊 Kết quả đánh giá:</h6>
                 <p>
-                  <strong>Điểm trung bình:</strong>{" "}
-                  {(overall * 100).toFixed(0)}%
+                  <strong>Điểm trung bình:</strong> {overallPct}%
                 </p>
 
                 {/* Dòng chữ có tô màu theo từng âm tiết (simple by details_collapsed) */}
@@ -734,7 +777,7 @@ const PronunciationPage = () => {
                 >
                   {mapped.map((m, idx) => {
                     const color = m.isHangul ? scoreColor(m.avg) : undefined;
-                    const isHoverable = m.isHangul && m.phonemes.length > 0;
+                    const isHoverable = m.isHangul && m.jamo.length > 0;
 
                     return (
                       <span
@@ -745,8 +788,12 @@ const PronunciationPage = () => {
                           position: "relative",
                           cursor: isHoverable ? "pointer" : "default",
                         }}
-                        onMouseEnter={() => isHoverable && setHoveredWordIndex(idx)}
-                        onMouseLeave={() => isHoverable && setHoveredWordIndex(null)}
+                        onMouseEnter={() =>
+                          isHoverable && setHoveredWordIndex(idx)
+                        }
+                        onMouseLeave={() =>
+                          isHoverable && setHoveredWordIndex(null)
+                        }
                       >
                         {m.ch}
                         {hoveredWordIndex === idx && isHoverable && (
@@ -764,12 +811,7 @@ const PronunciationPage = () => {
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {m.phonemes
-                              .map((p, i) => {
-                                const s = ((m.scores[i] ?? 0) * 100).toFixed(0);
-                                return `${p}_${s}%`;
-                              })
-                              .join(" ")}
+                            {m.jamo.map((j) => `${j.jamo}_${j.pct}%`).join(" ")}
                           </div>
                         )}
                       </span>
@@ -830,20 +872,23 @@ const PronunciationPage = () => {
                                 <div className="d-flex align-items-center justify-content-between">
                                   <div>
                                     <code style={{ fontSize: "0.95rem" }}>
-                                      {it.phoneme}
+                                      {it.jamo}
                                     </code>
                                   </div>
-                                  <div style={{ minWidth: 70, textAlign: "right" }}>
+                                  <div
+                                    style={{ minWidth: 70, textAlign: "right" }}
+                                  >
                                     {(it.score * 100).toFixed(0)}%
                                   </div>
                                 </div>
-                                {Array.isArray(it.advice) && it.advice.length > 0 && (
-                                  <ul className="mt-2 mb-0 ps-3">
-                                    {it.advice.map((a, i) => (
-                                      <li key={i}>{a}</li>
-                                    ))}
-                                  </ul>
-                                )}
+                                {Array.isArray(it.advice) &&
+                                  it.advice.length > 0 && (
+                                    <ul className="mt-2 mb-0 ps-3">
+                                      {it.advice.map((a, i) => (
+                                        <li key={i}>{a}</li>
+                                      ))}
+                                    </ul>
+                                  )}
                               </div>
                             ))}
                           </div>

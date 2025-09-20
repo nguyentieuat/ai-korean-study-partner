@@ -271,7 +271,7 @@ def main():
     # LoRA
     lora_cfg = LoraConfig(
         r=args.lora_r, lora_alpha=args.lora_alpha,
-        target_modules=["q_proj","k_proj","v_proj","o_proj"],
+        target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
         lora_dropout=args.lora_dropout, bias="none", task_type="CAUSAL_LM",
     )
     model = get_peft_model(model, lora_cfg)

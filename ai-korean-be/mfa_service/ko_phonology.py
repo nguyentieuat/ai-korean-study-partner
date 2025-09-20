@@ -255,25 +255,29 @@ def normalize_clean(
 
             # NEW: If complex coda whose second unit is ㅎ (e.g., ᆭ=ㄴㅎ, ᆶ=ㄹㅎ),
             # drop ㅎ and move the FIRST unit (ㄴ/ㄹ) to onset. This yields: 많이→마니, 밟아→발바.
-            is_complex_h_second = (A.T in COMPLEX_CODA_SPLIT and COMPLEX_CODA_SPLIT[A.T][1]=='ᇂ')
-            if is_complex_h_second and first != "\0":
-                move_cho = jong_to_cho(first)
-                if move_cho:
-                    # consume entire complex: drop ㅎ and move first; coda becomes empty
-                    set_coda(A, "\0")
-                    set_onset(B, move_cho)
-                    tokens[i]=(A,"H"); tokens[i+1]=(B,"H")
-                    rule_tags.append(f"liaison:complex-h(drop ㅎ, move {first})->{i+1}")
-                    liaison_boundaries.add(i)
+            if tail == 'ᇂ':
+                # skip moving ㅎ to onset (좋아요 → 조아요)
+                pass
             else:
-                move_cho = jong_to_cho(tail)
-                if move_cho:
-                    first_unit = first
-                    set_coda(A, first_unit if first_unit!="\0" else "\0")
-                    set_onset(B, move_cho)
-                    tokens[i]=(A,"H"); tokens[i+1]=(B,"H")
-                    rule_tags.append(f"liaison:{i}->{i+1}")
-                    liaison_boundaries.add(i)
+                is_complex_h_second = (A.T in COMPLEX_CODA_SPLIT and COMPLEX_CODA_SPLIT[A.T][1]=='ᇂ')
+                if is_complex_h_second and first != "\0":
+                    move_cho = jong_to_cho(first)
+                    if move_cho:
+                        # consume entire complex: drop ㅎ and move first; coda becomes empty
+                        set_coda(A, "\0")
+                        set_onset(B, move_cho)
+                        tokens[i]=(A,"H"); tokens[i+1]=(B,"H")
+                        rule_tags.append(f"liaison:complex-h(drop ㅎ, move {first})->{i+1}")
+                        liaison_boundaries.add(i)
+                else:
+                    move_cho = jong_to_cho(tail)
+                    if move_cho:
+                        first_unit = first
+                        set_coda(A, first_unit if first_unit!="\0" else "\0")
+                        set_onset(B, move_cho)
+                        tokens[i]=(A,"H"); tokens[i+1]=(B,"H")
+                        rule_tags.append(f"liaison:{i}->{i+1}")
+                        liaison_boundaries.add(i)
 
         # Refresh
         if tokens[i][1]!="H" or tokens[i+1][1]!="H": continue
