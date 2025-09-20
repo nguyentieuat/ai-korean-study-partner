@@ -183,7 +183,7 @@ def text_to_jamo_chunks(text_ref: str) -> List[Tuple[str, List[str]]]:
         # Không phải Hangul: bỏ qua (không đính vào mảnh sắp tới)
         j += 1
 
-    # Ghi chú nếu bạn cần dùng:
+    # Ghi chú nếu  cần dùng:
     notes_ = list(dict.fromkeys(
         n.strip() for n in (e.get("note") for e in _tags)
         if isinstance(n, str) and n.strip()

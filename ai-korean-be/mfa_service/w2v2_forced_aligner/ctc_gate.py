@@ -337,6 +337,9 @@ def ctc_gate_global_from_waveform(waveform: torch.Tensor, sr: int, ref_text_nfd:
         vocab = _processor.tokenizer.get_vocab()
         id2tok = {v: k for k, v in vocab.items()}
         hyp = _best_path_decode(logprobs, id2tok)         # jamo string
+
+        print("Hyp:", hyp)
+
         ref = "".join(_to_nfd_jamo(ref_text_nfd))         # jamo string
 
         cer = _cer(hyp, ref)

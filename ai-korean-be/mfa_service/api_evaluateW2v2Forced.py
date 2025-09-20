@@ -37,7 +37,7 @@ try:
     from utils.utils import load_mfa_dict, text_to_jamo_chunks
 except Exception:
     def load_mfa_dict(_): return {}
-    def text_to_jamo_chunks(text, mfa_dict, return_by_word=False):
+    def text_to_jamo_chunks(text, return_by_word=False):
         if return_by_word:
             return [(text, [])], []
         return []
@@ -195,7 +195,7 @@ def evaluate_pronunciation_forced(
             mfa_dict = load_mfa_dict(MFA_DICT_PATH)
         except Exception:
             mfa_dict = {}
-        ref_chunks, notes = text_to_jamo_chunks(text, mfa_dict)
+        ref_chunks, notes = text_to_jamo_chunks(text)
 
         print("Text:", text)
         print("Ref Chunks:", ref_chunks)

@@ -593,28 +593,47 @@ const PronunciationPage = () => {
     const collapsed = getCollapsed(currentEvaluation);
     if (!Array.isArray(collapsed) || !current?.text) return [];
 
+    const isRealSyllable = (syl) =>
+      !!(syl?.text && String(syl.text).trim()) &&
+      syl?.note !== "spillover_extra_ctc_chars";
+
+    const jamoScore01 = (j) => {
+      // hỗ trợ cả j.score (0..100) và j.conf (0..1)
+      const v = j?.score ?? 0;
+      return to01(v);
+    };
+
+    const sylAvg01 = (syl) => {
+      const v = syl?.score ?? syl?.avg_score?? 0;
+      return to01(v);
+    };
+
     const result = [];
     collapsed.forEach((syl, i) => {
+      if (!isRealSyllable(syl)) return;
+
       const jamoArr = Array.isArray(syl?.jamo) ? syl.jamo : [];
       const items = [];
 
       jamoArr.forEach((j, jidx) => {
-        const s01 = to01(j?.score);
+        // bỏ jamo rỗng/placeholder
+        const jstr = String(j?.jamo ?? "");
+        if (!jstr.trim()) return;
+
+        const s01 = jamoScore01(j);
         if (s01 < ADVICE_THRESHOLD) {
-          const jamoAdvice = Array.isArray(j?.advice) ? j.advice
-                        : [];
-          debugger
+          const jamoAdvice = Array.isArray(j?.advice) ? j.advice : [];
           items.push({
             key: `${i}:${jidx}`,
-            jamo: String(j?.jamo ?? ""),
+            jamo: jstr,
             score: s01, // 0..1
             color: scoreColor(s01),
-            advice: jamoAdvice, // (nếu backend sau có advice, đưa vào đây)
+            advice: jamoAdvice,
           });
         }
       });
 
-      const avg = to01(syl?.score ?? syl?.avg_score);
+      const avg = sylAvg01(syl);
       if (items.length > 0 || avg < ADVICE_THRESHOLD) {
         result.push({
           groupKey: `g${i}`,
