@@ -560,7 +560,7 @@ const PronunciationPage = () => {
 
       if (isHangul && k < collapsed.length) {
         const syl = collapsed[k++];
-        const avg = to01(syl?.score ?? syl?.avg_score); // 0..1
+        const avg = to01(syl?.score); // 0..1
         const jamoArr = Array.isArray(syl?.jamo) ? syl.jamo : [];
 
         out.push({
@@ -604,7 +604,7 @@ const PronunciationPage = () => {
     };
 
     const sylAvg01 = (syl) => {
-      const v = syl?.score ?? syl?.avg_score?? 0;
+      const v = syl?.score ?? 0;
       return to01(v);
     };
 
@@ -774,7 +774,7 @@ const PronunciationPage = () => {
             // Có dữ liệu chấm: hiển thị điểm + dòng chữ tô màu + issues
             const overallRaw =
               Number(
-                currentEvaluation?.score ?? currentEvaluation?.avg_score ?? 0
+                currentEvaluation?.score ??  0
               ) || 0;
             const overallPct = toPct(overallRaw);
             const mapped = mapForTooltipCollapsed(current.text, collapsed);
