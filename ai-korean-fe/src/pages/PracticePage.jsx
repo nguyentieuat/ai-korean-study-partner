@@ -248,7 +248,7 @@ const PracticePage = () => {
     const isUnderDevelopment =
       (level === "topik1" && type === "reading") ||
       level === "topik2" ||
-      (level === "topik1" && type === "listening" && q > 4);
+      (level === "topik1" && type === "listening" && q > 6);
 
     if (isUnderDevelopment) {
       setQuestionContent({

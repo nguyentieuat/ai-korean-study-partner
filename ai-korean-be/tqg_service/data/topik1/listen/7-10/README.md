@@ -41,17 +41,20 @@ export OMP_NUM_THREADS=1
 export TORCH_CPP_LOG_LEVEL=ERROR
 export NCCL_DEBUG=ERROR
 
-torchrun --standalone --nnodes=1 --nproc_per_node=2 train_topik710_lora.py \
-  --base_model "meta-llama/Meta-Llama-3-8B-Instruct" \
-  --train_glob "/kaggle/input/topik1-listen710/train.jsonl" \
-  --eval_file  "/kaggle/input/topik1-listen710/dev.jsonl" \
-  --output_dir "/kaggle/working/out/topik-710-lora" \
-  --max_seq_len 384 --epochs 2 --lr 2e-4 --warmup_ratio 0.1 \
-  --batch_size 2 --grad_accum 128 \
-  --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
-  --save_steps 300 --eval_steps 300 --logging_steps 50 \
-  --save_total_limit 3 \
-  --use_4bit --pin_memory --dataloader_num_workers 1 --dataset_num_proc 1 --tf32
+export CUDA_VISIBLE_DEVICES=0,1
+torchrun --nproc_per_node=2 topik710_generator_lora_ddp.py \
+  --base_model meta-llama/Meta-Llama-3-8B-Instruct \
+  --train_glob "data/train/*.jsonl" \
+  --eval_file "data/eval/dev.json"l \
+  --output_dir out/topik710_ddp2_4bit \
+  --use_4bit \
+  --batch_size 2 --grad_accum 64 \
+  --max_seq_len 512 \
+  --epochs 2 --lr 2e-4 --warmup_ratio 0.1 \
+  --save_steps 300 --eval_steps 900 --logging_steps 50 \
+  --mlp_lora \
+  --dataloader_num_workers 2 --pin_memory
+  --resume_from_checkpoint/--resume_ckpt_path out/topik710_lora4bit/checkpoint-1200
 
 ```
 Tips:

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-TOPIK I (7–10) FROM-SCRATCH GENERATOR — LoRA/QLoRA + marker collator
+TOPIK I (7–10) FROM-SCRATCH GENERATOR — LoRA/QLoRA + marker collator (DDP-safe)
 - Sinh JSON duy nhất chứa: dialogue(>=2 dòng), options A–D, answer, question_no (7|8|9|10)...
 - Truncation bên trái để luôn giữ marker + JSON đuôi.
-- GPU: tận dụng đa GPU với torchrun (DDP); CPU fallback nếu không có GPU.
-- Giảm cảnh báo deprecated: processing_class, dataset_num_proc trong SFTConfig, v.v.
+- GPU: tận dụng đa GPU với torchrun (DDP); nếu không có GPU sẽ fallback CPU.
+- Tối giản cảnh báo deprecated (bỏ dataset_num_proc khỏi SFTConfig; dùng processing_class thay tokenizer).
+- DDP-safe: KHÔNG đặt device_map, KHÔNG set_device thủ công; để Accelerate/Trainer tự quản lý.
 """
 
 import os, json, glob, argparse
@@ -18,7 +19,6 @@ os.environ.setdefault("OMP_NUM_THREADS", str(os.cpu_count() or 4))
 os.environ.setdefault("MKL_NUM_THREADS", str(os.cpu_count() or 4))
 
 import torch
-torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS", "4")))
 from torch.nn.utils.rnn import pad_sequence
 
 from datasets import load_dataset, Dataset, concatenate_datasets
@@ -59,7 +59,13 @@ def build_prompt_from_row(row: Dict[str, Any]) -> str:
     qno   = int(row.get("question_no", 7))
     return PROMPT_TMPL.format(instr=INSTR, topic=topic, qno=qno)
 
+
 def build_target_json(row: Dict[str, Any]) -> str:
+    # Bắt buộc các khóa quan trọng
+    for k in ("options", "answer", "dialogue", "question_no"):
+        if k not in row:
+            raise ValueError(f"Missing required field in data: {k}")
+
     item = {
         "type": row.get("type", "Nghe_DiaDiem"),
         "section": row.get("section", "Nghe"),
@@ -75,13 +81,15 @@ def build_target_json(row: Dict[str, Any]) -> str:
     }
     return json.dumps(item, ensure_ascii=False)
 
+
 def formatting_func(examples):
     texts = []
-    n = len(examples["options"])
+    n = len(examples["options"])  # sẽ raise nếu thiếu
     for i in range(n):
         row = {k: examples[k][i] for k in examples}
         texts.append(build_prompt_from_row(row) + build_target_json(row))
     return texts
+
 
 def load_many_jsonl(paths: List[str]) -> Dataset:
     dsets = []
@@ -89,6 +97,7 @@ def load_many_jsonl(paths: List[str]) -> Dataset:
         d = load_dataset("json", data_files=p, split="train")
         dsets.append(d)
     return concatenate_datasets(dsets) if len(dsets) > 1 else dsets[0]
+
 
 # ---------- Collator: mask loss sau marker ----------
 @dataclass
@@ -101,7 +110,7 @@ class CompletionCollatorByMarker:
         L, l = len(seq), len(sub)
         if l == 0 or L < l:
             return -1
-        for i in range(L - l, -1, -1):
+        for i in range(L - l, -1, -1):  # từ phải sang trái
             if seq[i:i+l] == sub:
                 return i
         return -1
@@ -146,6 +155,7 @@ class CompletionCollatorByMarker:
             print(f"[Collator] skipped {skipped}/{len(features)} samples (no marker found)")
         return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base_model", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct")
@@ -168,33 +178,24 @@ def main():
     ap.add_argument("--use_4bit", action="store_true")
     ap.add_argument("--resume_from_checkpoint", action="store_true")
     ap.add_argument("--resume_ckpt_path", type=str, default=None)
-    # Tối ưu DataLoader/Map
+    # Dataloader / pin memory
     ap.add_argument("--dataloader_num_workers", type=int, default=1)
-    ap.add_argument("--dataset_num_proc", type=int, default=1)
     ap.add_argument("--pin_memory", action="store_true")
+    # LoRA scope
+    ap.add_argument("--mlp_lora", action="store_true", help="Thêm gate/up/down_proj vào LoRA (mặc định attention-only)")
 
     args = ap.parse_args()
 
-    # Phát hiện DDP (torchrun)
-    local_rank = int(os.environ.get("LOCAL_RANK", "-1"))
-    world_size = int(os.environ.get("WORLD_SIZE", "1"))
-    is_distributed = (local_rank != -1 and world_size > 1)
-
-    # Detect device
+    # Phát hiện thiết bị (DDP an toàn: KHÔNG set device_map, KHÔNG set_device)
     has_cuda = torch.cuda.is_available()
     is_cpu = not has_cuda
+
     if is_cpu:
         args.use_4bit = False
-        device_str = "cpu"
         print("[INFO] Running on CPU. 4-bit disabled.")
     else:
-        if is_distributed:
-            torch.cuda.set_device(local_rank)
-            device_str = f"cuda:{local_rank}"
-            print(f"[INFO] Multi-GPU detected. world_size={world_size}, local_rank={local_rank}. 4-bit={args.use_4bit}")
-        else:
-            device_str = "cuda"
-            print("[INFO] Running on single GPU. 4-bit =", args.use_4bit)
+        # Không in local_rank/world_size ở đây; Accelerate sẽ quản lý.
+        print("[INFO] Running on GPU(s). 4-bit =", args.use_4bit)
 
     # Train files
     train_files = [args.train_glob] if os.path.isfile(args.train_glob) else sorted(glob.glob(args.train_glob))
@@ -214,7 +215,8 @@ def main():
     # Quant config (GPU+4bit)
     quant_cfg = None
     if args.use_4bit and not is_cpu:
-        compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+        bf16_ok = torch.cuda.is_bf16_supported()
+        compute_dtype = torch.bfloat16 if bf16_ok else torch.float16
         quant_cfg = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -222,27 +224,16 @@ def main():
             bnb_4bit_compute_dtype=compute_dtype,
         )
 
-    # Load model (tránh device_map="auto" khi DDP)
     model_load_kwargs = {}
     if quant_cfg is not None:
         model_load_kwargs["quantization_config"] = quant_cfg
 
-    if is_cpu:
-        model = AutoModelForCausalLM.from_pretrained(
-            args.base_model, torch_dtype=torch.float32, device_map={"": "cpu"}, **model_load_kwargs
-        )
-    else:
-        if is_distributed:
-            model = AutoModelForCausalLM.from_pretrained(
-                args.base_model,
-                device_map={"": local_rank},  # mỗi tiến trình một GPU
-                **model_load_kwargs
-            )
-        else:
-            # single-GPU: để Trainer tự move_to_device, không shard
-            model = AutoModelForCausalLM.from_pretrained(
-                args.base_model, **model_load_kwargs
-            )
+    # DDP-safe: không device_map, để Trainer tự move
+    model = AutoModelForCausalLM.from_pretrained(
+        args.base_model,
+        torch_dtype=(torch.float32 if is_cpu else None),
+        **model_load_kwargs
+    )
 
     # QLoRA prepare (GPU+4bit)
     if args.use_4bit and not is_cpu:
@@ -253,15 +244,22 @@ def main():
     except Exception:
         pass
 
-    # LoRA (attention-only)
+    # LoRA: mặc định attention-only; nếu --mlp_lora thì thêm MLP proj
+    target_modules = ["q_proj","k_proj","v_proj","o_proj"]
+    if args.mlp_lora:
+        target_modules += ["gate_proj","up_proj","down_proj"]
+
     lora_cfg = LoraConfig(
-        r=args.lora_r, lora_alpha=args.lora_alpha,
-        target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
-        lora_dropout=args.lora_dropout, bias="none", task_type="CAUSAL_LM",
+        r=args.lora_r,
+        lora_alpha=args.lora_alpha,
+        target_modules=target_modules,
+        lora_dropout=args.lora_dropout,
+        bias="none",
+        task_type="CAUSAL_LM",
     )
     model = get_peft_model(model, lora_cfg)
 
-    # Collator
+    # Collator & marker
     marker_str = RESPONSE_TAG + "\n{"
     variants_text = [
         RESPONSE_TAG + "\n{",
@@ -281,7 +279,7 @@ def main():
     bf16_flag = (not is_cpu) and torch.cuda.is_bf16_supported()
     fp16_flag = (not is_cpu) and (not bf16_flag)
 
-    # SFTConfig (đưa dataset_num_proc/dataloader_* vào đây để tránh deprecation)
+    # SFTConfig (để formatting_func hoạt động ổn định → remove_unused_columns=False)
     sft_config = SFTConfig(
         output_dir=args.output_dir,
         num_train_epochs=args.epochs,
@@ -291,8 +289,9 @@ def main():
         gradient_accumulation_steps=args.grad_accum,
         max_seq_length=args.max_seq_len,
         lr_scheduler_type="cosine",
-        bf16=bf16_flag, fp16=fp16_flag,
-        gradient_checkpointing=not is_cpu,
+        bf16=bf16_flag,
+        fp16=fp16_flag,
+        gradient_checkpointing=(not is_cpu),
         gradient_checkpointing_kwargs={"use_reentrant": False} if not is_cpu else None,
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
@@ -306,16 +305,15 @@ def main():
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
-        # Dataloader / map workers & pin memory
+        # Dataloader / pin memory
         dataloader_num_workers=max(1, args.dataloader_num_workers),
         dataloader_pin_memory=bool(args.pin_memory and not is_cpu),
-        dataset_num_proc=max(1, args.dataset_num_proc),
         # DDP tối ưu
         ddp_find_unused_parameters=False,
-        remove_unused_columns=True,  # giảm cảnh báo "non-packed"
+        remove_unused_columns=False,
     )
 
-    # EarlyStopping (đã có metric + load_best_model_at_end)
+    # EarlyStopping (nếu sẵn có)
     callbacks = []
     if HAVE_EARLY_STOP:
         callbacks.append(EarlyStoppingCallback(early_stopping_patience=3))
@@ -336,13 +334,13 @@ def main():
         row0 = {k: train_ds[k][0] for k in train_ds.column_names}
         txt0 = build_prompt_from_row(row0) + build_target_json(row0)
         print("[DEBUG] tail preview:", repr(txt0[-150:]))
-    except Exception:
-        pass
+    except Exception as e:
+        print("[WARN] preview failed:", repr(e))
 
     # Resume
     resume_arg = args.resume_ckpt_path if args.resume_ckpt_path else (True if args.resume_from_checkpoint else None)
 
-    print("[INFO] Start training...")
+    print("[INFO] Start training…")
     if resume_arg is None:
         trainer.train()
     else:
@@ -351,6 +349,7 @@ def main():
 
     print("[INFO] Saving adapter to", args.output_dir)
     trainer.save_model()
+
 
 if __name__ == "__main__":
     main()

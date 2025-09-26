@@ -8,7 +8,7 @@ from typing import Dict, Optional, List
 from contextlib import contextmanager
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
-from topik1.generate_question import generate_topik_question, warm_topik14_listen_cache, DataNotFoundError, BadRequestError
+from topik1.generate_question import generate_topik_question, warm_topik14_listen_cache, warm_topik56_listen_cache, DataNotFoundError, BadRequestError
 from utils.utils import text_to_speech  # <-- bỏ concat_mp3_to_data_uri nếu không dùng
 
 router = APIRouter(prefix="/api/topik", tags=["topik_generate"])
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/api/topik", tags=["topik_generate"])
 @router.on_event("startup")
 async def _startup():
     warm_topik14_listen_cache()
+    warm_topik56_listen_cache()
 
 AUDIO_DIR = Path("data/tts/listen")
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)
@@ -139,7 +140,7 @@ def api_generate_topik(request: Request, body: TopikReq):
 
         print(f"TOPIK generate_question: level={body.level}, category={body.category}, cau={body.cau}") 
         result = generate_topik_question(
-            danh_muc=body.category, cau=body.cau, user_key=body.user_key
+            level=body.level, danh_muc=body.category, cau=body.cau, user_key=body.user_key
         )
 
         dialog = result.get("dialog", []) or []
@@ -167,6 +168,7 @@ def api_generate_topik(request: Request, body: TopikReq):
 def api_reload():
     try:
         warm_topik14_listen_cache()
+        warm_topik56_listen_cache()
         return {"ok": True, "reloaded_at": time.time()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

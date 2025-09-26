@@ -37,7 +37,7 @@ torchrun --nproc_per_node=4 train_topik56_lora_multigpu.py \
   --dataloader_num_workers 4 \
   --dataset_num_proc 4 \
   --pin_memory
-
+  --resume_ckpt_path out/topik710_lora4bit/checkpoint-1200
 
 
 ```

@@ -2,14 +2,36 @@
 import json, os, time, random, hashlib, threading, re
 from pathlib import Path
 from collections import deque, defaultdict
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 
 # ====== CẤU HÌNH DỮ LIỆU ======
-TOPIK14_LISTEN_DIR = Path(os.getenv("TOPIK14_LISTEN_DIR", "data/topik1/listen/1-4/OUT")).resolve()
-TARGET_SCORE_BY_CAU = {1: 4, 2: 4, 3: 3, 4: 3}
+TOPIKI14_LISTEN_DIR = Path(os.getenv("TOPIKI14_LISTEN_DIR", "data/topik1/listen/1-4/OUT")).resolve()
+TOPIKI56_LISTEN_DIR = Path(os.getenv("TOPIKI56_LISTEN_DIR", "data/topik1/listen/5-6/OUT")).resolve()
+
+
+# ---- ROUTING RULES (data-driven) ----
+# Mỗi mục gồm các "ranges" quyết định thư mục, yêu cầu question_no, và fallback score.
+RULES = {
+    ("topik1", "listening"): {
+        "ranges": [
+            # Câu 1–4: đọc từ TOPIKI14_LISTEN_DIR, ưu tiên question_no (nếu thiếu → fallback score 4/4/3/3)
+            {"cau_lo": 1, "cau_hi": 4, "dir": TOPIKI14_LISTEN_DIR, "qno_required": False,
+             "fallback_score_by_cau": {1: 4, 2: 4, 3: 3, 4: 3}},
+            # Câu 5–6: đọc từ TOPIKI56_LISTEN_DIR, BẮT BUỘC có question_no
+            {"cau_lo": 5, "cau_hi": 6, "dir": TOPIKI56_LISTEN_DIR, "qno_required": True,
+             "fallback_score_by_cau": {5: 4, 6: 3}},
+        ]
+    },
+    # Sau này chỉ cần thêm:
+    # ("topik1", "reading"): { "ranges": [ { ... } ] },
+    # ("topik2", "listening"): { "ranges": [ { ... } ] },
+}
+
+# điểm mục tiêu theo câu (fallback khi item không có score)
+TARGET_SCORE_BY_CAU = {1: 4, 2: 4, 3: 3, 4: 3, 5: 4, 6: 3}
 
 # ====== TITLES MAPPING (theo khoảng câu) ======
-_TITLES_RANGES: List[tuple] = [
+_TITLES_RANGES: List[Tuple[Tuple[int,int], str]] = [
     ((1, 4),  "※[1~4] 다음을 듣고 <보기>와 같이 물음에 맞는 대답을 고르십시오."),
     ((5, 6),  "※[5~6] 다음을 듣고 <보기>와 같이 이어지는 말을 고르십시오."),
     ((7, 10), "※[7~10] 여기는 어디입니까? <보기>와 같이 알맞은 것을 고르십시오."),
@@ -28,16 +50,21 @@ def _title_for_cau(cau: int, fallback: str | None = None) -> str:
             return title
     return fallback or f"Câu {cau}"
 
-# ====== CACHE TOÀN CỤC ======
+# ====== CACHE (lưu theo question_no; fallback score) ======
 _CACHE_LOCK = threading.RLock()
-_TOPIK14_LISTEN_CACHE = {
-    "loaded_at": 0.0,
-    "files": [],                 # List[Path]
-    "mtimes": {},                # {Path: float}
-    "by_score": {3: [], 4: []},  # mỗi phần tử: {"id": str, "data": dict}
-}
 
-# Lịch sử đã trả (tránh trùng) per (user_key, danh_muc, score)
+# Cache theo thư mục:
+#  - by_qno: {1:[...],...,30:[...]} -> ƯU TIÊN nếu item có 'question_no'
+#  - by_score: {3:[...],4:[...]}    -> fallback
+_DIR_CACHE: Dict[Path, dict] = defaultdict(lambda: {
+    "loaded_at": 0.0,
+    "files": [],
+    "mtimes": {},
+    "by_qno": {i: [] for i in range(1, 31)},
+    "by_score": {3: [], 4: []},
+})
+
+# Lịch sử tránh trùng theo (user_key, danh_muc, key, dir)
 _RECENT_BY_USER: Dict[tuple, deque] = defaultdict(lambda: deque(maxlen=200))
 
 # ====== TIỆN ÍCH ======
@@ -56,63 +83,112 @@ def _load_jsonl(path: Path):
             except json.JSONDecodeError:
                 continue
 
-def _needs_refresh() -> bool:
-    if not _TOPIK14_LISTEN_CACHE["files"]:
+def _needs_refresh(dir_path: Path) -> bool:
+    cache = _DIR_CACHE[dir_path]
+    if not cache["files"]:
         return True
-    current = list(TOPIK14_LISTEN_DIR.glob("*.jsonl"))
-    if set(current) != set(_TOPIK14_LISTEN_CACHE["files"]):
+    current = list(dir_path.glob("*.jsonl"))
+    if set(current) != set(cache["files"]):
         return True
     for p in current:
         m = p.stat().st_mtime
-        if _TOPIK14_LISTEN_CACHE["mtimes"].get(p) != m:
+        if cache["mtimes"].get(p) != m:
             return True
     return False
 
-def _refresh_cache():
-    with _CACHE_LOCK:
-        by_score = {3: [], 4: []}
-        files = list(TOPIK14_LISTEN_DIR.glob("*.jsonl"))
-        mtimes = {}
-        for p in files:
-            mtimes[p] = p.stat().st_mtime
-            for obj in _load_jsonl(p):
-                # chuẩn hóa score
-                sc = obj.get("score", None)
-                try:
-                    sc = int(sc)
-                except Exception:
-                    continue
-                if sc not in (3, 4):
-                    continue
-                qid = obj.get("id") or _stable_id(obj)
-                by_score[sc].append({"id": qid, "data": obj})
+def _get_qno_strict(obj: dict) -> Optional[int]:
+    """
+    ƯU TIÊN khóa 'question_no' đúng như yêu cầu.
+    Trả về int 1..30 nếu có và hợp lệ; ngược lại trả về None.
+    """
+    v = obj.get("question_no")
+    if v is None:
+        return None
+    try:
+        iv = int(v)
+        if 1 <= iv <= 30:
+            return iv
+    except Exception:
+        pass
+    return None
 
+def _get_score_optional(obj: dict) -> Optional[int]:
+    v = obj.get("score")
+    if v is None:
+        return None
+    try:
+        iv = int(v)
+        return iv if iv in (3, 4) else None
+    except Exception:
+        return None
+
+def _refresh_cache(dir_path: Path):
+    with _CACHE_LOCK:
+        by_qno = {i: [] for i in range(1, 31)}
+        by_score = {3: [], 4: []}
+
+        files = list(dir_path.glob("*.jsonl"))
+        mtimes = {p: p.stat().st_mtime for p in files}
+
+        for p in files:
+            for obj in _load_jsonl(p):
+                qid = obj.get("id") or _stable_id(obj)
+                rec = {"id": qid, "data": obj}
+
+                # 1) Nạp theo question_no nếu có
+                qno = _get_qno_strict(obj)
+                if qno is not None:
+                    by_qno[qno].append(rec)
+
+                # 2) Đồng thời nạp theo score (để fallback khi thiếu qno)
+                sc = _get_score_optional(obj)
+                if sc is not None:
+                    by_score[sc].append(rec)
+
+        # shuffle để rút đều
+        for i in range(1, 31):
+            random.shuffle(by_qno[i])
         random.shuffle(by_score[3])
         random.shuffle(by_score[4])
 
-        _TOPIK14_LISTEN_CACHE["by_score"] = by_score
-        _TOPIK14_LISTEN_CACHE["files"] = files
-        _TOPIK14_LISTEN_CACHE["mtimes"] = mtimes
-        _TOPIK14_LISTEN_CACHE["loaded_at"] = time.time()
+        _DIR_CACHE[dir_path].update({
+            "by_qno": by_qno,
+            "by_score": by_score,
+            "files": files,
+            "mtimes": mtimes,
+            "loaded_at": time.time(),
+        })
+
+def _norm(s: Optional[str]) -> str:
+    return (s or "").strip().lower()
+
+def _pick_rule(level: str, danh_muc: str, cau: int):
+    key = (_norm(level), _norm(danh_muc))
+    cfg = RULES.get(key)
+    if not cfg:
+        return None, None
+    for r in cfg.get("ranges", []):
+        if r["cau_lo"] <= cau <= r["cau_hi"]:
+            return cfg, r
+    return cfg, None
 
 def warm_topik14_listen_cache():
-    if TOPIK14_LISTEN_DIR.exists():
-        _refresh_cache()
+    if TOPIKI14_LISTEN_DIR.exists():
+        _refresh_cache(TOPIKI14_LISTEN_DIR)
 
-def _choose_nonrepeating(danh_muc: str, score: int, user_key: str) -> dict:
+def warm_topik56_listen_cache():
+    if TOPIKI56_LISTEN_DIR.exists():
+        _refresh_cache(TOPIKI56_LISTEN_DIR)
+
+def _choose_nonrepeating(pool: List[dict], hist_key: tuple) -> dict:
     with _CACHE_LOCK:
-        pool = _TOPIK14_LISTEN_CACHE["by_score"].get(score, [])
         if not pool:
-            raise ValueError(f"Không có câu hỏi với score={score} trong {TOPIK14_LISTEN_DIR}")
-
-        hist_key = (user_key, danh_muc, score)
+            raise ValueError("Pool rỗng.")
         recent_ids = set(_RECENT_BY_USER[hist_key])
-
         candidates = [q for q in pool if q["id"] not in recent_ids]
         if not candidates:
             _RECENT_BY_USER[hist_key].clear()
             candidates = pool
-
         choice = random.choice(candidates)
         _RECENT_BY_USER[hist_key].append(choice["id"])
         return choice
@@ -121,7 +197,6 @@ def _choose_nonrepeating(danh_muc: str, score: int, user_key: str) -> dict:
 _SPEAKER_RE = re.compile(r"^(남자|여자|학생|선생님|교사|해설자|남|여)[:：]\s*(.+)$")
 
 def _extract_question_text(obj: dict) -> str:
-    # ưu tiên các field quen thuộc
     return (
         obj.get("question")
         or obj.get("question_ko")
@@ -131,15 +206,6 @@ def _extract_question_text(obj: dict) -> str:
     )
 
 def _extract_dialog(obj: dict) -> List[dict]:
-    """
-    Lấy dialog:
-      - Nếu đã có obj['dialogue'] dạng list[{'speaker','text'}] -> dùng luôn
-      - Nếu có 'passage_ko':
-          + string: tách từng dòng; nếu có '남자:' / '여자:'... thì split speaker:text
-                    nếu không, speaker="지문"
-          + list[str]: mỗi phần tử thành một turn speaker="지문"
-          + list[dict]: nếu đã có speaker/text thì chuẩn hóa key
-    """
     if isinstance(obj.get("dialogue"), list) and obj["dialogue"]:
         out = []
         for turn in obj["dialogue"]:
@@ -183,11 +249,9 @@ def _extract_dialog(obj: dict) -> List[dict]:
                     out.append({"speaker": "지문", "text": item.strip()})
         return out
 
-    # fallback
     return []
 
 def _normalize_choices(obj: dict) -> Dict[str, str]:
-    # hỗ trợ 'choices' hoặc 'options', list hoặc dict
     src = obj.get("choices")
     if src is None:
         src = obj.get("options")
@@ -195,7 +259,6 @@ def _normalize_choices(obj: dict) -> Dict[str, str]:
         return {}
 
     if isinstance(src, dict):
-        # chuẩn hóa key thành A/B/C/D...
         norm = {}
         for k, v in src.items():
             if not isinstance(v, str):
@@ -203,7 +266,6 @@ def _normalize_choices(obj: dict) -> Dict[str, str]:
             key = str(k).strip().upper()
             if len(key) == 1 and "A" <= key <= "Z":
                 norm[key] = v
-        # nếu key là "1","2"... thì map sang A,B...
         if not norm and all(str(k).isdigit() for k in src.keys()):
             letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             for i, k in enumerate(sorted(src.keys(), key=lambda x: int(x))):
@@ -221,16 +283,13 @@ def _normalize_answer(obj: dict, choices: Dict[str, str]) -> str:
     if ans is None:
         return "A" if choices else ""
 
-    # nếu đã là chữ A/B/C/D
     if isinstance(ans, str):
         up = ans.strip().upper()
         if up in choices:
             return up
-        # nếu là nội dung text, map ngược
         for k, v in choices.items():
             if v.strip() == ans.strip():
                 return k
-        # nếu là "1","2"...
         if up.isdigit():
             idx = int(up)
             letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -242,66 +301,109 @@ def _normalize_answer(obj: dict, choices: Dict[str, str]) -> str:
 
     if isinstance(ans, int):
         letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        # thử 1-based trước
         if 1 <= ans <= len(choices):
             return letters[ans - 1]
-        # rồi 0-based
         if 0 <= ans < len(choices):
             return letters[ans]
         return "A" if choices else ""
 
     return "A" if choices else ""
 
-# ====== API CHÍNH (CHỈ DATASET, KHÔNG GỌI AI) ======
+# ====== API CHÍNH ======
 class DataNotFoundError(Exception): ...
 class BadRequestError(Exception): ...
 
+def _ensure_ready(dir_path: Path):
+    if not dir_path.exists():
+        raise DataNotFoundError(f"Không thấy thư mục: {dir_path}")
+    if _needs_refresh(dir_path):
+        _refresh_cache(dir_path)
+
 def generate_topik_question(
+    level: str,
     danh_muc: str,
     cau: int,
     *,
     user_key: Optional[str] = "global",
 ) -> dict:
     """
-    Câu 1–4: lấy từ dataset OUT, 1–2 -> score=4, 3–4 -> score=3, tránh trùng theo user_key.
-    Trả về:
-      {
-        "title": <theo mapping nếu 1–4>,
-        "type": data.get("type", danh_muc),
-        "question": <chuỗi hỏi>,
-        "dialog":  list[{"speaker","text"}] lấy từ passage_ko/dialogue,
-        "choices": {"A": "...", ...},
-        "answer":  "A"/"B"/...,
-        "score":   int
-      }
+    Router theo RULES:
+      - Tìm cấu hình theo (level, danh_muc),
+      - Chọn range theo 'cau',
+      - Với mỗi range: ưu tiên rút theo question_no; nếu qno_required=True mà thiếu -> lỗi,
+        nếu qno_required=False và pool qno rỗng -> fallback theo score (nếu có).
     """
-    if not (1 <= int(cau) <= 4):
-        raise BadRequestError("Hiện chỉ hỗ trợ câu 1–4 từ dataset.")
+    cau = int(cau)
+    if not (1 <= cau <= 30):
+        raise BadRequestError("Câu phải nằm trong khoảng 1..30.")
 
-    if not TOPIK14_LISTEN_DIR.exists():
-        raise DataNotFoundError(f"Không thấy thư mục: {TOPIK14_LISTEN_DIR}")
+    cfg, rule = _pick_rule(level, danh_muc, cau)
+    if cfg is None:
+        raise BadRequestError(f"Chưa hỗ trợ level='{level}', danh_muc='{danh_muc}'. Hãy thêm RULES cho tổ hợp này.")
+    if rule is None:
+        raise BadRequestError(f"Chưa định nghĩa range cho câu {cau} ở ({level}, {danh_muc}).")
 
-    if _needs_refresh():
-        _refresh_cache()
+    dir_path: Path = rule["dir"]
+    qno_required: bool = bool(rule.get("qno_required", False))
+    fb_scores: Dict[int, int] = rule.get("fallback_score_by_cau", {})
 
-    target_score = TARGET_SCORE_BY_CAU[int(cau)]
-    chosen = _choose_nonrepeating(danh_muc=danh_muc, score=target_score, user_key=user_key or "global")
+    _ensure_ready(dir_path)
+    cache = _DIR_CACHE[dir_path]
+
+    # Ưu tiên pool theo question_no
+    pool_qno = cache["by_qno"].get(cau, [])
+
+    if qno_required:
+        if not pool_qno:
+            raise DataNotFoundError(
+                f"Dataset {dir_path} không có item nào với question_no={cau}. "
+                "Hãy đảm bảo mỗi item trong range này đều có 'question_no' hợp lệ."
+            )
+        hist_key = (user_key or "global", _norm(danh_muc), f"qno:{cau}", str(dir_path))
+        chosen = _choose_nonrepeating(pool_qno, hist_key)
+    else:
+        if pool_qno:
+            hist_key = (user_key or "global", _norm(danh_muc), f"qno:{cau}", str(dir_path))
+            chosen = _choose_nonrepeating(pool_qno, hist_key)
+        else:
+            # Fallback theo score (nếu được định nghĩa)
+            score = fb_scores.get(cau)
+            if score is None:
+                raise DataNotFoundError(
+                    f"Thiếu question_no={cau} và không có fallback score cho range này trong {dir_path}."
+                )
+            pool_score = cache["by_score"].get(score, [])
+            if not pool_score:
+                raise DataNotFoundError(
+                    f"Không có item fallback score={score} cho câu {cau} trong {dir_path}."
+                )
+            hist_key = (user_key or "global", _norm(danh_muc), f"score:{score}", str(dir_path))
+            chosen = _choose_nonrepeating(pool_score, hist_key)
+
     data = chosen["data"]
 
-    # build fields
-    title = _title_for_cau(int(cau), fallback=data.get("title"))
+    # Build output
+    title = _title_for_cau(cau, fallback=data.get("title"))
     qtext = _extract_question_text(data)
     dialog = _extract_dialog(data)
     choices = _normalize_choices(data)
     answer = _normalize_answer(data, choices)
-    score  = int(data.get("score", target_score))
+
+    # Điểm: ưu tiên field 'score' của item; nếu thiếu thì theo TARGET_SCORE_BY_CAU / fb_scores
+    score = data.get("score")
+    try:
+        score = int(score) if score is not None else None
+    except Exception:
+        score = None
+    if score is None:
+        score = TARGET_SCORE_BY_CAU.get(cau) or fb_scores.get(cau) or 4
 
     return {
         "title": title,
         "type":  data.get("type", danh_muc),
-        "question": qtext or "",      # “không có để trống”
+        "question": qtext or "",
         "dialog":  dialog,
         "choices": choices,
         "answer":  answer,
-        "score":   score,
+        "score":   int(score),
     }
