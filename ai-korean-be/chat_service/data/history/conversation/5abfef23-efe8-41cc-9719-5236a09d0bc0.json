@@ -9,10 +9,62 @@
   },
   {
     "role": "user",
+    "message": "안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "message": "혹시 궁금한 점이나 나누고 싶은 이야기가 있으신가요? 언제든지 말씀해 주세요!"
+  },
+  {
+    "role": "user",
+    "message": "안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "message": "혹시 대화할 주제가 없으신가요? 아니면 어떤 질문이 있으신가요? 언제든지 말씀해 주세요!"
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "user",
+    "message": "안녕하세요"
+  },
+  {
+    "role": "assistant",
+    "message": "안녕하세요! 오늘은 어떤 이야기를 나눌까요?"
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "assistant",
+    "message": "⚠️ Không nhận diện được giọng nói."
+  },
+  {
+    "role": "user",
     "content": "안녕하세요"
   },
   {
     "role": "assistant",
-    "content": "혹시 궁금한 점이나 나누고 싶은 이야기가 있으신가요? 언제든지 말씀해 주세요!"
+    "content": "어떤 이야기를 나누고 싶으신가요? 질문이나 주제가 있다면 말씀해 주세요!"
   }
 ]

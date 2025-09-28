@@ -1,5 +1,5 @@
 // src/pages/PracticePage.jsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
 
 const PracticePage = () => {
@@ -8,39 +8,40 @@ const PracticePage = () => {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [questionContent, setQuestionContent] = useState(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [feedback, setFeedback] = useState(null); // "like" | "dislike" | null
 
+  // single mode
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  // group mode
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+
+  const [feedback, setFeedback] = useState(null);
   const backendUrl = import.meta.env.VITE_API_URL;
 
-  // ---- Audio states: play once -> auto 2 plays (gap 5s)
+  // Audio (chỉ dùng cho nghe)
   const audioRef = useRef(null);
-  const [audioLocked, setAudioLocked] = useState(false); // ẩn controls trong lượt phát đầu
+  const [audioLocked, setAudioLocked] = useState(false);
   const [sequenceActive, setSequenceActive] = useState(false);
   const [replaysRemaining, setReplaysRemaining] = useState(0);
   const replayTimerRef = useRef(null);
 
-  // ---- Countdown (starts on first play)
-  const [remainingSec, setRemainingSec] = useState(null); // null until started
+  // Countdown
+  const [remainingSec, setRemainingSec] = useState(null);
   const [timeUp, setTimeUp] = useState(false);
+  const [timeLimit, setTimeLimit] = useState(120);
   const timerRef = useRef(null);
 
-  // ---- Auto-scroll target (answers/dialog section)
+  // Auto-scroll target
   const answerSectionRef = useRef(null);
 
-  // ---- Dislike feedback details
+  // Dislike panel
   const [showDislikePanel, setShowDislikePanel] = useState(false);
   const [reasonTags, setReasonTags] = useState([]);
   const [freeText, setFreeText] = useState("");
 
-  // === Tracking endpoint (khớp FastAPI /api/track/event) ===
   const TRACK_URL = `${backendUrl}/track/event`;
-
-  // === Tracking identities ===
   const [sessionId, setSessionId] = useState("");
   const [userIdHash, setUserIdHash] = useState("");
 
-  // đo thời gian trả lời + đếm số lần phát audio
   const startTimeRef = useRef(null);
   const audioPlayCountRef = useRef(0);
 
@@ -65,11 +66,9 @@ const PracticePage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event_id, ...payload }),
-        keepalive: true, // không chặn UI khi rời trang
+        keepalive: true,
       });
-    } catch {
-      // nuốt lỗi tracking để không ảnh hưởng UX
-    }
+    } catch {}
   }
 
   const REASON_OPTIONS = [
@@ -82,16 +81,31 @@ const PracticePage = () => {
   ];
 
   // ---------- Helpers ----------
+  const isGroup =
+    Array.isArray(questionContent?.items) && questionContent.items.length > 0;
+
+  const groupQnos = useMemo(() => {
+    if (Array.isArray(questionContent?.question_no)) {
+      return new Set(questionContent.question_no);
+    }
+    return new Set();
+  }, [questionContent]);
+
+  const itemsCount = isGroup ? questionContent.items.length : 1;
+  const computedTimeLimit = 120 * itemsCount;
+
   const formatTime = (s) => {
-    if (s == null) return "02:00";
-    const mm = String(Math.floor(s / 60)).padStart(2, "0");
-    const ss = String(s % 60).padStart(2, "0");
+    const total = s == null ? computedTimeLimit : s;
+    const mm = String(Math.floor(total / 60)).padStart(2, "0");
+    const ss = String(total % 60).padStart(2, "0");
     return `${mm}:${ss}`;
   };
 
-  const startCountdownOnce = () => {
+  // Timer helpers
+  const startCountdown = (seconds) => {
     if (timerRef.current || remainingSec !== null) return;
-    setRemainingSec(120);
+    setTimeLimit(seconds);
+    setRemainingSec(seconds);
     timerRef.current = setInterval(() => {
       setRemainingSec((prev) => {
         if (prev === null) return prev;
@@ -117,6 +131,7 @@ const PracticePage = () => {
     stopTimer();
     setRemainingSec(null);
     setTimeUp(false);
+    setTimeLimit(120);
   };
 
   const resetAllPlayback = () => {
@@ -145,6 +160,8 @@ const PracticePage = () => {
     resetAllPlayback();
     resetTimer();
     resetFeedbackUI();
+    setSelectedAnswer(null);
+    setSelectedAnswers({});
     return () => {
       if (replayTimerRef.current) {
         clearTimeout(replayTimerRef.current);
@@ -158,7 +175,7 @@ const PracticePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questionContent?.question_audio, selectedQuestion]);
 
-  // Khi hết giờ: dừng audio + dọn lịch replay, và mở lại controls để có thể play lại
+  // Hết giờ → dọn playback
   useEffect(() => {
     if (timeUp) {
       if (audioRef.current) audioRef.current.pause();
@@ -168,41 +185,46 @@ const PracticePage = () => {
       }
       setSequenceActive(false);
       setReplaysRemaining(0);
-      setAudioLocked(false); // cho phép play lại sau khi hết giờ
+      setAudioLocked(false);
     }
   }, [timeUp]);
 
-  // Auto-scroll khi HẾT GIỜ hoặc khi CHỌN ĐÁP ÁN
+  // Auto-scroll khi hết giờ hoặc trả lời xong
+  const allItemsAnswered = useMemo(() => {
+    if (!isGroup) return !!selectedAnswer;
+    const expected = new Set(questionContent?.question_no || []);
+    for (const qno of expected) {
+      if (!selectedAnswers[qno]) return false;
+    }
+    return expected.size > 0;
+  }, [isGroup, selectedAnswer, selectedAnswers, questionContent]);
+
   useEffect(() => {
-    if ((timeUp || selectedAnswer) && answerSectionRef.current) {
+    if ((timeUp || allItemsAnswered) && answerSectionRef.current) {
       answerSectionRef.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }
-  }, [timeUp, selectedAnswer]);
+  }, [timeUp, allItemsAnswered]);
 
+  // ==== NGHE: bắt đầu timer khi audio được phát lần đầu ====
   const handleAudioPlay = () => {
-    // lần đầu play audio → đặt mốc thời gian
     if (!startTimeRef.current) startTimeRef.current = performance.now();
-    // đếm số lần phát (kể cả replay tự động)
     audioPlayCountRef.current += 1;
 
-    // Nếu đã chọn đáp án hoặc đã hết giờ -> cho phép nghe lại, KHÔNG khởi động countdown/lock
-    if (selectedAnswer || timeUp) return;
+    if (allItemsAnswered || timeUp) return;
 
-    // Lần đầu: khóa controls, bắt đầu sequence và countdown
     if (!sequenceActive && !audioLocked) {
-      setAudioLocked(true); // khóa controls sau lần click đầu (không bấm lại)
+      setAudioLocked(true);
       setSequenceActive(true);
-      setReplaysRemaining(1); // 2 lượt: lượt này + 1 replay
-      startCountdownOnce(); // bắt đầu đếm ngược 120s
+      setReplaysRemaining(1);
+      startCountdown(computedTimeLimit);
     }
   };
 
   const handleAudioEnded = () => {
     if (sequenceActive && replaysRemaining > 0 && audioRef.current) {
-      // chờ 5s rồi phát lại
       replayTimerRef.current = setTimeout(() => {
         if (!audioRef.current) return;
         audioRef.current.currentTime = 0;
@@ -210,10 +232,8 @@ const PracticePage = () => {
         setReplaysRemaining((n) => Math.max(0, n - 1));
       }, 5000);
     } else {
-      // chuỗi kết thúc (vẫn giữ audioLocked = true cho lượt đầu)
       setSequenceActive(false);
       setReplaysRemaining(0);
-      // mở controls chỉ khi timeUp hoặc đã chọn đáp án
     }
   };
 
@@ -228,7 +248,7 @@ const PracticePage = () => {
         count = 30;
       } else if (type === "reading") {
         start = 31;
-        count = 40; // 40..70 => 40 câu
+        count = 40; // 31..70 (40 câu)
       }
     } else if (level === "topik2") {
       if (type === "listening" || type === "reading") {
@@ -244,11 +264,12 @@ const PracticePage = () => {
 
   // ---------- API ----------
   const fetchQuestion = async (q) => {
-    // Kiểm tra câu chưa có dữ liệu
     const isUnderDevelopment =
-      (level === "topik1" && type === "reading") ||
+      (level === "topik1" &&
+        type === "reading" &&
+        (q === 40 || q === 41 || q === 42 || q > 48)) ||
       level === "topik2" ||
-      (level === "topik1" && type === "listening" && q > 6);
+      (level === "topik1" && type === "listening" && (q === 15 || q === 16));
 
     if (isUnderDevelopment) {
       setQuestionContent({
@@ -261,11 +282,11 @@ const PracticePage = () => {
     setLoadingQuestion(true);
     setSelectedQuestion(q);
     setSelectedAnswer(null);
+    setSelectedAnswers({});
     resetFeedbackUI();
     resetAllPlayback();
     resetTimer();
 
-    // reset tracking mốc thời gian + bộ đếm phát audio
     startTimeRef.current = null;
     audioPlayCountRef.current = 0;
 
@@ -279,10 +300,7 @@ const PracticePage = () => {
       });
       setQuestionContent(res.data);
 
-      // Với bài đọc: tính thời gian từ khi câu hiện ra
-      if (categoryParam === "reading") {
-        startTimeRef.current = performance.now();
-      }
+      // (trước đây gọi startCountdown ở đây — có thể bị race. Đã chuyển sang useEffect bên dưới)
     } catch (err) {
       console.error("Error fetching question:", err);
       setQuestionContent({ error: "Không thể lấy câu hỏi" });
@@ -291,36 +309,59 @@ const PracticePage = () => {
     }
   };
 
+  // ==== ĐỌC: đảm bảo bật timer NGAY khi dữ liệu đọc đã sẵn sàng ====
+  useEffect(() => {
+    if (type !== "reading") return;
+    if (!questionContent || questionContent.error) return;
+    if (remainingSec !== null || timeUp) return; // đã chạy rồi
+
+    // bắt đầu đo thời gian phản hồi + countdown
+    startTimeRef.current = performance.now();
+    const items = Array.isArray(questionContent?.items)
+      ? questionContent.items.length
+      : 1;
+    const secs = 120 * items;
+    startCountdown(secs);
+  }, [type, questionContent, remainingSec, timeUp]);
+
   const buildFeedbackPayload = (reaction, extra = {}) => {
-    // snapshot câu hỏi để bạn có thể phục hồi/đánh giá về sau
+    const isGroup =
+      Array.isArray(questionContent?.items) &&
+      questionContent.items.length > 0;
+
     const snapshot = {
       id: questionContent?.id ?? null,
       title: questionContent?.title ?? null,
       question: questionContent?.question ?? null,
       dialog: questionContent?.dialog ?? [],
+      passage: questionContent?.passage ?? null,
       choices: questionContent?.choices ?? {},
+      items: questionContent?.items ?? null,
       answer: questionContent?.answer ?? null,
       score: questionContent?.score ?? null,
+      question_no: questionContent?.question_no ?? null,
       level,
       type,
       cau: selectedQuestion,
     };
+
+    const is_correct_single =
+      !isGroup && selectedAnswer != null && questionContent?.answer != null
+        ? selectedAnswer === questionContent.answer
+        : null;
 
     return {
       level,
       type,
       cau: selectedQuestion,
       questionId: questionContent?.id ?? null,
-      reaction, // "like" | "dislike"
-      reason_tags: extra.reason_tags ?? null, // array hoặc null
+      reaction,
+      reason_tags: extra.reason_tags ?? null,
       free_text: extra.free_text ?? null,
-      answer_selected: selectedAnswer ?? null,
-      is_correct:
-        selectedAnswer != null && questionContent?.answer != null
-          ? selectedAnswer === questionContent.answer
-          : null,
-      timer_seconds_left: remainingSec, // có thể null nếu chưa bắt đầu
-      time_limit: 120,
+      answer_selected: isGroup ? selectedAnswers : selectedAnswer ?? null,
+      is_correct: is_correct_single,
+      timer_seconds_left: remainingSec,
+      time_limit: timeLimit,
       question_snapshot: snapshot,
     };
   };
@@ -350,15 +391,8 @@ const PracticePage = () => {
     }
   };
 
-  const toggleReason = (code) => {
-    setReasonTags((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
-    );
-  };
-
-  // ---------- Choice rendering ----------
-  const disableChoices = !!selectedAnswer || timeUp;
-  const choiceVariant = (key) => {
+  const disableChoicesSingle = !!selectedAnswer || timeUp;
+  const choiceVariantSingle = (key) => {
     const isCorrect = questionContent?.answer === key;
 
     if (selectedAnswer) {
@@ -373,20 +407,37 @@ const PracticePage = () => {
     }
 
     if (timeUp) {
-      // Hết giờ: highlight đáp án đúng
       return isCorrect ? "btn-success" : "btn-outline-secondary";
     }
 
     return "btn-outline-secondary";
   };
 
-  const showDialog = !!selectedAnswer || timeUp;
+  const disableChoicesFor = (qno) => !!selectedAnswers[qno] || timeUp;
+  const choiceVariantFor = (qno, key, answerKey) => {
+    const isCorrect = answerKey === key;
+    const sel = selectedAnswers[qno];
 
-  // Khi người dùng chọn đáp án: dừng timer, mở controls để có thể nghe lại, dừng chuỗi replay
+    if (sel) {
+      const isSelected = sel === key;
+      return isSelected
+        ? isCorrect
+          ? "btn-success"
+          : "btn-danger"
+        : isCorrect
+        ? "btn-success"
+        : "btn-outline-secondary";
+    }
+
+    if (timeUp) {
+      return isCorrect ? "btn-success" : "btn-outline-secondary";
+    }
+    return "btn-outline-secondary";
+  };
+
   const onChooseAnswer = (key) => {
-    if (disableChoices) return;
+    if (disableChoicesSingle) return;
     setSelectedAnswer(key);
-    // dừng countdown & playback
     stopTimer();
     if (replayTimerRef.current) {
       clearTimeout(replayTimerRef.current);
@@ -394,14 +445,12 @@ const PracticePage = () => {
     }
     setSequenceActive(false);
     setReplaysRemaining(0);
-    setAudioLocked(false); // cho phép play lại
+    setAudioLocked(false);
     if (audioRef.current) {
       audioRef.current.pause();
     }
 
-    // === TRACK: topik_answered ===
-    // (Đặt sau return của setState callback để chắc chắn chạy)
-    const t0 = startTimeRef.current; // có thể null nếu chưa set
+    const t0 = startTimeRef.current;
     const responseTime =
       typeof t0 === "number"
         ? Math.max(0, Math.round(performance.now() - t0))
@@ -418,15 +467,65 @@ const PracticePage = () => {
       user_id_hash: userIdHash,
       session_id: sessionId,
       event_type: "topik_answered",
-      item_id, // ví dụ: Q1-0001 hoặc fallback theo pattern
+      item_id,
       is_correct,
-      duration_ms: responseTime, // ms từ mốc bắt đầu → lúc chọn
+      duration_ms: responseTime,
       meta: {
         level,
         type,
         cau: selectedQuestion,
         audio_play_count: audioPlayCountRef.current || 0,
-        time_limit: 120,
+        time_limit: timeLimit,
+        question_no: selectedQuestion,
+      },
+    });
+  };
+
+  const onChooseAnswerGroup = (qno, key, answerKey) => {
+    if (disableChoicesFor(qno)) return;
+    setSelectedAnswers((prev) => ({ ...prev, [qno]: key }));
+
+    const expected = new Set(questionContent?.question_no || []);
+    const next = { ...selectedAnswers, [qno]: key };
+    const done = Array.from(expected).every((n) => !!next[n]);
+
+    if (done) {
+      stopTimer();
+      if (replayTimerRef.current) {
+        clearTimeout(replayTimerRef.current);
+        replayTimerRef.current = null;
+      }
+      setSequenceActive(false);
+      setReplaysRemaining(0);
+      setAudioLocked(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    }
+
+    const t0 = startTimeRef.current;
+    const responseTime =
+      typeof t0 === "number"
+        ? Math.max(0, Math.round(performance.now() - t0))
+        : null;
+
+    const is_correct = answerKey ? key === answerKey : null;
+
+    const item_id = `${level}-${type}-Q${String(qno).padStart(3, "0")}`;
+    postTrackEvent({
+      user_id_hash: userIdHash,
+      session_id: sessionId,
+      event_type: "topik_answered",
+      item_id,
+      is_correct,
+      duration_ms: responseTime,
+      meta: {
+        level,
+        type,
+        cau: selectedQuestion,
+        question_no: qno,
+        audio_play_count: audioPlayCountRef.current || 0,
+        time_limit: timeLimit,
       },
     });
   };
@@ -449,6 +548,7 @@ const PracticePage = () => {
               setSelectedQuestion(null);
               setQuestionContent(null);
               setSelectedAnswer(null);
+              setSelectedAnswers({});
               resetFeedbackUI();
               resetAllPlayback();
               resetTimer();
@@ -472,6 +572,7 @@ const PracticePage = () => {
               setSelectedQuestion(null);
               setQuestionContent(null);
               setSelectedAnswer(null);
+              setSelectedAnswers({});
               resetFeedbackUI();
               resetAllPlayback();
               resetTimer();
@@ -492,28 +593,32 @@ const PracticePage = () => {
             className="d-flex flex-wrap justify-content-center gap-2 border rounded p-2 bg-light"
             style={{ maxHeight: "400px", overflowY: "auto" }}
           >
-            {questions.map((q) => (
-              <button
-                key={q}
-                className={`btn btn-sm ${
-                  selectedQuestion === q
-                    ? "btn-primary"
-                    : "btn-outline-secondary"
-                }`}
-                style={{ width: "40px", height: "40px", position: "relative" }}
-                disabled={loadingQuestion}
-                onClick={() => fetchQuestion(q)}
-              >
-                {q}
-                {loadingQuestion && selectedQuestion === q && (
-                  <span
-                    className="spinner-border spinner-border-sm position-absolute top-50 start-50 translate-middle"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                )}
-              </button>
-            ))}
+            {questions.map((q) => {
+              const disabledByGroup = groupQnos.has(q);
+              return (
+                <button
+                  key={q}
+                  className={`btn btn-sm ${
+                    selectedQuestion === q
+                      ? "btn-primary"
+                      : "btn-outline-secondary"
+                  }`}
+                  style={{ width: "40px", height: "40px", position: "relative" }}
+                  disabled={loadingQuestion || disabledByGroup}
+                  onClick={() => fetchQuestion(q)}
+                  title={disabledByGroup ? "Đang hiển thị theo cặp" : undefined}
+                >
+                  {q}
+                  {loadingQuestion && selectedQuestion === q && (
+                    <span
+                      className="spinner-border spinner-border-sm position-absolute top-50 start-50 translate-middle"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -542,7 +647,8 @@ const PracticePage = () => {
                 {type === "reading" ? "reading" : "listening"} - Câu{" "}
                 {selectedQuestion}
               </h5>
-              {type === "listening" && remainingSec !== null && (
+              {/* Hiển thị countdown cho cả đọc & nghe */}
+              {remainingSec !== null && (
                 <span
                   className="badge bg-dark position-absolute end-0"
                   title="Thời gian còn lại"
@@ -586,7 +692,6 @@ const PracticePage = () => {
                   </button>
                 </div>
 
-                {/* Dislike panel */}
                 {showDislikePanel && (
                   <div
                     className="card shadow-sm p-2 mt-2"
@@ -628,10 +733,7 @@ const PracticePage = () => {
                     <div className="d-flex justify-content-end gap-2">
                       <button
                         className="btn btn-sm btn-light"
-                        onClick={() => {
-                          setShowDislikePanel(false);
-                          // không reset reason để user mở lại vẫn còn
-                        }}
+                        onClick={() => setShowDislikePanel(false)}
                       >
                         Đóng
                       </button>
@@ -647,20 +749,40 @@ const PracticePage = () => {
               </div>
             </div>
 
-            {/* Nội dung câu hỏi (nếu có) */}
-            <p>
-              {questionContent?.cau ? `${questionContent.cau}. ` : ""}
-              {questionContent?.question ?? ""}
-            </p>
+            {/* Nội dung câu hỏi */}
+            {!isGroup ? (
+              <p>
+                {questionContent?.cau ? `${questionContent.cau}. ` : ""}
+                {questionContent?.question ?? ""}
+              </p>
+            ) : (
+              <div className="mb-2">
+                <p className="text-muted mb-1">
+                  Bài gồm {itemsCount} câu:{" "}
+                  {Array.isArray(questionContent?.question_no)
+                    ? questionContent.question_no.join(", ")
+                    : ""}
+                </p>
+              </div>
+            )}
 
-            {/* Audio: lần đầu bấm -> auto 2 lượt (gap 5s), khóa controls;
-                Sau khi hết giờ hoặc đã chọn đáp án -> controls mở, có thể play lại */}
-            {questionContent?.question_audio && (
+            {/* PASSAGE (ĐỌC) */}
+            {type === "reading" && questionContent?.passage && (
+              <div
+                className="mb-3 p-3 bg-light border rounded"
+                style={{ whiteSpace: "pre-wrap" }}
+              >
+                {questionContent.passage}
+              </div>
+            )}
+
+            {/* Audio (NGHE) */}
+            {type === "listening" && questionContent?.question_audio && (
               <audio
                 ref={audioRef}
-                controls={!audioLocked || timeUp || !!selectedAnswer}
+                controls={!audioLocked || timeUp || allItemsAnswered}
                 className="my-2 w-100"
-                src={questionContent.question_audio} // data URI
+                src={questionContent.question_audio}
                 onPlay={handleAudioPlay}
                 onEnded={handleAudioEnded}
                 preload="auto"
@@ -669,8 +791,9 @@ const PracticePage = () => {
 
             {/* Phần đáp án / dialog */}
             <div ref={answerSectionRef}>
-              {/* Dialog: hiển thị khi đã chọn đáp án HOẶC hết giờ */}
-              {(!!selectedAnswer || timeUp) &&
+              {/* Dialog chỉ hiện với nghe khi xong/hết giờ */}
+              {type === "listening" &&
+                (allItemsAnswered || timeUp) &&
                 Array.isArray(questionContent?.dialog) &&
                 questionContent.dialog.length > 0 && (
                   <div className="mb-2 p-2 bg-light border rounded">
@@ -683,26 +806,60 @@ const PracticePage = () => {
                 )}
 
               {/* Choices */}
-              {selectedQuestion && questionContent?.choices && (
+              {!isGroup && selectedQuestion && questionContent?.choices && (
                 <div className="d-flex flex-column gap-2 mt-3">
-                  {Object.entries(questionContent.choices).map(
-                    ([key, text]) => (
-                      <button
-                        key={key}
-                        className={`btn ${choiceVariant(key)}`}
-                        onClick={() => onChooseAnswer(key)}
-                        disabled={disableChoices}
-                      >
-                        {key}. {text}
-                      </button>
-                    )
-                  )}
+                  {Object.entries(questionContent.choices).map(([key, text]) => (
+                    <button
+                      key={key}
+                      className={`btn ${choiceVariantSingle(key)}`}
+                      onClick={() => onChooseAnswer(key)}
+                      disabled={disableChoicesSingle}
+                    >
+                      {key}. {text}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Group items */}
+              {isGroup && (
+                <div className="d-flex flex-column gap-3 mt-2">
+                  {questionContent.items.map((it, idx) => {
+                    const qno = it.question_no;
+                    return (
+                      <div key={qno ?? idx} className="p-2 border rounded">
+                        <div className="fw-semibold mb-2">
+                          {qno ? `Câu ${qno}. ` : ""}
+                          {it.question}
+                        </div>
+                        <div className="d-flex flex-column gap-2">
+                          {Object.entries(it.choices || {}).map(
+                            ([key, text]) => (
+                              <button
+                                key={key}
+                                className={`btn ${choiceVariantFor(
+                                  qno,
+                                  key,
+                                  it.answer
+                                )}`}
+                                onClick={() =>
+                                  onChooseAnswerGroup(qno, key, it.answer)
+                                }
+                                disabled={disableChoicesFor(qno)}
+                              >
+                                {key}. {text}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Nút thử lại */}
-            {(selectedAnswer || timeUp) && (
+            {(allItemsAnswered || timeUp) && (
               <div className="d-flex justify-content-center mt-3">
                 <button
                   className="btn btn-outline-primary"
@@ -719,7 +876,6 @@ const PracticePage = () => {
         )
       )}
 
-      {/* Loading spinner overlay */}
       {loadingQuestion && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"

@@ -13,5 +13,6 @@ matplotlib>=3.8
 Cython>=0.29.36
 soundfile>=0.12
 edge-tts
+aiofiles
 soundfile
 pydub

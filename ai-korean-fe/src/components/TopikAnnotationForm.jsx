@@ -5,25 +5,27 @@ const backendUrl = import.meta.env.VITE_API_URL;
 const typeMappingTopik1 = [
   // Nghe
   {
-    display: "1~4번: Chọn câu trả lời phù hợp (Nghe)",
+    display: "1~4번: Nghe và chọn câu trả lời phù hợp (Nghe)",
     jsonType: "Nghe_Almat_Dap",
   },
   {
-    display: "5~6번: Chọn lời nói tiếp theo (Nghe)",
+    display: "5~6번: Nghe và chọn lời nói tiếp theo (Nghe)",
     jsonType: "Nghe_Loi_Tiep",
   },
-  { display: "7~10번: Chọn địa điểm (Nghe)", jsonType: "Nghe_DiaDiem" },
-  { display: "11~14번: Chọn chủ đề (Nghe)", jsonType: "Nghe_ChuDe" },
-  { display: "15~16번: Chọn tranh (Nghe)", jsonType: "Nghe_Tranh" },
+  { display: "7~10번: Nghe và chọn địa điểm (Nghe)", jsonType: "Nghe_DiaDiem" },
+  { display: "11~14번: Nghe và chọn chủ đề (Nghe)", jsonType: "Nghe_ChuDe" },
+  { display: "15~16번: Nghe và chọn tranh (Nghe)", jsonType: "Nghe_Tranh" },
   {
-    display: "17~21번: Chọn nội dung đúng (Nghe)",
+    display: "17~21번: Nghe và chọn nội dung đúng (Nghe)",
     jsonType: "Nghe_NoidungDung",
   },
   {
-    display: "22~24번: Chọn suy nghĩ trọng tâm (Nghe)",
-    jsonType: "Nghe_TamTu",
+    display: "22~24번: Nghe và chọn suy nghĩ trọng tâm (Nghe)",
+    jsonType: "Nghe_TrongTam",
   },
-  { display: "25~30번: Trả lời câu hỏi (Nghe)", jsonType: "Nghe_TraLoi" },
+  { display: "25~26번: Nghe và chọn nội dung đúng (Nghe)", jsonType: "Nghe_Thongbao" },
+  { display: "27~28번: Nghe và chọn suy nghĩ/thái độ nhân vật, nội dung đúng (Nghe)", jsonType: "Nghe_ThaiDo_NoidungDung" },
+  { display: "29~30번: Nghe và chọn nội dung đúng (Nghe)", jsonType: "Nghe_NoidungDung" },
   // Đọc
   { display: "31~33번: Chủ đề (Đọc)", jsonType: "Doc_ChuDe" },
   { display: "34~39번: Điền chỗ trống (Đọc)", jsonType: "Doc_DienTrong" },
@@ -33,6 +35,10 @@ const typeMappingTopik1 = [
   },
   { display: "43~45번: Chọn nội dung đúng (Đọc)", jsonType: "Doc_NoidungDung" },
   { display: "46~48번: Chọn ý chính (Đọc)", jsonType: "Doc_YChinh" },
+  {
+    display: "49~56번: Điền + chọn nội dung đúng (Đọc)",
+    jsonType: "Doc_Dien_NoidungDung",
+  },
   { display: "57~58번: Sắp xếp thứ tự (Đọc)", jsonType: "Doc_SapXep" },
   { display: "59~62번: Điền + chủ đề (Đọc)", jsonType: "Doc_Dien_ChuDe" },
   {
@@ -57,36 +63,16 @@ const typeMappingTopik2 = [
     jsonType: "Nghe_HanhDong",
   },
   {
-    display: "13~16번: Nghe và chọn nội dung giống (Nghe)",
-    jsonType: "Nghe_GiongNoiDung",
-  },
-  {
-    display: "17~21번: Nghe và chọn suy nghĩ nhân vật (Nghe)",
-    jsonType: "Nghe_SuyNghi",
-  },
-  {
-    display: "22번: Nghe và chọn nội dung giống (Nghe)",
-    jsonType: "Nghe_GiongDung",
-  },
-  {
-    display: "23번: Nghe và trả lời hành động nhân vật (Nghe)",
-    jsonType: "Nghe_HanhDongNV",
-  },
-  {
-    display: "24~25번: Nghe và chọn đáp án đúng (Nghe)",
+    display: "13~16번: Nghe và chọn nội dung đúng (Nghe)",
     jsonType: "Nghe_NoidungDung",
   },
   {
-    display: "26~27번: Nghe và chọn ý đồ nhân vật (Nghe)",
-    jsonType: "Nghe_YDo",
+    display: "17~20번: Nghe và chọn suy nghĩ nhân vật (Nghe)",
+    jsonType: "Nghe_SuyNghi",
   },
   {
-    display: "28~30번: Nghe và chọn đáp án đúng (Nghe)",
-    jsonType: "Nghe_Noidung",
-  },
-  {
-    display: "31~32번: Nghe và chọn suy nghĩ/thái độ nhân vật (Nghe)",
-    jsonType: "Nghe_ThaiDo",
+    display: "21~32번: Nghe và chọn suy nghĩ nhân vật, nội dung đúng (Nghe)",
+    jsonType: "Nghe_SuyNghi/ThaiDo/NhanVat_NoidungDung",
   },
   {
     display: "33~36번: Nghe và chọn nội dung đúng nhất (Nghe)",
@@ -173,7 +159,11 @@ const TopikAnnotationForm = ({ userInfo }) => {
 
   const handleAddOrUpdate = () => {
     const selectedType = currentTypeMapping.find((t) => t.jsonType === type);
-    const section = type.startsWith("Nghe") ? "Nghe" : type.startsWith("Doc") ? "Đọc" : "";
+    const section = type.startsWith("Nghe")
+      ? "Nghe"
+      : type.startsWith("Doc")
+      ? "Đọc"
+      : "";
     const item = {
       type,
       section: section,
@@ -219,10 +209,10 @@ const TopikAnnotationForm = ({ userInfo }) => {
     setEditIndex(index);
 
     const section = item.type.startsWith("Nghe")
-    ? "Nghe"
-    : item.type.startsWith("Doc")
-    ? "Đọc"
-    : "";
+      ? "Nghe"
+      : item.type.startsWith("Doc")
+      ? "Đọc"
+      : "";
     item.section = section;
   };
 
@@ -244,14 +234,11 @@ const TopikAnnotationForm = ({ userInfo }) => {
     };
 
     try {
-      const response = await fetch(
-        `${backendUrl}/cooperate_topik_annotator`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${backendUrl}/cooperate_topik_annotator`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) throw new Error("Gửi thất bại!");
 

@@ -4,3 +4,4 @@ httpx>=0.27        # gọi dịch vụ con, async
 python-dotenv      # load .env
 python-multipart
 sqlalchemy
+requests

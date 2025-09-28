@@ -1,21 +1,62 @@
+import os, json, base64, requests
 from gtts import gTTS
 from io import BytesIO
 from typing import List, Optional
 from pydub import AudioSegment
-import base64
 
-def text_to_speech(text: str, voice: Optional[int] = 1) -> bytes:
+TTS_SERVICE_URL  = os.getenv("TTS_SERVICE_URL",  "http://127.0.0.1:5004")
+
+# Map INT -> gender theo chuẩn: 1=male, 0=female
+def _int_to_gender(v: Optional[int]) -> Optional[str]:
+    if v == 1:
+        return "male"
+    if v == 0:
+        return "female"
+    # fallback: nếu không truyền, mặc định male
+    return "male"
+
+def text_to_speech(
+    text: str,
+    voice: Optional[int] = 1,          # <-- default male 
+    *,
+    voice_short_name: Optional[str] = None,
+    rate: Optional[str] = "-10%",        # e.g. "-10%"
+    pitch: Optional[str] = None,       # e.g. "-20Hz"
+    volume: Optional[str] = None,      # e.g. "+0%"
+    timeout: int = 30
+) -> bytes:
     """
-    Tạm thời voice bị bỏ qua vì gTTS không chọn được nam/nữ.
-    Trả ra MP3 bytes.
+    Gọi TTS service (/api/tts_base64) và trả về MP3 bytes.
+    Mapping voice int: 1=male, 0=female.
+    voice_short_name (nếu có) sẽ override gender.
     """
     if not text or not text.strip():
         return b""
-    tts = gTTS(text=text, lang="ko", slow=False)
-    buf = BytesIO()
-    tts.write_to_fp(buf)
-    return buf.getvalue()
 
+    url = TTS_SERVICE_URL.rstrip("/") + "/api/tts_base64"
+    payload = {"text": text}
+
+    if voice_short_name:
+        payload["voice_short_name"] = voice_short_name
+    else:
+        payload["voice"] = _int_to_gender(voice)
+
+    if rate is not None:
+        payload["rate"] = rate
+    if pitch is not None:
+        payload["pitch"] = pitch
+    if volume is not None:
+        payload["volume"] = volume
+
+    try:
+        resp = requests.post(url, json=payload, timeout=timeout)
+        resp.raise_for_status()
+        data = resp.json()
+        audio_b64 = data.get("audio_base64")
+        return base64.b64decode(audio_b64) if audio_b64 else b""
+    except Exception:
+        return b""
+    
 def concat_mp3_to_base64(segments: List[bytes], sep_ms: int = 150) -> str:
     """
     Nối nhiều MP3 bytes -> 1 MP3 rồi trả về base64 (không lưu file).

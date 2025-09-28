@@ -3,11 +3,13 @@ import os, uuid, base64, traceback
 from typing import List, Any, Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Request
 from pydantic import BaseModel
+from utils.utils import text_to_speech
 
 router = APIRouter(prefix="/api", tags=["conversation"])
 
 CHAT_SERVICE_URL = os.getenv("CHAT_SERVICE_URL", "http://127.0.0.1:5001").rstrip("/")
 ASR_SERVICE_URL  = os.getenv("ASR_SERVICE_URL",  "http://127.0.0.1:5005").rstrip("/")
+TTS_SERVICE_URL = os.getenv("TTS_SERVICE_URL", "http://127.0.0.1:5004").rstrip("/")
 
 # ---------- Models ----------
 class ChatReq(BaseModel):
@@ -70,16 +72,17 @@ async def talking(req: Request, body: TalkReq):
         reply_text = result.get("reply", "") or ""
 
         # 2) Gọi TTS (forward voice: 1=nam, 0=nữ)
-        r_tts = await http.post(
-            f"{CHAT_SERVICE_URL}/api/generate_tts",
-            json={"text": reply_text, "voice": body.voice or 1},
+        tts_b64 = text_to_speech(
+            text=reply_text,
+            voice=body.voice if body.voice is not None else 1,
+            rate="-10%",
+            pitch=None,
+            volume=None,
+            timeout=30,
         )
 
-        tts_data_url = None
-        if r_tts.status_code == 200 and r_tts.content:
-            mime = r_tts.headers.get("Content-Type", "audio/mpeg")
-            b64 = base64.b64encode(r_tts.content).decode("ascii")
-            tts_data_url = f"data:{mime};base64,{b64}"
+        # Dựng data URL từ base64 (mặc định audio/mpeg)
+        tts_data_url = f"data:audio/mpeg;base64,{tts_b64}" if tts_b64 else None
 
         return {
             "ai_reply_tts": reply_text,

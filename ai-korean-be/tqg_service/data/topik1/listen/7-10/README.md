@@ -42,16 +42,17 @@ export TORCH_CPP_LOG_LEVEL=ERROR
 export NCCL_DEBUG=ERROR
 
 export CUDA_VISIBLE_DEVICES=0,1
+
 torchrun --nproc_per_node=2 topik710_generator_lora_ddp.py \
   --base_model meta-llama/Meta-Llama-3-8B-Instruct \
-  --train_glob "data/train/*.jsonl" \
-  --eval_file "data/eval/dev.json"l \
-  --output_dir out/topik710_ddp2_4bit \
+  --train_glob "/kaggle/input/dataset-710/train.jsonl" \
+  --eval_file "/kaggle/input/dataset-710/dev.jsonl" \
+  --output_dir "/kaggle/working/topik-56-llama3-8b-lora" \
   --use_4bit \
-  --batch_size 2 --grad_accum 64 \
-  --max_seq_len 512 \
-  --epochs 2 --lr 2e-4 --warmup_ratio 0.1 \
-  --save_steps 300 --eval_steps 900 --logging_steps 50 \
+  --batch_size 4 --grad_accum 32 \
+  --max_seq_len 384 \
+  --epochs 2 --lr 5e-5 --warmup_ratio 0.1 \
+  --save_steps 50 --eval_steps 200 --logging_steps 50 \
   --mlp_lora \
   --dataloader_num_workers 2 --pin_memory
   --resume_from_checkpoint/--resume_ckpt_path out/topik710_lora4bit/checkpoint-1200

@@ -37,6 +37,8 @@ async def topik_generate_question(req: Request, body: TopikReq):
         if r.is_error:
             raise HTTPException(r.status_code, f"TQG: {r.text[:500]}")
         result = r.json()
+        print(f"TQG result: {result}")
+
         return result
     except HTTPException:
         raise

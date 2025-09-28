@@ -38,6 +38,9 @@ def save_audio_upload(audio_bytes, file_type):
 
 
 def process_conversation(user_input, history, check_grammar_flag=True):
+    if not user_input or user_input.strip() == "":
+        raise ValueError("user_input trống")
+
     # 1. Grammar check nếu là text
     if check_grammar_flag:
         grammar_result = check_grammar(user_input)

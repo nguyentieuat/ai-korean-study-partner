@@ -1,4 +1,4 @@
-# ko_cleantext.py
+## %%writefile ko_phonology.py
 # Normalize Hangul to "surface/pronunciation spelling" (clean text).
 # Không dùng thư viện ngoài. Python 3.8+
 #
@@ -128,6 +128,17 @@ def _is_particle_I(tokens: List[Tuple[Optional[Syl], str]], idx: int) -> bool:
     if idx == len(tokens)-1: return True
     return tokens[idx+1][1] != "H"
 
+def _is_particle_EUI(tokens, idx: int) -> bool:
+    # '의' = ᄋ+ᅴ, không 받침, thường là tiểu từ nếu đứng cuối cụm/từ
+    if idx < 0 or idx >= len(tokens): return False
+    sy, ty = tokens[idx]
+    if ty != "H": return False
+    if not (sy.L=='ᄋ' and sy.V=='ᅴ' and sy.T=="\0"): return False
+    # cuối chuỗi → chắc là tiểu từ
+    if idx == len(tokens)-1: return True
+    # sau không phải Hangul → xem như ranh giới cụm
+    return tokens[idx+1][1] != "H"
+
 # ---------- Main ----------
 def normalize_clean(
     text: str,
@@ -165,10 +176,12 @@ def normalize_clean(
             rule_tags.append(f"collapse-w:{old}->{collapsed}@{i}[mode={opt.collapse_w_mode or 'legacy'}]")
         # 의 rule (very rough)
         if s.L=='ᄋ' and s.V=='ᅴ':
-            if opt.eui_reading == "i" or (opt.eui_reading=="auto" and i>0 and tokens[i-1][1]=="H"):
-                s.V='ᅵ'; tokens[i]=(s,ty); rule_tags.append(f"eui->i@{i}")
+            if _is_particle_EUI(tokens, i):
+                s.V='ᅦ'; tokens[i]=(s,ty); rule_tags.append(f"eui->e@{i}")   # tiểu từ '의' -> [에]
+            elif opt.eui_reading == "i" or (opt.eui_reading=="auto" and i>0 and tokens[i-1][1]=="H"):
+                s.V='ᅵ'; tokens[i]=(s,ty); rule_tags.append(f"eui->i@{i}")   # giữa từ -> [이]
             elif opt.eui_reading == "e":
-                s.V='ᅦ'; tokens[i]=(s,ty); rule_tags.append(f"eui->e@{i}")
+                s.V='ᅦ'; tokens[i]=(s,ty); rule_tags.append(f"eui->e@{i}")   # ép về [에] nếu muốn
 
     def boundary_allowed(_i:int)->bool: return True
     liaison_boundaries = set()
