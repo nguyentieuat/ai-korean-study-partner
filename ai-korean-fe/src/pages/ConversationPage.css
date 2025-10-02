@@ -124,3 +124,53 @@ button:disabled {
 .mode-switch input[type="radio"] {
   margin-right: 0.25rem;
 }
+
+.input-box {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.input-box textarea {
+  width: 100%;
+  min-height: 70px;
+  resize: vertical;
+}
+
+.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 100%;
+}
+
+.mic-btn {
+  border: none;
+  outline: none;
+  font-size: 20px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.mic-btn:hover { background: #e2e8f0; }
+.mic-btn.recording {
+  background: #fee2e2;
+}
+.mic-btn .recording-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .2; }
+}
+
+

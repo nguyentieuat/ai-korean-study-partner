@@ -1,4 +1,4 @@
-# ko_cleantext.py
+# ko_phonology.py
 # Normalize Hangul to "surface/pronunciation spelling" (clean text).
 # Không dùng thư viện ngoài. Python 3.8+
 #

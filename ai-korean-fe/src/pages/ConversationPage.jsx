@@ -1,7 +1,7 @@
+// src/pages/ConversationPage.jsx
 import React, { useState, useRef } from "react";
 import "./ConversationPage.css";
-import VoiceRecorder from "../components/VoiceRecorder";
-// import { v4 as uuidv4 } from "uuid"; // không còn dùng
+import InlineMic from "../components/InlineMic";
 
 const backendUrl = import.meta.env.VITE_API_URL;
 
@@ -20,11 +20,6 @@ const LS_KEY_VOICE = "korean_voice"; // lưu lựa chọn giọng
 const ConversationPage = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const [mode, setMode] = useState("text"); // "text" | "voice"
-  const [recordTime, setRecordTime] = useState(0);
   const [playingUrl, setPlayingUrl] = useState(null);
 
   const [conversationId, setConversationId] = useState(
@@ -44,9 +39,11 @@ const ConversationPage = () => {
 
   // === Tracking endpoint (khớp FastAPI /api/track/event) ===
   const TRACK_URL = `${backendUrl}/track/event`;
+
   // === Tracking identities ===
   const [sessionId, setSessionId] = useState("");
   const [userIdHash, setUserIdHash] = useState("");
+
   // Tạo userIdHash ẩn danh + sessionId để ghép với Google Form
   React.useEffect(() => {
     let uid = localStorage.getItem("uid_hash");
@@ -60,6 +57,7 @@ const ConversationPage = () => {
     const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
     setSessionId(`S-${day}-${rand}`);
   }, []);
+
   async function postTrackEvent(payload) {
     try {
       const event_id =
@@ -68,6 +66,7 @@ const ConversationPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event_id, ...payload }),
+        keepalive: true,
       });
       await res.json().catch(() => null); // không chặn UI nếu lỗi parse
     } catch {
@@ -141,7 +140,7 @@ const ConversationPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: input,
+          message: newUserMessage.content,
           conversation_history: formattedHistory,
           voice, // gửi kèm lựa chọn giọng (BE có thể bỏ qua nếu chưa dùng)
           ...(conversationId ? { conversation_id: conversationId } : {}),
@@ -225,8 +224,8 @@ const ConversationPage = () => {
     audio.play().catch(() => setPlayingUrl(null));
   };
 
-  const getFormattedHistoryForServer = (history) => {
-    return history
+  const getFormattedHistoryForServer = (historyArr) => {
+    return historyArr
       .filter((msg) => {
         if (msg.role === "user" && !msg.waitingReply) return true;
         if (msg.role === "ai") {
@@ -281,27 +280,7 @@ const ConversationPage = () => {
 
       <div className="topbar">
         <div className="mode-switch">
-          <label>
-            <input
-              type="radio"
-              name="mode"
-              value="text"
-              checked={mode === "text"}
-              onChange={() => setMode("text")}
-            />
-            ✍️ Text
-          </label>
-          <label style={{ marginLeft: "1rem" }}>
-            <input
-              type="radio"
-              name="mode"
-              value="voice"
-              checked={mode === "voice"}
-              onChange={() => setMode("voice")}
-            />
-            🎤 Voice
-          </label>
-
+          {/* Bỏ switch Text/Voice, chỉ giữ nút dọn lịch sử */}
           <label
             style={{ marginLeft: "1rem" }}
             onClick={newChat}
@@ -310,14 +289,6 @@ const ConversationPage = () => {
             🗑 Clean History
           </label>
         </div>
-
-        {/* <button
-          onClick={newChat}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-3 py-2 rounded-lg transition"
-          title="Xóa lịch sử & bắt đầu cuộc mới"
-        >
-          🗑 Xóa lịch sử
-        </button> */}
       </div>
 
       <div className="chat-box">
@@ -335,6 +306,7 @@ const ConversationPage = () => {
                       className="btn btn-primary me-2"
                       onClick={() => playAudio(item.audioUrl)}
                       disabled={playingUrl === item.audioUrl}
+                      title="Nghe lại giọng của bạn"
                     >
                       🔊
                     </button>
@@ -372,6 +344,7 @@ const ConversationPage = () => {
                           className="btn btn-primary me-2"
                           onClick={() => playAudio(item.aiVoiceUrl)}
                           disabled={playingUrl === item.aiVoiceUrl}
+                          title="Nghe giọng AI"
                         >
                           🔊
                         </button>
@@ -392,41 +365,36 @@ const ConversationPage = () => {
         })}
       </div>
 
+      {/* Ô nhập + mic nhúng */}
       <div className="input-box">
-        {mode === "text" ? (
-          <>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Nhập tin nhắn của bạn..."
-            />
-            <button
-              onClick={handleSendText}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-xl transition"
-            >
-              Gửi
-            </button>
-          </>
-        ) : (
-          <VoiceRecorder
-            conversation_id={conversationId}
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Nhập tin nhắn hoặc nhấn mic để nói…"
+        />
+        <div className="input-actions">
+          {/* Mic inline */}
+          <InlineMic
+            conversationId={conversationId}
+            onConversationId={(id) => setConversationId(id)}
             history={history}
             setHistory={setHistory}
             getFormattedHistoryForServer={getFormattedHistoryForServer}
-            voice={voice} // truyền giọng cho recorder (để backend TTS dùng)
-            onComplete={(updateFn) => {
-              updateFn((aiMessage) => {
-                setHistory((prev) => {
-                  const withoutTemp = prev.filter(
-                    (msg) => !(msg.role === "ai" && msg.typing)
-                  );
-                  return [...withoutTemp, aiMessage];
-                });
-              });
-            }}
+            voice={voice}
+            // tracking
+            postTrackEvent={postTrackEvent}
+            sessionId={sessionId}
+            userIdHash={userIdHash}
           />
-        )}
+          {/* Gửi text */}
+          <button
+            onClick={handleSendText}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-xl transition"
+          >
+            Gửi
+          </button>
+        </div>
       </div>
     </div>
   );

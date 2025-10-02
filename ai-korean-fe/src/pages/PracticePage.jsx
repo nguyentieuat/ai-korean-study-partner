@@ -30,6 +30,10 @@ const PracticePage = () => {
   const [timeLimit, setTimeLimit] = useState(120);
   const timerRef = useRef(null);
 
+  // Timer config (toggle + minutes)
+  const [timerEnabled, setTimerEnabled] = useState(false); // mặc định OFF
+  const [minutesPerItem, setMinutesPerItem] = useState(2); // phút cho mỗi câu
+
   // Auto-scroll target
   const answerSectionRef = useRef(null);
 
@@ -80,6 +84,12 @@ const PracticePage = () => {
     { code: "ambiguous", label: "Mơ hồ/khó hiểu" },
   ];
 
+  const toggleReason = (code) => {
+    setReasonTags((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
+  };
+
   // ---------- Helpers ----------
   const isGroup =
     Array.isArray(questionContent?.items) && questionContent.items.length > 0;
@@ -91,14 +101,184 @@ const PracticePage = () => {
     return new Set();
   }, [questionContent]);
 
-  const itemsCount = isGroup ? questionContent.items.length : 1;
-  const computedTimeLimit = 120 * itemsCount;
+  // Số câu trong bài (1 nếu single)
+  const itemsCount = useMemo(() => {
+    return Array.isArray(questionContent?.items)
+      ? questionContent.items.length
+      : 1;
+  }, [questionContent]);
 
+  // Tổng phút hiển thị/nhập (đồng bộ theo itemsCount)
+  const totalMinutes = useMemo(
+    () => Number((minutesPerItem * itemsCount).toFixed(2)),
+    [minutesPerItem, itemsCount]
+  );
+
+  // Định dạng mm:ss (nếu s == null → dùng timeLimit hiện hành)
   const formatTime = (s) => {
-    const total = s == null ? computedTimeLimit : s;
+    const total = s == null ? timeLimit : s;
     const mm = String(Math.floor(total / 60)).padStart(2, "0");
     const ss = String(total % 60).padStart(2, "0");
     return `${mm}:${ss}`;
+  };
+
+  // ---- Data URI helpers ----
+  const isDataUri = (s) => typeof s === "string" && s.startsWith("data:");
+  const isImageDataUri = (s) => isDataUri(s) && /^data:image\//i.test(s);
+
+  // Cho phép URL ảnh thường / đường dẫn tĩnh
+  // Cho phép URL ảnh thường / đường dẫn tĩnh
+  const isImageLike = (s) => {
+    if (typeof s !== "string") return false;
+    if (isImageDataUri(s)) return true;
+
+    // http/https, //cdn, /absolute, ./relative
+    if (
+      /^(?:https?:\/\/|\/\/|\/|\.{1,2}\/)[^?\s]+\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(
+        s
+      )
+    ) {
+      return true;
+    }
+    // thư mục tương đối phổ biến: images/, img/, icons/
+    if (
+      /^(images|img|icons)\/[^?\s]+\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(s)
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  // ---- Grid helpers ----
+  const isMostlyImageOptions = (choices) => {
+    if (!choices || typeof choices !== "object") return false;
+    const vals = Object.values(choices).filter((v) => v != null);
+    if (!vals.length) return false;
+    const imgCount = vals.filter((v) => isImageLike(v)).length;
+    return imgCount / vals.length >= 0.75; // ≥ 75% là ảnh
+  };
+
+  const grid2x2Styles = {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "0.75rem",
+  };
+
+  const tileButtonStyle = {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 160, // 160–240 tuỳ ý
+    width: "100%",
+    whiteSpace: "normal",
+  };
+
+  // Render passage: text hoặc ảnh; nếu là mảng -> thụt đầu dòng từng đoạn
+  const renderPassage = (content) => {
+    if (!content) return null;
+
+    // component nhỏ để thụt đầu dòng
+    const Para = ({ children }) => (
+      <p style={{ textIndent: "1.5rem", marginBottom: "0.5rem" }}>{children}</p>
+    );
+
+    // Ảnh đơn
+    if (isImageLike(content)) {
+      return (
+        <figure className="mb-0 text-center">
+          <img
+            src={content}
+            alt="passage"
+            loading="lazy"
+            style={{ maxWidth: "100%", height: "auto" }}
+          />
+        </figure>
+      );
+    }
+
+    // MẢNG: mỗi phần tử là 1 đoạn (string) hoặc ảnh
+    if (Array.isArray(content)) {
+      return (
+        <div>
+          {content.map((part, idx) => {
+            // ảnh
+            if (isImageLike(part)) {
+              return (
+                <figure key={idx} className="mb-2 text-center">
+                  <img
+                    src={part}
+                    alt={`passage-${idx}`}
+                    loading="lazy"
+                    style={{ maxWidth: "100%", height: "auto" }}
+                  />
+                </figure>
+              );
+            }
+            // object có .text
+            if (
+              part &&
+              typeof part === "object" &&
+              typeof part.text === "string"
+            ) {
+              return (
+                <Para key={idx}>{renderWithUnderlineMarkers(part.text)}</Para>
+              );
+            }
+            // string thường
+            if (typeof part === "string") {
+              return <Para key={idx}>{renderWithUnderlineMarkers(part)}</Para>;
+            }
+            return null;
+          })}
+        </div>
+      );
+    }
+
+    // STRING: nếu có xuống dòng -> tách đoạn để mỗi đoạn thụt đầu dòng
+    if (typeof content === "string") {
+      const lines = content.split(/\r?\n/).filter(Boolean);
+      if (lines.length > 1) {
+        return (
+          <div>
+            {lines.map((ln, i) => (
+              <Para key={i}>{renderWithUnderlineMarkers(ln)}</Para>
+            ))}
+          </div>
+        );
+      }
+      return <Para>{renderWithUnderlineMarkers(content)}</Para>;
+    }
+
+    return null;
+  };
+
+  // Render option: value có thể là text hoặc ảnh
+  const renderOptionContent = (
+    value,
+    { compactCaption } = { compactCaption: false }
+  ) => {
+    if (isImageLike(value)) {
+      return (
+        <div className="w-100 d-flex flex-column align-items-center">
+          <img
+            src={value}
+            alt="option"
+            loading="lazy"
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              maxHeight: 320,
+              objectFit: "contain",
+            }}
+          />
+          {!compactCaption && (
+            <div className="small text-muted mt-1">(ảnh phương án)</div>
+          )}
+        </div>
+      );
+    }
+    return <span>{value}</span>;
   };
 
   // Timer helpers
@@ -208,7 +388,7 @@ const PracticePage = () => {
     }
   }, [timeUp, allItemsAnswered]);
 
-  // ==== NGHE: bắt đầu timer khi audio được phát lần đầu ====
+  // ==== NGHE: bắt đầu timer khi audio được phát lần đầu (nếu bật timer) ====
   const handleAudioPlay = () => {
     if (!startTimeRef.current) startTimeRef.current = performance.now();
     audioPlayCountRef.current += 1;
@@ -219,7 +399,13 @@ const PracticePage = () => {
       setAudioLocked(true);
       setSequenceActive(true);
       setReplaysRemaining(1);
-      startCountdown(computedTimeLimit);
+      if (timerEnabled) {
+        const secs = Math.max(
+          5,
+          Math.round((minutesPerItem || 2) * itemsCount * 60)
+        );
+        startCountdown(secs);
+      }
     }
   };
 
@@ -264,21 +450,6 @@ const PracticePage = () => {
 
   // ---------- API ----------
   const fetchQuestion = async (q) => {
-    const isUnderDevelopment =
-      (level === "topik1" &&
-        type === "reading" &&
-        (q === 40 || q === 41 || q === 42 || q > 48)) ||
-      level === "topik2" ||
-      (level === "topik1" && type === "listening" && (q === 15 || q === 16));
-
-    if (isUnderDevelopment) {
-      setQuestionContent({
-        title: "Thông báo",
-        message: "Đang phát triển, vui lòng quay lại sau",
-      });
-      return;
-    }
-
     setLoadingQuestion(true);
     setSelectedQuestion(q);
     setSelectedAnswer(null);
@@ -299,8 +470,6 @@ const PracticePage = () => {
         cau: parseInt(q.toString(), 10),
       });
       setQuestionContent(res.data);
-
-      // (trước đây gọi startCountdown ở đây — có thể bị race. Đã chuyển sang useEffect bên dưới)
     } catch (err) {
       console.error("Error fetching question:", err);
       setQuestionContent({ error: "Không thể lấy câu hỏi" });
@@ -309,25 +478,33 @@ const PracticePage = () => {
     }
   };
 
-  // ==== ĐỌC: đảm bảo bật timer NGAY khi dữ liệu đọc đã sẵn sàng ====
+  // ==== ĐỌC: chỉ bật timer NGAY khi dữ liệu đọc đã sẵn sàng & timer bật ====
   useEffect(() => {
     if (type !== "reading") return;
     if (!questionContent || questionContent.error) return;
     if (remainingSec !== null || timeUp) return; // đã chạy rồi
+    if (!timerEnabled) return;
 
     // bắt đầu đo thời gian phản hồi + countdown
     startTimeRef.current = performance.now();
-    const items = Array.isArray(questionContent?.items)
-      ? questionContent.items.length
-      : 1;
-    const secs = 120 * items;
+    const secs = Math.max(
+      5,
+      Math.round((minutesPerItem || 2) * itemsCount * 60)
+    );
     startCountdown(secs);
-  }, [type, questionContent, remainingSec, timeUp]);
+  }, [
+    type,
+    questionContent,
+    remainingSec,
+    timeUp,
+    timerEnabled,
+    minutesPerItem,
+    itemsCount,
+  ]);
 
   const buildFeedbackPayload = (reaction, extra = {}) => {
-    const isGroup =
-      Array.isArray(questionContent?.items) &&
-      questionContent.items.length > 0;
+    const isGroupLocal =
+      Array.isArray(questionContent?.items) && questionContent.items.length > 0;
 
     const snapshot = {
       id: questionContent?.id ?? null,
@@ -346,7 +523,7 @@ const PracticePage = () => {
     };
 
     const is_correct_single =
-      !isGroup && selectedAnswer != null && questionContent?.answer != null
+      !isGroupLocal && selectedAnswer != null && questionContent?.answer != null
         ? selectedAnswer === questionContent.answer
         : null;
 
@@ -358,7 +535,7 @@ const PracticePage = () => {
       reaction,
       reason_tags: extra.reason_tags ?? null,
       free_text: extra.free_text ?? null,
-      answer_selected: isGroup ? selectedAnswers : selectedAnswer ?? null,
+      answer_selected: isGroupLocal ? selectedAnswers : selectedAnswer ?? null,
       is_correct: is_correct_single,
       timer_seconds_left: remainingSec,
       time_limit: timeLimit,
@@ -530,6 +707,35 @@ const PracticePage = () => {
     });
   };
 
+  // Chuyển "abc __gạch chân__ xyz" -> React nodes với <u>gạch chân</u>
+  const renderWithUnderlineMarkers = (input) => {
+    if (typeof input !== "string" || !input.includes("__")) return input;
+
+    const nodes = [];
+    const regex = /__([\s\S]+?)__/g; // khớp ngắn nhất giữa hai cặp __ __
+    let last = 0;
+    let m;
+    let i = 0;
+
+    while ((m = regex.exec(input)) !== null) {
+      if (m.index > last) {
+        nodes.push(
+          <React.Fragment key={`txt-${i++}`}>
+            {input.slice(last, m.index)}
+          </React.Fragment>
+        );
+      }
+      nodes.push(<u key={`u-${i++}`}>{m[1]}</u>);
+      last = regex.lastIndex;
+    }
+    if (last < input.length) {
+      nodes.push(
+        <React.Fragment key={`txt-${i++}`}>{input.slice(last)}</React.Fragment>
+      );
+    }
+    return nodes;
+  };
+
   return (
     <div className="container py-5">
       <h1 className="text-center mb-4">Practice TOPIK</h1>
@@ -603,7 +809,11 @@ const PracticePage = () => {
                       ? "btn-primary"
                       : "btn-outline-secondary"
                   }`}
-                  style={{ width: "40px", height: "40px", position: "relative" }}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    position: "relative",
+                  }}
                   disabled={loadingQuestion || disabledByGroup}
                   onClick={() => fetchQuestion(q)}
                   title={disabledByGroup ? "Đang hiển thị theo cặp" : undefined}
@@ -641,13 +851,13 @@ const PracticePage = () => {
             style={{ maxWidth: "600px" }}
           >
             {/* Title row with countdown at right */}
-            <div className="d-flex align-items-center justify-content-center position-relative mb-3">
+            <div className="d-flex align-items-center justify-content-center position-relative mb-2">
               <h5 className="card-title text-center m-0">
                 {level.toUpperCase()} -{" "}
                 {type === "reading" ? "reading" : "listening"} - Câu{" "}
                 {selectedQuestion}
               </h5>
-              {/* Hiển thị countdown cho cả đọc & nghe */}
+              {/* Hiển thị countdown khi đang chạy */}
               {remainingSec !== null && (
                 <span
                   className="badge bg-dark position-absolute end-0"
@@ -657,6 +867,91 @@ const PracticePage = () => {
                   {formatTime(remainingSec)}
                 </span>
               )}
+            </div>
+
+            {/* Row điều khiển Timer */}
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <div className="d-flex align-items-center gap-2">
+                <button
+                  type="button"
+                  className={`btn btn-sm ${
+                    timerEnabled ? "btn-warning" : "btn-outline-secondary"
+                  }`}
+                  onClick={() => {
+                    const next = !timerEnabled;
+                    setTimerEnabled(next);
+                    if (!next) {
+                      // Tắt → dừng & reset
+                      resetTimer();
+                    } else {
+                      // Bật → nếu đã có câu hỏi & timer chưa chạy, khởi động ngay
+                      if (!timeUp && remainingSec === null) {
+                        const secs = Math.max(
+                          5,
+                          Math.round((minutesPerItem || 2) * itemsCount * 60)
+                        );
+                        startTimeRef.current = performance.now();
+                        startCountdown(secs);
+                      }
+                    }
+                  }}
+                  title={timerEnabled ? "Tắt đồng hồ" : "Bật đồng hồ"}
+                >
+                  {timerEnabled ? "Timer: ON" : "Timer: OFF"}
+                </button>
+
+                <div
+                  className="input-group input-group-sm"
+                  style={{ width: 190 }}
+                >
+                  <span className="input-group-text">Thời gian</span>
+                  <input
+                    type="number"
+                    min={0.5}
+                    step={0.5}
+                    className="form-control"
+                    value={totalMinutes}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      const safe = Number.isFinite(v) ? v : 2;
+                      // cập nhật minutesPerItem theo tổng/số câu
+                      const divisor = itemsCount > 0 ? itemsCount : 1;
+                      setMinutesPerItem(Math.max(0.1, safe / divisor));
+                    }}
+                    disabled={remainingSec !== null} // đang chạy thì khoá input
+                  />
+                  <span className="input-group-text">ph (tổng)</span>
+                </div>
+              </div>
+
+              <button
+                className="btn btn-sm btn-outline-primary"
+                onClick={() => {
+                  if (timerEnabled) {
+                    stopTimer();
+                    const secs = Math.max(
+                      5,
+                      Math.round((minutesPerItem || 2) * itemsCount * 60)
+                    );
+                    setTimeLimit(secs);
+                    setRemainingSec(null);
+                    setTimeUp(false);
+                  }
+                }}
+              >
+                Đặt lại
+              </button>
+            </div>
+
+            {/* Gợi ý nhỏ hiển thị phút mỗi câu */}
+            <div className="text-muted mb-2" style={{ fontSize: "0.85rem" }}>
+              {itemsCount > 1
+                ? `~ ${minutesPerItem.toFixed(
+                    2
+                  )} phút/câu × ${itemsCount} câu = ${totalMinutes.toFixed(
+                    2
+                  )} phút`
+                : `~ ${minutesPerItem.toFixed(2)} phút`}
             </div>
 
             {/* Title + feedback */}
@@ -758,7 +1053,11 @@ const PracticePage = () => {
             ) : (
               <div className="mb-2">
                 <p className="text-muted mb-1">
-                  Bài gồm {itemsCount} câu:{" "}
+                  Bài gồm{" "}
+                  {Array.isArray(questionContent?.items)
+                    ? questionContent.items.length
+                    : 0}{" "}
+                  câu:{" "}
                   {Array.isArray(questionContent?.question_no)
                     ? questionContent.question_no.join(", ")
                     : ""}
@@ -768,11 +1067,8 @@ const PracticePage = () => {
 
             {/* PASSAGE (ĐỌC) */}
             {type === "reading" && questionContent?.passage && (
-              <div
-                className="mb-3 p-3 bg-light border rounded"
-                style={{ whiteSpace: "pre-wrap" }}
-              >
-                {questionContent.passage}
+              <div className="mb-3 p-3 bg-light border rounded">
+                {renderPassage(questionContent.passage)}
               </div>
             )}
 
@@ -798,60 +1094,169 @@ const PracticePage = () => {
                 questionContent.dialog.length > 0 && (
                   <div className="mb-2 p-2 bg-light border rounded">
                     {questionContent.dialog.map((d, idx) => (
-                      <p key={idx} className="mb-1">
-                        <strong>{d.speaker}:</strong> {d.text}
-                      </p>
+                      <div key={idx} className="mb-1">
+                        <strong className="me-1">{d.speaker}:</strong>
+                        {isImageLike(d.text) ? (
+                          <img
+                            src={d.text}
+                            alt={`${d.speaker}-utterance`}
+                            loading="lazy"
+                            style={{
+                              maxWidth: "100%",
+                              height: "auto",
+                              verticalAlign: "middle",
+                            }}
+                          />
+                        ) : (
+                          <span>{d.text}</span>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}
 
-              {/* Choices */}
-              {!isGroup && selectedQuestion && questionContent?.choices && (
-                <div className="d-flex flex-column gap-2 mt-3">
-                  {Object.entries(questionContent.choices).map(([key, text]) => (
-                    <button
-                      key={key}
-                      className={`btn ${choiceVariantSingle(key)}`}
-                      onClick={() => onChooseAnswer(key)}
-                      disabled={disableChoicesSingle}
-                    >
-                      {key}. {text}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* Choices (single) */}
+              {!isGroup &&
+                selectedQuestion &&
+                questionContent?.choices &&
+                (() => {
+                  const isGrid = isMostlyImageOptions(questionContent.choices);
+
+                  if (!isGrid) {
+                    // Dọc
+                    return (
+                      <div className="d-flex flex-column gap-2 mt-3">
+                        {Object.entries(questionContent.choices).map(
+                          ([key, value]) => (
+                            <button
+                              key={key}
+                              className={`btn text-start ${choiceVariantSingle(
+                                key
+                              )}`}
+                              onClick={() => onChooseAnswer(key)}
+                              disabled={disableChoicesSingle}
+                              style={{
+                                display: "flex",
+                                gap: "0.75rem",
+                                alignItems: "center",
+                              }}
+                            >
+                              <strong style={{ minWidth: 20 }}>{key}.</strong>
+                              <div className="flex-grow-1">
+                                {renderOptionContent(value, {
+                                  compactCaption: true,
+                                })}
+                              </div>
+                            </button>
+                          )
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // Lưới 2×2
+                  return (
+                    <div className="mt-3" style={grid2x2Styles}>
+                      {Object.entries(questionContent.choices).map(
+                        ([key, value]) => (
+                          <button
+                            key={key}
+                            className={`btn ${choiceVariantSingle(key)}`}
+                            onClick={() => onChooseAnswer(key)}
+                            disabled={disableChoicesSingle}
+                            aria-label={`Option ${key}`}
+                            style={tileButtonStyle}
+                          >
+                            <div className="mb-2 fw-semibold">{key}</div>
+                            <div style={{ width: "100%" }}>
+                              {renderOptionContent(value, {
+                                compactCaption: true,
+                              })}
+                            </div>
+                          </button>
+                        )
+                      )}
+                    </div>
+                  );
+                })()}
 
               {/* Group items */}
               {isGroup && (
                 <div className="d-flex flex-column gap-3 mt-2">
                   {questionContent.items.map((it, idx) => {
                     const qno = it.question_no;
+                    const isGrid = isMostlyImageOptions(it.choices || {});
                     return (
                       <div key={qno ?? idx} className="p-2 border rounded">
                         <div className="fw-semibold mb-2">
                           {qno ? `Câu ${qno}. ` : ""}
                           {it.question}
                         </div>
-                        <div className="d-flex flex-column gap-2">
-                          {Object.entries(it.choices || {}).map(
-                            ([key, text]) => (
-                              <button
-                                key={key}
-                                className={`btn ${choiceVariantFor(
-                                  qno,
-                                  key,
-                                  it.answer
-                                )}`}
-                                onClick={() =>
-                                  onChooseAnswerGroup(qno, key, it.answer)
-                                }
-                                disabled={disableChoicesFor(qno)}
-                              >
-                                {key}. {text}
-                              </button>
-                            )
-                          )}
-                        </div>
+
+                        {!isGrid ? (
+                          // Dọc
+                          <div className="d-flex flex-column gap-2">
+                            {Object.entries(it.choices || {}).map(
+                              ([key, value]) => (
+                                <button
+                                  key={key}
+                                  className={`btn text-start ${choiceVariantFor(
+                                    qno,
+                                    key,
+                                    it.answer
+                                  )}`}
+                                  onClick={() =>
+                                    onChooseAnswerGroup(qno, key, it.answer)
+                                  }
+                                  disabled={disableChoicesFor(qno)}
+                                  style={{
+                                    display: "flex",
+                                    gap: "0.75rem",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <strong style={{ minWidth: 20 }}>
+                                    {key}.
+                                  </strong>
+                                  <div className="flex-grow-1">
+                                    {renderOptionContent(value, {
+                                      compactCaption: true,
+                                    })}
+                                  </div>
+                                </button>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          // Lưới 2×2
+                          <div style={grid2x2Styles}>
+                            {Object.entries(it.choices || {}).map(
+                              ([key, value]) => (
+                                <button
+                                  key={key}
+                                  className={`btn ${choiceVariantFor(
+                                    qno,
+                                    key,
+                                    it.answer
+                                  )}`}
+                                  onClick={() =>
+                                    onChooseAnswerGroup(qno, key, it.answer)
+                                  }
+                                  disabled={disableChoicesFor(qno)}
+                                  aria-label={`Option ${key}`}
+                                  style={tileButtonStyle}
+                                >
+                                  <div className="mb-2 fw-semibold">{key}</div>
+                                  <div style={{ width: "100%" }}>
+                                    {renderOptionContent(value, {
+                                      compactCaption: true,
+                                    })}
+                                  </div>
+                                </button>
+                              )
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
