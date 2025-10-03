@@ -1,0 +1,28 @@
+{
+  "qid": "a1526d50b64e61e97f24d556b9e68436ab4859b3",
+  "explanations": {
+    "en": {
+      "text": "The correct answer is B (보려고) because it expresses purpose - 'in order to' see the sunrise, while D (보는데) indicates a contrasting or background situation.",
+      "points": [
+        "보려고 is used to express purpose or intention",
+        "The context clearly shows the person woke up early with the purpose of seeing the sunrise",
+        "보는데 would change the meaning to 'while seeing' which doesn't fit the logical sequence"
+      ],
+      "lang": "en",
+      "model": "anthropic/claude-3.5-sonnet",
+      "backend": "openrouter",
+      "ts": "2025-10-03T04:42:22.854695Z"
+    },
+    "vi": {
+      "text": "'-려고' là cấu trúc ngữ pháp diễn tả mục đích của hành động, phù hợp với ngữ cảnh 'thức dậy sớm để xem mặt trời mọc'.",
+      "points": [
+        "'-려고' kết hợp với động từ để chỉ mục đích của hành động chính",
+        "Đáp án D '-는데' không phù hợp vì đây là cấu trúc diễn tả tình huống đối lập hoặc bổ sung"
+      ],
+      "lang": "vi",
+      "model": "anthropic/claude-3.5-sonnet",
+      "backend": "openrouter",
+      "ts": "2025-10-03T04:42:34.327796Z"
+    }
+  }
+}

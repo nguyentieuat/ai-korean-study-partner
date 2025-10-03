@@ -1,17 +1,23 @@
-# api_topikI_generate.py
+# api_topik_generate.py
 import os, re, json, time, base64, hashlib, unicodedata as _ud
 from io import BytesIO
 from pathlib import Path
 from typing import Dict, Optional, List, Tuple
 from contextlib import contextmanager
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Query
+from datetime import datetime
 from pydantic import BaseModel
 
 from generate_question import (
     generate_topik_question, warm_all_caches,
     DataNotFoundError, BadRequestError,
 )
+from generate_question.explanation import (
+    ExplainReq, ExplainResp, explain_question,
+    EXPLAIN_BACKEND, EXPLAIN_MODEL, OPENROUTER_MODEL,
+)
+
 from utils.utils import text_to_speech  # trả về bytes MP3 (lang=ko)
 
 # ---------------- FastAPI Router ----------------
@@ -305,6 +311,14 @@ def api_generate_topik(request: Request, body: TopikReq):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal error: {e}")
+
+@router.post("/explain", response_model=ExplainResp)
+def api_explain_topik(body: ExplainReq, mode: str = Query("auto", regex="^(auto|cache|force)$")) -> ExplainResp:
+    # Chuyển hoàn toàn cho service xử lý:
+
+    print(f"TOPIK explain_question: language={body.language}, category={body.category}, cau={body.cau}, mode={mode}")
+    return explain_question(body, mode=mode)
+
 
 @router.post("/reload")
 def api_reload():

@@ -1,0 +1,40 @@
+{
+  "qid": "b793ed2b3f43659e59bc9d54ce421f5a17e588b7",
+  "explanations": {
+    "ko": {
+      "text": "Đoạn văn nói về quốc tịch của người nói và bạn của họ (Nhật Bản và Trung Quốc), nên chủ đề chính là về quốc gia.",
+      "points": [
+        "Có từ khóa '일본 사람' (người Nhật)",
+        "Có từ khóa '중국에서' (từ Trung Quốc)",
+        "Cả hai từ khóa đều liên quan đến tên nước"
+      ],
+      "lang": "ko",
+      "model": "anthropic/claude-3.5-sonnet",
+      "backend": "openrouter",
+      "ts": "2025-10-03T04:24:59.552315Z"
+    },
+    "en": {
+      "text": "Đoạn văn đề cập đến các quốc gia - Nhật Bản và Trung Quốc, nên chủ đề chính là về 'nước/quốc gia' (나라).",
+      "points": [
+        "일본 사람 (người Nhật) và 중국에서 (từ Trung Quốc) là từ chỉ quốc gia",
+        "Không có thông tin về gia đình, ngày tháng hay trường học"
+      ],
+      "lang": "en",
+      "model": "anthropic/claude-3.5-sonnet",
+      "backend": "openrouter",
+      "ts": "2025-10-03T04:34:23.224544Z"
+    },
+    "vi": {
+      "text": "Đoạn văn nói về quốc tịch/xuất xứ của người nói và bạn của họ (Nhật Bản và Trung Quốc).",
+      "points": [
+        "Có từ khóa '일본 사람' (người Nhật)",
+        "Có từ khóa '중국에서' (từ Trung Quốc)",
+        "Cả hai từ khóa đều liên quan đến quốc gia (나라)"
+      ],
+      "lang": "vi",
+      "model": "anthropic/claude-3.5-sonnet",
+      "backend": "openrouter",
+      "ts": "2025-10-03T04:35:09.769883Z"
+    }
+  }
+}

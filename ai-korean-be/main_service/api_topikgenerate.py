@@ -1,6 +1,7 @@
 # api_topikgenerate.py
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 from uuid import uuid4
 
 import asyncio
@@ -9,7 +10,7 @@ import json
 import os
 import traceback
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Query
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
@@ -195,3 +196,86 @@ async def topik_feedback_save(req: Request):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"log error: {e}")
+
+from typing import Optional, Dict, List
+
+class ExplainReq(BaseModel):
+    level: str
+    category: str
+    cau: int
+    type: Optional[str] = None
+    section: Optional[str] = None
+    title: Optional[str] = None
+    question: Optional[str] = None
+    dialogue: Optional[List[Dict[str, str]]] = None
+    passage: Optional[object] = None
+    options: Dict[str, str]
+    answer: str
+    user_answer: Optional[str] = None
+    language: Optional[str] = "vi"
+    source_jsonl: Optional[str] = None
+    use_sidecar: Optional[bool] = True
+
+@router.post("/api/explain")
+async def topik_explain_question(
+    req: Request,
+    body: ExplainReq,
+    mode: str = Query("auto", regex="^(auto|cache|force)$")
+):
+    http = req.app.state.http
+    try:
+        # chuyển tiếp user id / trace id nếu có
+        user_key = req.headers.get("X-User-Id") or f"ip:{req.client.host}"
+        trace_id = req.headers.get("X-Trace-Id")
+
+        headers = {
+            "X-User-Id": user_key,
+        }
+        if trace_id:
+            headers["X-Trace-Id"] = trace_id
+
+        # Gọi sang Explain Service
+        r = await http.post(
+            f"{TQG_SERVICE_URL}/api/topik/explain",
+            params={"mode": mode},
+            json=body.model_dump(),
+            headers=headers,
+        )
+        if r.is_error:
+            raise HTTPException(r.status_code, f"ExplainSvc: {r.text[:500]}")
+        return r.json()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, f"Lỗi gọi Explain Service: {e}")
+
+@router.post("/api/explain/batch")
+async def topik_explain_batch(
+    req: Request,
+    bodies: List[ExplainReq],
+    mode: str = Query("auto", regex="^(auto|cache|force)$")
+):
+    http = req.app.state.http
+    try:
+        user_key = req.headers.get("X-User-Id") or f"ip:{req.client.host}"
+        headers = {"X-User-Id": user_key}
+
+        # chạy song song
+        import asyncio
+        async def _call_one(payload):
+            r = await http.post(
+                f"{TQG_SERVICE_URL}/api/topik/explain",
+                params={"mode": mode},
+                json=payload,
+                headers=headers,
+            )
+            return r.json() if not r.is_error else {"error": r.text[:300]}
+
+        results = await asyncio.gather(*[_call_one(b.model_dump()) for b in bodies], return_exceptions=False)
+        return {"results": results}
+
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, f"Lỗi gọi Explain Service (batch): {e}")

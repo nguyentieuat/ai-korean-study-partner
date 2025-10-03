@@ -11,6 +11,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 # Ưu tiên các model open-source/phủ rộng, để cuối là OpenAI (dễ bị chặn theo khu vực)
 MODEL_CANDIDATES = [
     os.getenv("DIALOGUE_MODEL", "").strip() or "gpt-4o-mini",
+    "anthropic/claude-3.5-sonnet"
     "meta-llama/llama-3-8b-instruct",
     "meta-llama/llama-3-70b-instruct",
     "google/gemma-2-9b-it",

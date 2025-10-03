@@ -10,6 +10,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 # Thứ tự fallback: ưu tiên model open-source/hỗ trợ rộng rãi để tránh lỗi region
 MODEL_CANDIDATES = [
     os.getenv("GRAMMAR_MODEL", "").strip() or "gpt-4o-mini",
+    "anthropic/claude-3.5-sonnet",
     "meta-llama/llama-3-8b-instruct",
     "meta-llama/llama-3-70b-instruct",
     "google/gemma-2-9b-it",

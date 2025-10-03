@@ -7,3 +7,5 @@ python-multipart
 # === Audio / TTS ===
 pydub
 gTTS
+
+openai>=1.40.0

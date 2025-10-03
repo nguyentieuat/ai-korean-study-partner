@@ -736,6 +736,118 @@ const PracticePage = () => {
     return nodes;
   };
 
+  // ==== EXPLAIN: state & endpoint ====
+  const EXPLAIN_URL = `${backendUrl}/explain`;
+
+  const [showExplain, setShowExplain] = useState(false);
+  const [explainLoading, setExplainLoading] = useState(false);
+  const [explainError, setExplainError] = useState(null);
+  // single: object { explanation, is_correct, explain_model, updated, qid, points[] }
+  // group:  array of { qno, explanation, is_correct, explain_model, updated, qid, points[] }
+  const [explainData, setExplainData] = useState(null);
+
+  // Ngôn ngữ lời giải (nếu muốn đổi về sau)
+  const [explainLang, setExplainLang] = useState("vi");
+
+  // ==== EXPLAIN: build payload(s) ====
+  const buildExplainPayloadSingle = () => {
+    if (!questionContent) return null;
+    return {
+      level,
+      category: type === "listening" ? "listening" : "reading",
+      cau: selectedQuestion,
+      type: questionContent?.type || (type === "listening" ? "Listen" : "Read"),
+      section:
+        questionContent?.section || (type === "listening" ? "Nghe" : "Đọc"),
+      title: questionContent?.title || null,
+      question: questionContent?.question || null,
+      dialogue: Array.isArray(questionContent?.dialog)
+        ? questionContent.dialog
+        : null,
+      passage: questionContent?.passage ?? null,
+      options: questionContent?.choices || {},
+      answer: questionContent?.answer ?? null,
+      user_answer: selectedAnswer ?? null,
+      language: explainLang,
+      use_sidecar: true,
+    };
+  };
+
+  const buildExplainPayloadGroup = () => {
+    if (!questionContent?.items) return [];
+    return questionContent.items.map((it) => ({
+      level,
+      category: type === "listening" ? "listening" : "reading",
+      cau: it.question_no ?? selectedQuestion, // “cau” hiển thị theo từng câu con
+      type: it.type || questionContent?.type || "ReadGroup",
+      section:
+        questionContent?.section || (type === "listening" ? "Nghe" : "Đọc"),
+      title: questionContent?.title || null,
+      question: it.question || null,
+      dialogue: null, // group reading/listening thường không có dialog per-item
+      passage: null, // passage chung đã có ở ngoài; payload để tính qid per-item chỉ cần item fields
+      options: it.choices || {},
+      answer: it.answer ?? null,
+      user_answer: selectedAnswers?.[it.question_no] ?? null,
+      language: explainLang,
+      use_sidecar: true,
+    }));
+  };
+
+  // ==== EXPLAIN: caller ====
+  const callExplain = async (mode = "auto") => {
+    try {
+      setExplainLoading(true);
+      setExplainError(null);
+
+      if (!isGroup) {
+        const payload = buildExplainPayloadSingle();
+        if (!payload) throw new Error("Thiếu dữ liệu câu hỏi.");
+        const res = await axios.post(`${EXPLAIN_URL}?mode=${mode}`, payload);
+        const d = res.data;
+        setExplainData({
+          explanation: d.explanation,
+          points: Array.isArray(d.points) ? d.points : [],
+          is_correct: d.is_correct,
+          explain_model: d.explain_model,
+          updated: d.updated,
+          qid: d.qid,
+          updated_path: d.updated_path || null,
+        });
+      } else {
+        const payloads = buildExplainPayloadGroup();
+        if (!payloads.length) throw new Error("Thiếu dữ liệu câu hỏi nhóm.");
+        const results = await Promise.all(
+          payloads.map((p) =>
+            axios
+              .post(`${EXPLAIN_URL}?mode=${mode}`, p)
+              .then((r) => r.data)
+              .catch((e) => ({ error: e?.message || "ERR" }))
+          )
+        );
+        const merged = results.map((d, idx) => ({
+          qno: questionContent.items[idx]?.question_no ?? idx + 1,
+          explanation: d?.explanation || "(Không có giải thích.)",
+          points: Array.isArray(d?.points) ? d.points : [],
+          is_correct: d?.is_correct ?? null,
+          explain_model: d?.explain_model || null,
+          updated: !!d?.updated,
+          qid: d?.qid || null,
+          error: d?.error || null,
+        }));
+        setExplainData(merged);
+      }
+
+      setShowExplain(true);
+    } catch (err) {
+      console.error("Explain error:", err);
+      setExplainError(err?.message || "Không thể lấy lời giải.");
+      setShowExplain(true); // vẫn mở modal để hiện lỗi
+    } finally {
+      setExplainLoading(false);
+    }
+  };
+
   return (
     <div className="container py-5">
       <h1 className="text-center mb-4">Practice TOPIK</h1>
@@ -1265,7 +1377,23 @@ const PracticePage = () => {
             </div>
 
             {(allItemsAnswered || timeUp) && (
-              <div className="d-flex justify-content-center mt-3">
+              <div className="d-flex justify-content-center gap-2 mt-3">
+                <button
+                  className="btn btn-outline-secondary"
+                  onClick={() => callExplain("auto")}
+                  disabled={explainLoading}
+                  title="Xem giải thích"
+                >
+                  {explainLoading ? (
+                    <span className="spinner-border spinner-border-sm me-2" />
+                  ) : (
+                    <span className="me-2" aria-hidden="true">
+                      💡
+                    </span>
+                  )}
+                  Giải thích
+                </button>
+
                 <button
                   className="btn btn-outline-primary"
                   onClick={() => fetchQuestion(selectedQuestion)}
@@ -1288,6 +1416,162 @@ const PracticePage = () => {
         >
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+
+      {/* ==== EXPLAIN MODAL ==== */}
+      {showExplain && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100"
+          style={{ background: "rgba(0,0,0,0.35)", zIndex: 1100 }}
+          onClick={() => setShowExplain(false)}
+        >
+          <div
+            className="card shadow p-3"
+            style={{
+              maxWidth: 640,
+              width: "94%",
+              margin: "6rem auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5 className="m-0">Giải thích</h5>
+              <div className="d-flex align-items-center gap-2">
+                {/* Chọn language (tuỳ bạn, mặc định 'vi') */}
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: 120 }}
+                  value={explainLang}
+                  onChange={(e) => setExplainLang(e.target.value)}
+                >
+                  <option value="vi">Tiếng Việt</option>
+                  <option value="ko">한국어</option>
+                  <option value="en">English</option>
+                </select>
+
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => callExplain("force")}
+                  disabled={explainLoading}
+                  title="Sinh lại lời giải (ghi đè cache)"
+                >
+                  {explainLoading ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    "Regenerate"
+                  )}
+                </button>
+
+                <button
+                  className="btn btn-sm btn-light"
+                  onClick={() => setShowExplain(false)}
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+
+            {explainError && (
+              <div className="alert alert-danger py-2">{explainError}</div>
+            )}
+
+            {explainLoading && (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status" />
+              </div>
+            )}
+
+            {!explainLoading && !explainError && explainData && (
+              <>
+                {/* SINGLE */}
+                {!isGroup ? (
+                  <div>
+                    <div className="small text-muted mb-2">
+                      {typeof explainData.is_correct === "boolean" && (
+                        <span
+                          className={`badge me-2 ${
+                            explainData.is_correct ? "bg-success" : "bg-danger"
+                          }`}
+                        >
+                          {explainData.is_correct ? "Đúng" : "Sai"}
+                        </span>
+                      )}
+                      {explainData.updated === false ? (
+                        <span className="badge bg-secondary me-2">cached</span>
+                      ) : (
+                        <span className="badge bg-info text-dark me-2">
+                          generated
+                        </span>
+                      )}
+                      {explainData.explain_model && (
+                        <span className="small">
+                          model: <code>{explainData.explain_model}</code>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mb-2">{explainData.explanation}</div>
+                    {Array.isArray(explainData.points) &&
+                      explainData.points.length > 0 && (
+                        <ul className="mb-0">
+                          {explainData.points.map((p, i) => (
+                            <li key={i}>{p}</li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
+                ) : (
+                  // GROUP
+                  <div className="d-flex flex-column gap-3">
+                    {explainData.map((row, idx) => (
+                      <div key={row.qno ?? idx} className="p-2 border rounded">
+                        <div className="d-flex align-items-center gap-2 mb-1">
+                          <strong>Câu {row.qno}</strong>
+                          {typeof row.is_correct === "boolean" && (
+                            <span
+                              className={`badge ${
+                                row.is_correct ? "bg-success" : "bg-danger"
+                              }`}
+                            >
+                              {row.is_correct ? "Đúng" : "Sai"}
+                            </span>
+                          )}
+                          {row.updated ? (
+                            <span className="badge bg-info text-dark">
+                              generated
+                            </span>
+                          ) : (
+                            <span className="badge bg-secondary">cached</span>
+                          )}
+                        </div>
+                        {row.error ? (
+                          <div className="text-danger small">{row.error}</div>
+                        ) : (
+                          <>
+                            <div className="mb-1">{row.explanation}</div>
+                            {Array.isArray(row.points) &&
+                              row.points.length > 0 && (
+                                <ul className="mb-0">
+                                  {row.points.map((p, i) => (
+                                    <li key={i}>{p}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            {row.explain_model && (
+                              <div className="small text-muted mt-1">
+                                model: <code>{row.explain_model}</code>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
