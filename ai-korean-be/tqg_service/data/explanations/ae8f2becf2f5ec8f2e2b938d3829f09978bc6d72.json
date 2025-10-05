@@ -1,0 +1,13 @@
+{
+  "qid": "ae8f2becf2f5ec8f2e2b938d3829f09978bc6d72",
+  "explanations": {
+    "vi": {
+      "text": "Giải thích: Câu chuyện nói về một người đàn ông hỏi một người phụ nữ có bao nhỏ hơn không và cô ấy cho biết nó đang được trưng bày trong cửa hàng.\n\nĐiểm chính:\n\n- Người đàn ông hỏi người phụ nữ về việc có bao nhỏ hơn không.\n- Người phụ nữ trả lời rằng nó đang được trưng bày trong cửa hàng.\n- Câu chuyện diễn ra ở một nơi bán lẻ.",
+      "points": [],
+      "lang": "vi",
+      "model": "llama3.1:8b",
+      "backend": "local",
+      "ts": "2025-10-05T07:12:39.625341Z"
+    }
+  }
+}

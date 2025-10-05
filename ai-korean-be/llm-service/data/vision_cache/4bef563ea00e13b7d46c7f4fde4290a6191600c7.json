@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nTwo people sitting on a couch, one holding a cell phone and the other holding a remote. They are both smiling and appear to be enjoying their time together.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n두 사람 이 한 권 의 의자 에 앉아 있는데, 한 사람 은 휴대 전화 를 들고 있고, 한 사람 은 원격 을 들고 있다. 그 둘 다 미소 하고, 함께 즐거운 시간 을 보내고 있는 것 같다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:03:00.176974Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

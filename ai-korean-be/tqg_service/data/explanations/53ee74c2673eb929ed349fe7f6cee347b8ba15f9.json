@@ -1,0 +1,13 @@
+{
+  "qid": "53ee74c2673eb929ed349fe7f6cee347b8ba15f9",
+  "explanations": {
+    "vi": {
+      "text": "Giải thích: Người đàn ông đang hỏi nơi gặp gỡ của người phụ nữ, và đáp án đúng là \"B. Nhà tôi\".\n\nĐiểm:\n\n - B là đáp án đúng vì nó trả lời câu hỏi về nơi gặp gỡ.\n - A không chính xác vì nó nói về phương tiện giao thông.\n - C không liên quan đến câu hỏi.\n - D không phải là một đáp án hợp lý trong ngữ cảnh này.",
+      "points": [],
+      "lang": "vi",
+      "model": "llama3.1:8b",
+      "backend": "local",
+      "ts": "2025-10-04T12:55:26.364538Z"
+    }
+  }
+}

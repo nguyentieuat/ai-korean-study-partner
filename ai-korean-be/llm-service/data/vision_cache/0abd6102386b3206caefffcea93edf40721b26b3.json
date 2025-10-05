@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nA man and a woman are walking in a market.\n[/TEXT]\n\n[DESC]\nA man and a woman are walking in a market.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n한 남자와 한 여자가 시장에서 걷고 있습니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:00:43.789849Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

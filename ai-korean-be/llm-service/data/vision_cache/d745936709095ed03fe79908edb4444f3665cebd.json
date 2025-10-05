@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nA man and a woman are planting a tree.\n[/TEXT]\n\n[DESC]\nA man and a woman are planting a tree in a yard.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n한 남자와 한 여자가 정원에 나무를 심고 있습니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:56:35.471064Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

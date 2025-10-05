@@ -1,0 +1,13 @@
+{
+  "qid": "f5c5229ba269cbeed27bda632417e6a5728a4574",
+  "explanations": {
+    "vi": {
+      "text": "Không thể sinh lời giải tự động (openai returned invalid/placeholder text).",
+      "points": [],
+      "lang": "vi",
+      "model": "none",
+      "backend": "none",
+      "ts": "2025-10-03T23:21:21.512340Z"
+    }
+  }
+}

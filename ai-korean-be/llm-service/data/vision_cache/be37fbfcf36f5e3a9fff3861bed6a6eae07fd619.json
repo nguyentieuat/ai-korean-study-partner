@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nA girl holding a pot with a plant in it.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n한 소녀가 한 마리 식물을 들고 있는 냄비를 들고 있는 것.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:54:23.158521Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

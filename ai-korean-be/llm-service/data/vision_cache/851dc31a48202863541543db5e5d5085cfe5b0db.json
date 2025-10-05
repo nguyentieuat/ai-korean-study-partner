@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nA woman sitting on the ground with a man standing over her.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n바닥에 앉아 있는 여자가, 그 위에 있는 남자가\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:57:01.522184Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

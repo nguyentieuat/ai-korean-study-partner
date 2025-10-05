@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nA man and a woman are standing in a room with potted plants.\n[/TEXT]\n\n[DESC]\nA woman holding a potted plant.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n한 남자와 한 여자가 냄비 식물 있는 방에 서 있습니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:58:10.976204Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

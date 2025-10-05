@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nA woman holding a flower in her hand.\n[/TEXT]\n\n[DESC]\nA woman holding a flower in her hand.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[ 텍스트 ] 한 여자가 꽃을 들고 있는\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:57:14.662034Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

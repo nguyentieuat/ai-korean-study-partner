@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nA person pointing at something.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n어떤 것을 가리키는 사람이죠.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:55:07.059170Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

@@ -14,8 +14,7 @@ from generate_question import (
     DataNotFoundError, BadRequestError,
 )
 from generate_question.explanation import (
-    ExplainReq, ExplainResp, explain_question,
-    EXPLAIN_BACKEND, EXPLAIN_MODEL, OPENROUTER_MODEL,
+    ExplainReq, ExplainResp, explain_question
 )
 
 from utils.utils import text_to_speech  # trả về bytes MP3 (lang=ko)

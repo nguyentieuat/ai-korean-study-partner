@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nA woman holding a box.\n[/TEXT]\n\n[DESC]\nA man wearing a suit.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[ 텍스트] 여자 한 박스를 들고. [ / 텍스트] [ 데스크 ] 의복을 입은 남자.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:03:38.804036Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

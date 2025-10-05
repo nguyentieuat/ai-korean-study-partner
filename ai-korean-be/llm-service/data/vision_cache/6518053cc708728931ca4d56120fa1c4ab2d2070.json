@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nTwo people are watering plants in their backyard.\n[/TEXT]\n\n[DESC]\nA woman and a man are watering plants in their backyard. They are using watering cans to water the plants.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT] 두 사람이 정원에서 식물들을 수분하고 있습니다. [/TEXT] [DESC] 한 남자와 한 여자가 정원에서 식물들을 수분하고 있습니다. 그들은 정원을 수분하기 위해 수분 캔을 사용합니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:00:29.653849Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "qid": "881211901e98a09f660f6d10f77f7118f0ceda1c",
+  "explanations": {
+    "vi": {
+      "text": "Giải thích: Người đàn ông đang hỏi ai đã dạy cho anh ta, và anh ta đang nói với người khác rằng anh ta học từ cha mẹ.\n\nĐiểm:\n\n* B. 부모님하고 배웠어요 (Anh ta học từ cha mẹ).\n* Chọn đáp án này vì người đàn ông đang nói về việc học từ người khác.\n* D. 혼자 배웠어요 không đúng vì người đàn ông đang hỏi ai đã dạy cho anh ta.",
+      "points": [],
+      "lang": "vi",
+      "model": "llama3.1:8b",
+      "backend": "local",
+      "ts": "2025-10-04T12:33:51.944522Z"
+    }
+  }
+}

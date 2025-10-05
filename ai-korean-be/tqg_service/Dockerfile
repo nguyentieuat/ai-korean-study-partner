@@ -24,8 +24,15 @@ ENV MFA_SERVICE_URL=http://127.0.0.1:5002
 ENV TQG_SERVICE_URL=http://127.0.0.1:5003
 ENV TTS_SERVICE_URL=http://127.0.0.1:5004
 ENV ASR_SERVICE_URL=http://127.0.0.1:5005
+ENV LLM_SERVICE_URL=http://127.0.0.1:5006
 
+ENV LLM_LOCAL_ENABLED=true
+ENV LLM_LOCAL_MODEL=llama3.1:8b
+
+ENV DIALOGUE_MODEL=gpt-4o-mini
+ENV GRAMMAR_MODEL=gpt-4o-mini
+ENV OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
 
 EXPOSE 5003
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s CMD curl -fsS http://127.0.0.1:5003/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s CMD curl -fsS http://127.0.0.1:5003/health || exit 1
 CMD ["uvicorn","app:app","--host","0.0.0.0","--port","5003"]

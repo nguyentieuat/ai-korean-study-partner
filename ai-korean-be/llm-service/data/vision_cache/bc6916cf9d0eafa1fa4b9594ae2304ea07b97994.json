@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nThe woman is holding a cell phone.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n그 여자는 휴대전화를 들고 있습니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:02:15.422300Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

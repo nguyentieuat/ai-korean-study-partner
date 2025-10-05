@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nThe woman is pointing at a piece of luggage.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n그 여자는 짐을 가리키고 있습니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:02:31.747668Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

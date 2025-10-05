@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nA group of people doing yoga in a park.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n공원에서 요가를 하는 사람들 그룹.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:58:02.260317Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

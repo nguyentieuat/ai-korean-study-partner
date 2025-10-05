@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n[TEXT]\nA man and a woman standing on a balcony.\n[/TEXT]\n\n[DESC]\nA cityscape with buildings and mountains in the background.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n발코니에 있는 남자와 여자가 배경에 건물과 산이 있는 도시 풍경\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-04T23:57:29.295049Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

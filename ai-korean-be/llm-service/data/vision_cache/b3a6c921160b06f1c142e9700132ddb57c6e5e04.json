@@ -1,0 +1,11 @@
+{
+  "langs": {
+    "en": "[TEXT]\n\n[/TEXT]\n\n[DESC]\nA man and a woman walking on a sidewalk.\n[/DESC]",
+    "ko": "[TEXT]\n\n[/TEXT]\n\n[DESC]\n한 남자와 한 여자가 도로를 걷고 있습니다.\n[/DESC]"
+  },
+  "meta": {
+    "ts": "2025-10-05T00:02:05.900568Z",
+    "backend": "llava:llava-1.5-7b-hf",
+    "route": "scene"
+  }
+}

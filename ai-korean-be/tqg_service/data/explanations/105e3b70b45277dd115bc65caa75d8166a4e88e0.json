@@ -1,0 +1,13 @@
+{
+  "qid": "105e3b70b45277dd115bc65caa75d8166a4e88e0",
+  "explanations": {
+    "vi": {
+      "text": "Giải thích: Câu hỏi đang hỏi về chủ đề của đoạn văn, và người đọc cần chọn đáp án phù hợp.\n\nĐiểm chính:\n\n - Đáp án đúng là D. 계절 (Kỷ nguyên), vì đoạn văn nói về thời tiết và hành động trong mùa xuân.\n - Người dùng đã chọn B. 취미 (Sở thích) sai lầm, vì không liên quan đến nội dung của đoạn văn.\n - Câu hỏi đang yêu cầu người đọc xác định chủ đề chính của đoạn văn.",
+      "points": [],
+      "lang": "vi",
+      "model": "llama3.1:8b",
+      "backend": "local",
+      "ts": "2025-10-04T04:06:34.008988Z"
+    }
+  }
+}

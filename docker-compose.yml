@@ -16,9 +16,11 @@ volumes:
   models: {}
   cache: {}
   logs: {}
+  vision_cache: {}
+  ollama: {}
 
 services:
-  # Reverse proxy (chỉ 80/443). KHÔNG map 5000–5005 ở đây.
+  # Reverse proxy (chỉ 80/443). KHÔNG map 5000–5006 ở đây.
   gateway:
     image: caddy:2
     container_name: gateway
@@ -33,27 +35,118 @@ services:
     depends_on:
       - main_service
 
+  # ====== OLLAMA (model runtime) ======
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    networks: [web]
+    volumes:
+      - ollama:/root/.ollama
+    # Nếu chỉ gọi nội bộ, bạn có thể comment dòng ports này.
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:11434/api/tags || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  # ====== INIT: auto-pull models cho Ollama rồi thoát ======
+  ollama_init:
+    image: ollama/ollama:latest
+    restart: "no"
+    networks: [web]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama:/root/.ollama   # dùng chung volume với service ollama
+    entrypoint: ["/bin/sh","-lc"]
+    command: >
+      'set -e;
+       echo "[init] Waiting for Ollama...";
+       until curl -fsS http://ollama:11434/api/tags >/dev/null 2>&1; do sleep 2; done;
+       echo "[init] Pulling models (llama3.1:8b, moondream)...";
+       ollama pull llama3.1:8b;
+       ollama pull moondream;
+       echo "[init] Done."'
+
+  # ====== LLM SERVICE (HTTP API proxy cho text/vision) ======
+  llm_service:
+    build:
+      context: ./ai-korean-be/llm_service
+    restart: always
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"  # nội bộ Docker DNS
+      DEFAULT_MODEL: "llama3.1:8b"
+      HTTP_TIMEOUT: "360"
+      VISION_MODEL: "moondream"
+      PORT: "5006"
+      <<: *common_env
+    volumes:
+      - vision_cache:/app/data/vision_cache
+    networks: [web]
+    # Nếu chỉ gọi nội bộ, có thể bỏ expose này:
+    ports:
+      - "5006:5006"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama_init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5006/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
   main_service:
     build: ./ai-korean-be/main_service
     restart: always
-    env_file: [.env]                # nếu cần OPENAI_API_KEY
+    env_file: [.env]
     environment:
       <<: *common_env
       UVICORN_WORKERS: "1"
       CHAT_SERVICE_URL: http://chat_service:5001
-      MFA_SERVICE_URL:  http://mfa_service:5002  
+      MFA_SERVICE_URL:  http://mfa_service:5002
       TQG_SERVICE_URL:  http://tqg_service:5003
       TTS_SERVICE_URL:  http://tts_service:5004
       ASR_SERVICE_URL:  http://asr_service:5005
+      LLM_SERVICE_URL:  http://llm_service:5006
+
+      LLM_LOCAL_ENABLED: true
+      LLM_LOCAL_MODEL: llama3.1:8b
+
+      DIALOGUE_MODEL: gpt-4o-mini
+      GRAMMAR_MODEL: gpt-4o-mini
+      OPENROUTER_MODEL: anthropic/claude-3.5-sonnet
+
       LOG_FOLDER: /app/log/pronun
     volumes:
       - logs:/app/log
     networks: [web]
-    # publish nếu muốn gọi trực tiếp không qua Caddy:
     ports:
       - "5000:5000"
+    depends_on:
+      llm_service:
+        condition: service_healthy
+      chat_service:
+        condition: service_healthy
+      mfa_service:
+        condition: service_healthy
+      tqg_service:
+        condition: service_healthy
+      tts_service:
+        condition: service_healthy
+      asr_service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/health || curl -fsS http://localhost:5000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/health || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 20s
@@ -67,11 +160,25 @@ services:
       <<: *common_env
       ASR_SERVICE_URL:  http://asr_service:5005
       TTS_SERVICE_URL:  http://tts_service:5004
+      LLM_SERVICE_URL:  http://llm_service:5006
+
+      LLM_LOCAL_ENABLED: true
+      LLM_LOCAL_MODEL: llama3.1:8b
+      DIALOGUE_MODEL: gpt-4o-mini
+      GRAMMAR_MODEL: gpt-4o-mini
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
     networks: [web]
     ports:
       - "5001:5001"
+    depends_on:
+      llm_service:
+        condition: service_healthy
+      asr_service:
+        condition: service_healthy
+      tts_service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5001/health || curl -fsS http://localhost:5001/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5001/health || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 20s
@@ -87,14 +194,16 @@ services:
       TRANSFORMERS_CACHE: /models/hf
       HF_TOKEN: ${HF_TOKEN}
       TTS_SERVICE_URL:  http://tts_service:5004
-
     volumes:
-      - models:/models/hf 
+      - models:/models/hf
     networks: [web]
     ports:
       - "5002:5002"
+    depends_on:
+      tts_service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5002/health || curl -fsS http://localhost:5002/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5002/health || exit 1"]
       interval: 30s
       timeout: 6s
       start_period: 40s
@@ -107,15 +216,28 @@ services:
       <<: *common_env
       STORAGE_DIR: /data/tqg
       ASR_SERVICE_URL:  http://asr_service:5005
-      TTS_SERVICE_URL:  http://tts_service:5004 
+      TTS_SERVICE_URL:  http://tts_service:5004
+      LLM_SERVICE_URL:  http://llm_service:5006
+      LLM_LOCAL_ENABLED: true
+      LLM_LOCAL_MODEL: llama3.1:8b
+      DIALOGUE_MODEL: gpt-4o-mini
+      GRAMMAR_MODEL: gpt-4o-mini
+      OPENROUTER_MODEL: anthropic/claude-3.5-sonnet
+
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-
     networks: [web]
     ports:
       - "5003:5003"
+    depends_on:
+      llm_service:
+        condition: service_healthy
+      asr_service:
+        condition: service_healthy
+      tts_service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5003/health || curl -fsS http://localhost:5003/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5003/health || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 20s
@@ -130,7 +252,7 @@ services:
     ports:
       - "5004:5004"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5004/health || curl -fsS http://localhost:5004/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5004/health || exit 1"]
       interval: 30s
       timeout: 6s
       start_period: 40s
@@ -146,7 +268,7 @@ services:
     ports:
       - "5005:5005"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5005/health || curl -fsS http://localhost:5005/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5005/health || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 30s
@@ -156,8 +278,8 @@ services:
     build:
       context: ./ai-korean-fe
       args:
-        VITE_API_URL: "/api" 
+        VITE_API_URL: "/api"
     restart: always
     networks: [web]
     ports:
-      - "3000:80"    # nếu image FE serve bằng nginx trên cổng 80
+      - "3000:80"
