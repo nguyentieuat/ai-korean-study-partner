@@ -33,7 +33,8 @@ services:
       - logs:/var/log/caddy
     networks: [web]
     depends_on:
-      - main_service
+      main_service:
+        condition: service_healthy
 
   # ====== OLLAMA (model runtime) ======
   ollama:
