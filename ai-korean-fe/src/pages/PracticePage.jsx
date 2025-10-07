@@ -809,7 +809,6 @@ const PracticePage = () => {
     try {
       setExplainLoading(true);
       setExplainError(null);
-      debugger;
       if (!isGroup) {
         const payload = buildExplainPayloadSingle();
         if (!payload) throw new Error("Thiếu dữ liệu câu hỏi.");
