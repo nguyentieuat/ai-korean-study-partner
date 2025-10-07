@@ -70,6 +70,8 @@ log.info(
     LLM_LOCAL_URL, OPENROUTER_MODEL, LOG_LEVEL, VISION_RPC_URL, VISION_RECORDS_DIR, VISION_RECORDS_LANG_DEFAULT
 )
 
+HTTP_TIMEOUT = int(os.getenv("HTTP_TIMEOUT", "600"))
+
 # ==================== SCHEMAS ====================
 class ExplainReq(BaseModel):
     level: str
@@ -619,7 +621,7 @@ def _local_base_url() -> str:
 def call_llm_local(body: ExplainReq) -> Dict[str, object]:
     try:
         url = _local_base_url().rstrip("/") + "/explain"
-        r = requests.post(url, json=body.dict(), timeout=360)
+        r = requests.post(url, json=body.dict(), timeout=HTTP_TIMEOUT)
         if r.status_code >= 400:
             return {"error": _err("local", "llm-service", "http_error", "HTTP error",
                                   status=r.status_code, raw=r.text[:500])}
@@ -640,7 +642,7 @@ def fetch_prompt_from_local(body: ExplainReq) -> Optional[str]:
     """Xin prompt chuẩn từ llm-service để tránh drift định dạng."""
     try:
         prompt_url = _local_base_url().rstrip("/") + "/explain/prompt"
-        r = requests.post(prompt_url, json=body.dict(), timeout=360)
+        r = requests.post(prompt_url, json=body.dict(), timeout=HTTP_TIMEOUT)
         if r.status_code // 100 == 2:
             data = r.json()
             return (data or {}).get("prompt")
@@ -661,7 +663,7 @@ def call_llm_openrouter(prompt: str, language: str) -> Dict[str, object]:
 
     def _try(payload, note: str):
         try:
-            r = requests.post(url, headers=headers, json=payload, timeout=360)
+            r = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
             if r.status_code >= 400:
                 try: raw = r.json()
                 except Exception: raw = r.text[:2000]
