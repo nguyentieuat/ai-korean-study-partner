@@ -6,7 +6,7 @@ load_dotenv()
 
 # ===== Local LLM-Service (ưu tiên) =====
 GRAMMAR_LOCAL_ENABLED = os.getenv("GRAMMAR_LOCAL_ENABLED", "true").strip().lower() != "false"
-LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://localhost:5006").rstrip("/")
+LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://llm_service:5006").rstrip("/")
 LOCAL_TIMEOUT_CONN = int(os.getenv("LOCAL_TIMEOUT_CONN", "5"))
 LOCAL_TIMEOUT_READ = int(os.getenv("LOCAL_TIMEOUT_READ", "320"))
 
