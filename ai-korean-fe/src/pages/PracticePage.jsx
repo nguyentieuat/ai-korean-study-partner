@@ -770,10 +770,19 @@ const PracticePage = () => {
       user_answer: selectedAnswer ?? null,
       language: explainLang,
       use_sidecar: true,
+      source_jsonl: questionContent?.source_jsonl || null,
     };
   };
 
   const buildExplainPayloadGroup = () => {
+    if (!questionContent?.items) return [];
+    const sharedPassage =
+      type === "reading" ? questionContent?.passage ?? null : null;
+    const sharedDialogue =
+      type === "listening" && Array.isArray(questionContent?.dialog)
+        ? questionContent.dialog
+        : null;
+
     if (!questionContent?.items) return [];
     return questionContent.items.map((it) => ({
       level,
@@ -784,13 +793,14 @@ const PracticePage = () => {
         questionContent?.section || (type === "listening" ? "Nghe" : "Đọc"),
       title: questionContent?.title || null,
       question: it.question || null,
-      dialogue: null, // group reading/listening thường không có dialog per-item
-      passage: null, // passage chung đã có ở ngoài; payload để tính qid per-item chỉ cần item fields
+      dialogue: sharedDialogue,
+      passage: sharedPassage,
       options: it.choices || {},
       answer: it.answer ?? null,
       user_answer: selectedAnswers?.[it.question_no] ?? null,
       language: explainLang,
       use_sidecar: true,
+      source_jsonl: questionContent?.source_jsonl || null,
     }));
   };
 
@@ -799,7 +809,7 @@ const PracticePage = () => {
     try {
       setExplainLoading(true);
       setExplainError(null);
-
+      debugger;
       if (!isGroup) {
         const payload = buildExplainPayloadSingle();
         if (!payload) throw new Error("Thiếu dữ liệu câu hỏi.");

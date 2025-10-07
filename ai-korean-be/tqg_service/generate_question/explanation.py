@@ -749,8 +749,8 @@ def explain_question(body: ExplainReq, mode: str = "auto") -> ExplainResp:
     qid = qid_for_question(base_payload)
     req_lang = (body.language or "vi").lower()
 
-    log.info("Explain request | qid=%s level=%s cat=%s cau=%s lang=%s mode=%s",
-             qid, body.level, body.category, body.cau, req_lang, mode)
+    log.info("Explain request | qid=%s level=%s cat=%s cau=%s lang=%s mode=%s passage=%s dialogue=%s",
+             qid, body.level, body.category, body.cau, req_lang, mode, body.passage, body.dialogue)
 
     side = load_sidecar_explanation(qid, req_lang)
     if mode in ("auto", "cache") and side and _is_valid_explain_text(side.get("text","")):
