@@ -45,7 +45,7 @@ def _redact(seen: object) -> object:
 
 # ==================== CONFIG (ENV) ====================
 # Ưu tiên LOCAL -> OpenRouter (không gọi OpenAI)
-LLM_LOCAL_URL   = os.getenv("LLM_LOCAL_URL", "http://localhost:5006/explain").rstrip("/")
+LLM_LOCAL_URL   = os.getenv("LLM_LOCAL_URL", "http://llm_service:5006/explain").rstrip("/")
 
 OPENROUTER_API_KEY  = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_MODEL    = os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
@@ -54,7 +54,7 @@ OPENROUTER_SITE     = os.getenv("OPENROUTER_SITE_URL", "")
 OPENROUTER_APP      = os.getenv("OPENROUTER_APP_NAME", "TOPIK Explainer")
 
 # Vision RPC (llm-service chịu trách nhiệm cache + dịch)
-VISION_RPC_URL      = os.getenv("VISION_RPC_URL", "http://localhost:5006/vision2text").rstrip("/")
+VISION_RPC_URL      = os.getenv("VISION_RPC_URL", "http://llm_service:5006/vision2text").rstrip("/")
 VISION_RPC_TIMEOUT  = int(os.getenv("VISION_RPC_TIMEOUT", "360"))
 
 # Kho record mô tả theo key (per-key file)
