@@ -55,7 +55,7 @@ OPENROUTER_APP      = os.getenv("OPENROUTER_APP_NAME", "TOPIK Explainer")
 
 # Vision RPC (llm-service chịu trách nhiệm cache + dịch)
 VISION_RPC_URL      = os.getenv("VISION_RPC_URL", "http://llm_service:5006/vision2text").rstrip("/")
-VISION_RPC_TIMEOUT  = int(os.getenv("VISION_RPC_TIMEOUT", "360"))
+VISION_RPC_TIMEOUT  = int(os.getenv("VISION_RPC_TIMEOUT", "600"))
 
 # Kho record mô tả theo key (per-key file)
 VISION_RECORDS_DIR  = os.getenv("VISION_RECORDS_DIR", "data/vision_records")
@@ -640,7 +640,7 @@ def fetch_prompt_from_local(body: ExplainReq) -> Optional[str]:
     """Xin prompt chuẩn từ llm-service để tránh drift định dạng."""
     try:
         prompt_url = _local_base_url().rstrip("/") + "/explain/prompt"
-        r = requests.post(prompt_url, json=body.dict(), timeout=60)
+        r = requests.post(prompt_url, json=body.dict(), timeout=360)
         if r.status_code // 100 == 2:
             data = r.json()
             return (data or {}).get("prompt")
