@@ -18,7 +18,7 @@ load_dotenv()
 
 # -------- config ----------
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "llama3.1:8b")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "qwen2.5:7b-instruct")
 HTTP_TIMEOUT = int(os.getenv("HTTP_TIMEOUT", "600"))
 
 logging.basicConfig(
@@ -232,14 +232,35 @@ def grammar(req: GrammarReq):
 def _lang_name(code: str) -> str:
     return {"vi":"Tiếng Việt","en":"English","ko":"한국어"}.get(code.lower(),"Tiếng Việt")
 
+def _estimate_limits(req: "ExplainReq") -> (int, int):
+    """Ước lượng 'độ khó' để đặt số câu tối đa cho Explanation và số gạch đầu dòng."""
+    passage_text = "\n".join([str(x) for x in req.passage]) if isinstance(req.passage, list) else str(req.passage or "").strip()
+    dialog_text  = "\n".join([f"{d.get('speaker','')}: {d.get('text','')}" for d in (req.dialogue or [])])
+    opts_text    = "\n".join([f"{k}. {v}" for k, v in sorted((req.options or {}).items())])
+    q_text       = req.question or ""
+
+    total_len = len(passage_text) + len(dialog_text) + len(opts_text) + len(q_text)
+
+    # Heuristic đơn giản theo độ dài
+    #   <= 500 ký tự: dễ  → 1–3 câu, 2 điểm
+    #   501–1200:      TB → 1–5 câu, 3 điểm
+    #   > 1200:        khó → 1–7 câu, 4 điểm
+    if total_len > 1200:
+        return 7, 4
+    if total_len > 500:
+        return 5, 3
+    return 3, 2
+
 def build_explain_prompt(req: "ExplainReq") -> str:
-    """Xây prompt duy nhất cho explain (single content)."""
+    """Xây prompt duy nhất cho explain (single content) với giới hạn câu động."""
     lang = (req.language or "vi").lower()
     lang_name = _lang_name(lang)
 
     passage_text = "\n".join([str(x) for x in req.passage]) if isinstance(req.passage, list) else str(req.passage or "").strip()
     dialog_text  = "\n".join([f"{d.get('speaker','')}: {d.get('text','')}" for d in (req.dialogue or [])])
     opts = "\n".join([f"{k}. {v}" for k, v in sorted((req.options or {}).items())])
+
+    max_sents, max_points = _estimate_limits(req)
 
     parts = [
         f"Language: {lang_name}. WRITE ALL output in {lang_name}.",
@@ -252,16 +273,18 @@ def build_explain_prompt(req: "ExplainReq") -> str:
     parts.append(f"[Phương án]\n{opts}")
     parts.append(f"Đáp án đúng: {req.answer}")
     if req.user_answer: parts.append(f"Người dùng chọn: {req.user_answer}")
+
     parts.append(
-        "Hãy trả về ở dạng sau:\n"
-        "Explanation: <1-3 câu>\n"
-        "Points:\n - <điểm 1>\n - <điểm 2>"
+        "Hãy trả về ở đúng dạng sau (đừng thêm tiền tố khác):\n"
+        f"Explanation: <tối đa {max_sents} câu, ngắn gọn, mạch lạc>\n"
+        "Points:\n" +
+        "\n".join([f" - <điểm {i+1}>" for i in range(max_points)])
     )
     return "\n\n".join([p for p in parts if p])
 
 _SYSTEM_EXPLAIN = (
-    "You are a concise TOPIK assistant. Return a short explanation (1-3 sentences) "
-    "and 1–3 bullet points. Do not reveal chain-of-thought."
+    "You are a concise TOPIK assistant. Provide a clear, well-structured explanation and a few bullet points. "
+    "Do not reveal chain-of-thought; just state conclusions and key reasons."
 )
 
 class PromptResp(SafeModel):

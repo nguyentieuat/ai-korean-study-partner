@@ -27,7 +27,7 @@ COPY . /app
 # - Trên Windows/macOS Docker Desktop: dùng http://host.docker.internal:11434
 # - Trên Linux: dùng IP host thật (vd 172.17.0.1) hoặc chạy chung mạng với container Ollama
 ENV OLLAMA_HOST="http://host.docker.internal:11434" \
-    DEFAULT_MODEL="llama3.1:8b" \
+    DEFAULT_MODEL="qwen2.5:7b-instruct" \
     HTTP_TIMEOUT="360" \
     VISION_MODEL="moondream" \
     PORT="5006"

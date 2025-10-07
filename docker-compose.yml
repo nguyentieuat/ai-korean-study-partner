@@ -68,8 +68,8 @@ services:
       'set -e;
        echo "[init] Waiting for Ollama...";
        until curl -fsS http://ollama:11434/api/tags >/dev/null 2>&1; do sleep 2; done;
-       echo "[init] Pulling models (llama3.1:8b, moondream)...";
-       ollama pull llama3.1:8b;
+       echo "[init] Pulling models (qwen2.5:7b-instruct, moondream)...";
+       ollama pull qwen2.5:7b-instruct;
        ollama pull moondream;
        echo "[init] Done."'
 
@@ -80,7 +80,7 @@ services:
     restart: always
     environment:
       OLLAMA_HOST: "http://ollama:11434"  # nội bộ Docker DNS
-      DEFAULT_MODEL: "llama3.1:8b"
+      DEFAULT_MODEL: "qwen2.5:7b-instruct"
       HTTP_TIMEOUT: "360"
       VISION_MODEL: "moondream"
       PORT: "5006"
@@ -120,7 +120,7 @@ services:
       LLM_SERVICE_URL:  http://llm_service:5006
 
       LLM_LOCAL_ENABLED: true
-      LLM_LOCAL_MODEL: llama3.1:8b
+      LLM_LOCAL_MODEL: qwen2.5:7b-instruct
 
       DIALOGUE_MODEL: gpt-4o-mini
       GRAMMAR_MODEL: gpt-4o-mini
@@ -163,7 +163,7 @@ services:
       LLM_SERVICE_URL:  http://llm_service:5006
 
       LLM_LOCAL_ENABLED: true
-      LLM_LOCAL_MODEL: llama3.1:8b
+      LLM_LOCAL_MODEL: qwen2.5:7b-instruct
       DIALOGUE_MODEL: gpt-4o-mini
       GRAMMAR_MODEL: gpt-4o-mini
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
@@ -219,7 +219,7 @@ services:
       TTS_SERVICE_URL:  http://tts_service:5004
       LLM_SERVICE_URL:  http://llm_service:5006
       LLM_LOCAL_ENABLED: true
-      LLM_LOCAL_MODEL: llama3.1:8b
+      LLM_LOCAL_MODEL: qwen2.5:7b-instruct
       DIALOGUE_MODEL: gpt-4o-mini
       GRAMMAR_MODEL: gpt-4o-mini
       OPENROUTER_MODEL: anthropic/claude-3.5-sonnet

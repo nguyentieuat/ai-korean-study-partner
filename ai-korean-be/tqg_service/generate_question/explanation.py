@@ -337,16 +337,17 @@ def _preprocess_media_in_body(body: "ExplainReq") -> "ExplainReq":
     """
     Ưu tiên lấy mô tả từ data/vision_records theo key (image_key/key) bằng ngôn ngữ ĐỀ (mặc định ko).
     Nếu không có, gom ảnh còn thiếu và gọi Vision RPC (lang = ko) theo batch.
-    Thay thế ảnh bằng chuỗi: "[LABEL] {desc}" với LABEL theo ngôn ngữ giải thích cho người dùng.
+    Thay thế ảnh bằng chuỗi: "[LABEL] {desc}" với LABEL cùng ngôn ngữ desc (mặc định ko).
     """
     new = ExplainReq(**body.dict())
 
-    # LABEL hiển thị theo ngôn ngữ giải thích của user
-    label_lang = (new.language or "vi").lower()
-    label = _lang_label(label_lang)
-
     # Ngôn ngữ để lấy mô tả đề & gọi RPC (KHÔNG dùng language của request)
-    record_lang = VISION_RECORDS_LANG_DEFAULT or "ko"
+    record_lang = (VISION_RECORDS_LANG_DEFAULT or "ko").lower()
+
+    # LABEL hiển thị: mặc định cùng ngôn ngữ với desc (record_lang).
+    # Có thể override qua env nếu cần (ví dụ muốn nhãn [ẢNH] cho vi)
+    label_lang = os.getenv("VISION_LABEL_LANG_DEFAULT", record_lang).lower()
+    label = _lang_label(label_lang)
 
     b64s: List[str] = []
     to_describe: List[Tuple[str, int, Optional[str]]] = []  # (kind, idx, opt_key)
@@ -376,15 +377,12 @@ def _preprocess_media_in_body(body: "ExplainReq") -> "ExplainReq":
 
     # ---- PASSAGE ----
     if new.passage:
-        # string
         if isinstance(new.passage, str):
             s = new.passage.strip()
             if _is_imagestr(s) or _hex40(s) or s.lower().startswith("key:") or _looks_like_raw_b64(s):
                 rep = _replace_with_desc("pass", -1, None, new.passage)
                 if rep is not None:
                     new.passage = rep
-
-        # list
         elif isinstance(new.passage, list):
             for i, it in enumerate(new.passage):
                 is_img_like = False
@@ -403,8 +401,6 @@ def _preprocess_media_in_body(body: "ExplainReq") -> "ExplainReq":
                     rep = _replace_with_desc("pass", i, None, it)
                     if rep is not None:
                         new.passage[i] = rep
-
-        # dict
         elif isinstance(new.passage, dict):
             it = new.passage
             if (_extract_image_key(it)
@@ -438,31 +434,25 @@ def _preprocess_media_in_body(body: "ExplainReq") -> "ExplainReq":
                 if rep is not None:
                     new.options[k] = rep
 
-    # ---- RPC cho phần còn thiếu (lang = record_lang = 'ko' mặc định) ----
+    # ---- RPC cho phần còn thiếu (lang = record_lang) ----
     if b64s:
         descs: List[str] = _vision2text_rpc_batch(b64s, lang=record_lang, instruction="")
         ptr = 0
 
-        # passage string
         if isinstance(new.passage, str):
             if any(kind == "pass" and i == -1 for kind, i, _ in to_describe):
                 text = (descs[ptr] if ptr < len(descs) else "").strip(); ptr += 1
                 new.passage = _mk_rep(label, text, src="rpc")
-
-        # passage list
         elif isinstance(new.passage, list):
             for kind, i, _ in to_describe:
                 if kind == "pass" and i >= 0:
                     text = (descs[ptr] if ptr < len(descs) else "").strip(); ptr += 1
                     new.passage[i] = _mk_rep(label, text, src="rpc")
-
-        # passage dict
         elif isinstance(new.passage, dict):
             if any(kind == "pass" and i == -2 for kind, i, _ in to_describe):
                 text = (descs[ptr] if ptr < len(descs) else "").strip(); ptr += 1
                 new.passage = _mk_rep(label, text, src="rpc")
 
-        # options
         if isinstance(new.options, dict):
             for kind, _, optkey in to_describe:
                 if kind == "opt" and optkey in new.options:
@@ -470,7 +460,6 @@ def _preprocess_media_in_body(body: "ExplainReq") -> "ExplainReq":
                     new.options[optkey] = _mk_rep(label, text, src="rpc")
 
     return new
-
 
 # ================== PROMPT (legacy fallback; KHÔNG dùng trong flow thường) ==================
 def format_prompt_for_llm(q: ExplainReq) -> str:
