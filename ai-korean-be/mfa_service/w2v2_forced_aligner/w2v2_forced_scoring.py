@@ -1,8 +1,9 @@
 """
 CTC-only pronunciation scoring (Jamo-aware, robust gating).
-- Works with a Wav2Vec2-CTC model trained on NFD Jamo vocab.
-- Produces per-jamo and per-syllable confidences; attaches advice for low-scoring jamo.
-- If a TextGrid reference is provided, uses duration priors per jamo to bias CTC alignment.
+- Tự nhận diện vocab mode ở ctc_gate.py (NFD Jamo / Compatibility Jamo / Âm tiết).
+- Pad 0.2s đầu/đuôi cho clip ngắn (≤~0.6s) để tránh VAD cắt mất biên.
+- Produces per-jamo/per-syllable confidences; advice cho jamo thấp.
+- Nếu có TextGrid, dùng duration priors per-jamo để bias alignment.
 """
 
 # w2v2_forced_scoring.py — CTC-only pronunciation scoring (Jamo-aware, robust gating)
@@ -52,17 +53,17 @@ def extract_features_from_waveform(waveform: torch.Tensor, sr: int) -> Tuple[tor
     total_sec = float(waveform.shape[-1]) / sr
     return h, sr, total_sec
 
-# ===== Tunables =====
+# ===== Tunables (đồng bộ với ctc_gate.py) =====
 MISSING_THRESHOLD = float(os.getenv("W2V_MISSING_THRESHOLD", "0.08"))
-MIN_SCORE_FLOOR = float(os.getenv("W2V_MIN_SCORE_FLOOR", "0.0"))   # floor=0 để tránh mặc định 45
+MIN_SCORE_FLOOR = float(os.getenv("W2V_MIN_SCORE_FLOOR", "0.0"))
 ADVICE_THRESHOLD = float(os.getenv("W2V_ADVICE_THRESHOLD", "0.7"))
 W2V_CTC_REF_NLL_THR = float(os.getenv("W2V_CTC_REF_NLL_THR", "2.2"))
 CTC_LOSS_CHAR_THRESHOLD = float(os.getenv("W2V_CTC_LOSS_CHAR_THRESHOLD", "2.0"))
 CTC_CER_THRESHOLD = float(os.getenv("W2V_CTC_CER_THRESHOLD", "0.65"))
-BLANK_VAD_THRESH = float(os.getenv("W2V_BLANK_VAD_THRESH", "0.85"))
-VAD_PAD_MS = float(os.getenv("W2V_VAD_PAD_MS", "280.0"))
-LOGIT_TEMP = float(os.getenv("W2V_LOGIT_TEMP", "0.5"))
-ADVICE_JAMO_THRESHOLD = 0.75
+BLANK_VAD_THRESH = float(os.getenv("W2V_BLANK_VAD_THRESH", "0.8"))
+VAD_PAD_MS = float(os.getenv("W2V_VAD_PAD_MS", "520.0"))
+LOGIT_TEMP = float(os.getenv("W2V_LOGIT_TEMP", "1.8"))
+ADVICE_JAMO_THRESHOLD = float(os.getenv("W2V_ADVICE_JAMO_THRESHOLD", "0.75"))
 
 SILENT_ONSET = "\u110B"  # 'ᄋ'
 
@@ -90,7 +91,7 @@ def _power_mean(xs: List[float], p: float = 1.0) -> float:
 def _score_sentence(char_confs: List[float], cer: float, tau: float = 1.0, lam_edit: float = 0.3, n_ref_chars: int = 0) -> float:
     """
     Overall = power_mean(char_confs, p=tau) * (1 - lam_edit * CER) * 100, floored bởi MIN_SCORE_FLOOR.
-    Set lam_edit=0 nếu muốn = mean(jamo)*100.
+    Với chuỗi cực ngắn (n_ref_chars<=2) giảm nhẹ lam_edit để ít phạt.
     """
     base = _power_mean(char_confs, p=tau)
     lam = min(lam_edit, 0.1) if n_ref_chars <= 2 else lam_edit
@@ -106,7 +107,7 @@ def _syllable_scores_from_chunks(
     tau: float = 1.0,
 ) -> List[Dict[str, Any]]:
     """
-    - ᄋ onset: trả về {"silent":true, "conf":1.0, "score":100} và KHÔNG tính vào trung bình âm tiết.
+    - ᄋ onset: {"silent":true, "conf":1.0, "score":100} và KHÔNG tính vào trung bình âm tiết.
     """
     out: List[Dict[str, Any]] = []
     idx = 0
@@ -161,9 +162,7 @@ def _attach_advices_to_syllables(
     syllables: List[Dict[str, Any]],
     thr: float = ADVICE_JAMO_THRESHOLD
 ) -> List[Dict[str, Any]]:
-    """
-    Gắn advice theo từng jamo (bỏ qua jamo silent).
-    """
+    """Gắn advice theo từng jamo (bỏ qua jamo silent)."""
     for syl in syllables:
         jlist = syl.get("jamo", [])
         advice_syl = []
@@ -177,7 +176,6 @@ def _attach_advices_to_syllables(
             curr = str(j.get("jamo", "")) or None
             prev = str(jlist[idx-1].get("jamo","")) if idx-1 >= 0 else None
             next_ = str(jlist[idx+1].get("jamo","")) if idx+1 < len(jlist) else None
-
             tips = advices_for_jamo(curr, prev, next_, pos, low_score=True, env_hint=None)
             if tips:
                 j["advice"] = tips
@@ -189,9 +187,7 @@ def _attach_advices_to_syllables(
     return syllables
 
 def _filtered_for_sentence(confs: List[float], ref_chunks: Optional[List[Tuple[str, List[str]]]]) -> List[float]:
-    """
-    Bỏ ᄋ onset khỏi danh sách dùng để tính điểm câu / missing-ratio.
-    """
+    """Bỏ ᄋ onset khỏi danh sách dùng để tính điểm câu/missing-ratio."""
     if not ref_chunks:
         return confs
     keep, idx = [], 0
@@ -207,13 +203,11 @@ def _filtered_for_sentence(confs: List[float], ref_chunks: Optional[List[Tuple[s
 def _load_textgrid_intervals(path: str) -> List[Tuple[str, float, float]]:
     """
     Try to read a Praat TextGrid file. Returns list of (label, start, end) intervals.
-    Prefers a tier named 'syllable'/'phones' if present; otherwise the first non-empty interval tier.
+    Prefers a tier named 'syllable'/'phones'; otherwise the first non-empty interval tier.
     """
-    # Try libraries if available
     try:
         import textgrid  # praat-textgrids
         tg = textgrid.TextGrid.fromFile(path)
-        # heuristic for tier
         tier = None
         for name in ["syllable", "Syllable", "syll", "phones", "phone", "segments"]:
             try:
@@ -222,7 +216,6 @@ def _load_textgrid_intervals(path: str) -> List[Tuple[str, float, float]]:
             except Exception:
                 continue
         if tier is None:
-            # find first interval tier that has items
             for t in tg.tiers:
                 if getattr(t, "intervals", None) and len(t.intervals) > 0:
                     tier = t; break
@@ -232,7 +225,6 @@ def _load_textgrid_intervals(path: str) -> List[Tuple[str, float, float]]:
         for iv in tier.intervals:
             mark = (iv.mark or "").strip()
             out.append((mark, float(iv.minTime), float(iv.maxTime)))
-        # filter empty spans
         return [(m,s,e) for (m,s,e) in out if e>s]
     except Exception:
         pass
@@ -256,7 +248,7 @@ def _load_textgrid_intervals(path: str) -> List[Tuple[str, float, float]]:
         return [(m,s,e) for (m,s,e) in out if e>s]
     except Exception:
         pass
-    # Fallback: naive parse (TextGrid is plaintext)
+    # Naive fallback
     try:
         lines = open(path, "r", encoding="utf-8").read().splitlines()
     except Exception:
@@ -282,10 +274,8 @@ def _load_textgrid_intervals(path: str) -> List[Tuple[str, float, float]]:
 def _priors_from_textgrid_for_chunks(ref_chunks: Optional[List[Tuple[str, List[str]]]],
                                      tg_path: Optional[str]) -> Optional[List[Tuple[float,float]]]:
     """
-    Given ref_chunks [(syllable, [jamo...]),...], and a TextGrid containing syllable or phone intervals,
-    produce a per-jamo list of (start_sec, end_sec) aligned to the flattened jamo sequence.
-    Heuristic: if intervals count equals syllable count, we split each syllable evenly across its jamo.
-    If there are phone-level marks matching len(flat_jamo), we use them directly.
+    Map TextGrid intervals → per-jamo (flattened). Nếu phone-level = len(flat_jamo) khớp → dùng trực tiếp.
+    Nếu chỉ có syllable-level = len(syllables) → chia đều cho jamo trong âm tiết.
     """
     if not tg_path or not os.path.exists(tg_path):
         return None
@@ -301,15 +291,13 @@ def _priors_from_textgrid_for_chunks(ref_chunks: Optional[List[Tuple[str, List[s
         by_syl.append(arr)
         flat.extend(arr)
 
-    # 1) If exact length match to flattened jamo, use directly
     phones_like = [(m,s,e) for (m,s,e) in intervals if (e>s)]
     if len(phones_like) == len(flat):
         return [(s,e) for (_,s,e) in phones_like]
 
-    # 2) If counts match syllables, split evenly across jamo per syllable
     if len(intervals) == len(by_syl) and len(by_syl) > 0:
         priors: List[Tuple[float,float]] = []
-        for (label, s, e), jamos in zip(intervals, by_syl):
+        for (_label, s, e), jamos in zip(intervals, by_syl):
             if not jamos:
                 continue
             dur = (e - s) / len(jamos)
@@ -319,7 +307,6 @@ def _priors_from_textgrid_for_chunks(ref_chunks: Optional[List[Tuple[str, List[s
                 priors.append((js, je))
         return priors
 
-    # 3) Otherwise we cannot confidently create priors
     return None
 
 # ===== Public =====
@@ -346,13 +333,22 @@ def score_pronunciation_forced(
     """
     Robust scoring với CTC gate:
     - Gate fail -> score chính thức = 0 nhưng vẫn tính breakdown + score_soft (cap thấp).
-    - Gate pass -> Viterbi-local jamo confidences + (tuỳ chọn) CER penalty.
-    - If ref_textgrid_path is provided and readable, use it as duration priors per jamo.
+    - Gate pass -> Viterbi-local jamo/syllable confidences + (tuỳ chọn) CER penalty.
+    - Nếu có TextGrid, dùng duration priors per jamo khi align.
     """
     assert (wav_path is not None) or (waveform is not None), "Provide wav_path or waveform"
+
+    import torchaudio
     if waveform is None:
-        import torchaudio
         waveform, waveform_sr = torchaudio.load(wav_path)
+
+    # Pad 0.2s đầu/đuôi cho clip ngắn (≤~0.6s)
+    sr_eff = waveform_sr or TARGET_SR
+    if waveform.ndim == 2 and waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+    if waveform.shape[-1] < int(0.6 * sr_eff):
+        pad = torch.zeros(1, int(0.2 * sr_eff))
+        waveform = torch.cat([pad, waveform, pad], dim=-1)
 
     # 1) Chuỗi jamo chuẩn (ưu tiên ref_chunks)
     flat_jamo = _flatten_ref_chunks(ref_chunks)
@@ -362,12 +358,11 @@ def score_pronunciation_forced(
 
     # 2) Gate
     g = ctc_gate_global_from_waveform(
-        waveform, waveform_sr, reference_text,
+        waveform, waveform_sr or TARGET_SR, reference_text,
         cer_threshold=ctc_cer_threshold,
         loss_char_threshold=ctc_loss_char_threshold,
         ref_nll_threshold=ref_nll_threshold
     )
-    # Tương thích mọi biến thể return
     cer_val = float(g.get("cer", 1.0))
     mnlp = float(g.get("mean_neglogp", 10.0))
     gate_pass = bool(
@@ -377,21 +372,20 @@ def score_pronunciation_forced(
     )
 
     if not gate_pass and use_ctc_gate:
-        # Gate fail: giữ score nghiêm ngặt = 0, nhưng vẫn tính per-jamo để feedback
-        soft_cap = int(float(os.getenv("W2V_SOFT_CAP", "35")))  # cap cho score_soft
+        # Gate fail: score chính thức = 0, vẫn tính breakdown + soft score (cap)
+        soft_cap = int(float(os.getenv("W2V_SOFT_CAP", "35")))
 
         priors_sec = _priors_from_textgrid_for_chunks(ref_chunks, ref_textgrid_path)
         char_confs_raw = ctc_char_confidences_from_waveform(
-            waveform, waveform_sr, reference_text,
+            waveform, waveform_sr or TARGET_SR, reference_text,
             blank_vad_thresh=BLANK_VAD_THRESH, vad_pad_ms=VAD_PAD_MS,
             temp=LOGIT_TEMP, use_confusables=True,
             priors_sec=priors_sec
         )
-        # Bỏ ᄋ onset khi tính điểm câu
+
         char_confs_eff = _filtered_for_sentence(char_confs_raw, ref_chunks)
         miss_ratio = float(np.mean([c < missing_threshold for c in char_confs_eff])) if len(char_confs_eff) > 0 else 1.0
 
-        # Tính soft score (tham khảo), rồi cap
         soft = _score_sentence(
             char_confs_eff, cer_val,
             tau=tau_char_power, lam_edit=lam_edit,
@@ -399,16 +393,14 @@ def score_pronunciation_forced(
         )
         soft = min(int(round(soft)), soft_cap)
 
-        # Breakdown + advice để UI tô màu jamo
         syllables = _syllable_scores_from_chunks(ref_chunks, char_confs_raw, tau=tau_char_power)
         syllables = _attach_advices_to_syllables(syllables, thr=ADVICE_JAMO_THRESHOLD)
 
-        # Len mismatch theo dữ liệu thực tế
         len_mismatch = (len(_flatten_ref_chunks(ref_chunks)) != len(char_confs_raw))
 
         return {
-            "score": int(round(100.0 * min_score_floor)),  # điểm chính thức nghiêm ngặt = 0
-            "score_soft": soft,                            # điểm tham khảo để hiển thị feedback
+            "score": int(round(100.0 * min_score_floor)),  # điểm chính thức = 0
+            "score_soft": soft,                            # tham khảo
             "gate_pass": False,
             "details": {
                 "reason": "gate_fail",
@@ -425,6 +417,7 @@ def score_pronunciation_forced(
                     "blank_vad_thresh": BLANK_VAD_THRESH,
                     "vad_pad_ms": VAD_PAD_MS,
                     "soft_cap": soft_cap,
+                    "logit_temp": LOGIT_TEMP,
                 },
                 "note": "Gate fail: score (chính thức) = 0; score_soft là tham khảo để góp ý phát âm."
             },
@@ -432,10 +425,10 @@ def score_pronunciation_forced(
             "details_collapsed": syllables
         }
 
-    # 3) Gate pass: per-jamo confidences
+    # 3) Gate pass → per-unit confidences
     priors_sec = _priors_from_textgrid_for_chunks(ref_chunks, ref_textgrid_path)
     char_confs = ctc_char_confidences_from_waveform(
-        waveform, waveform_sr, reference_text,
+        waveform, waveform_sr or TARGET_SR, reference_text,
         blank_vad_thresh=BLANK_VAD_THRESH, vad_pad_ms=VAD_PAD_MS,
         temp=LOGIT_TEMP, use_confusables=True,
         priors_sec=priors_sec
@@ -444,14 +437,14 @@ def score_pronunciation_forced(
     # 3.1) Bỏ ᄋ onset khi tính điểm câu
     char_confs_eff = _filtered_for_sentence(char_confs, ref_chunks)
 
-    # 4) Missing-ratio (sau khi lọc ᄋ onset)
+    # 4) Missing-ratio
     miss_ratio = float(np.mean([c < missing_threshold for c in char_confs_eff])) if len(char_confs_eff) > 0 else 1.0
 
     # 5) Breakdown + advice
     syllables = _syllable_scores_from_chunks(ref_chunks, char_confs, tau=tau_char_power)
     syllables = _attach_advices_to_syllables(syllables, thr=ADVICE_JAMO_THRESHOLD)
 
-    # 6) Sentence score (đặt lam_edit=0 nếu muốn = mean jamo)
+    # 6) Sentence score
     score = _score_sentence(char_confs_eff, cer_val, tau=tau_char_power, lam_edit=lam_edit, n_ref_chars=len(char_confs_eff))
 
     # 7) Length check
@@ -472,6 +465,7 @@ def score_pronunciation_forced(
                 "lam_edit": lam_edit,
                 "blank_vad_thresh": BLANK_VAD_THRESH,
                 "vad_pad_ms": VAD_PAD_MS,
+                "logit_temp": LOGIT_TEMP,
             },
             "score_formula": "power_mean(jamo_conf, p=tau) * (1 - lam_edit*CER) * 100"
         },

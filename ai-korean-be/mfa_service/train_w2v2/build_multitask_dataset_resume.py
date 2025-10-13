@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Build Multi-Task ASR dataset from MFA CSV alignments with RESUME & PARALLEL
+Build Multi-Task ASR dataset from MFA CSV alignments with RESUME, PARALLEL & PROGRESS BARS
 
 Tasks:
 - Phones (có thể tắt bằng --no-phones)
@@ -10,27 +10,31 @@ Tasks:
     * --phone-mode byword  : phones cắt theo đúng khung thời gian word (đồng bộ word)
     * --phone-mode sliding : phones cắt theo cửa sổ trượt (giống jamo-streaming)
 - Word
-    * clip >= 350 ms, cover full word (+ kéo nhẹ nếu ngắn)
+    * clip >= word-min-ms (mặc định 350 ms), cover full word (+ kéo nhẹ nếu ngắn)
     * targets: word + jamo(NFD) + phonemes(khớp cửa sổ)
+    * --word-max-nonspeech-ratio để loại word bị nhiễu (spn/sil/noise)
+    * --word-drop-long-to-jamo: nếu word > word-max-ms thì không tạo word clip, rơi xuống jamo windows
 - Jamo-streaming
-    * sliding windows (win=600ms, stride=200ms mặc định)
+    * sliding windows (jamo-win-ms, jamo-stride-ms)
+    * lọc rác bằng min_len/min_uniq, và dedupe gần trùng bằng cosine (jamo-dedupe-sim)
 
 Tính năng:
 - --resume: bỏ qua CSV đã sinh tmp manifest + .done
 - --workers N: xử lý song song nhiều CSV
 - --phone-max-chunks-per-utt: giới hạn số clip phones mỗi CSV (0 = no limit)
 - --no-phones: bỏ hoàn toàn việc tạo clip task=phones
-- Chuẩn hóa Jamo về Unicode NFD
+- PROGRESS BAR: hiển thị tiến độ xử lý CSV, gộp manifest, và ghi vocab
 """
 
-import os, json, argparse, unicodedata
+import os, json, argparse, unicodedata, math
 from pathlib import Path
 from typing import List, Tuple, Dict, Set
 import pandas as pd
 import soundfile as sf
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
 
-# -------- Helpers --------
+# ================== Helpers ==================
 def sec_to_ms(x: float) -> int: return int(round(x * 1000))
 def ms_to_samples(ms: int, sr: int) -> int: return int(round(ms * sr / 1000.0))
 def clamp(a, lo, hi): return max(lo, min(hi, a))
@@ -64,7 +68,7 @@ def slice_audio(wav_path: Path, start_ms: int, end_ms: int, out_path: Path):
     sf.write(str(out_path), seg, sr, subtype="PCM_16")
     return True, sr
 
-# -------- Hangul decomposition --------
+# ================== Hangul decomposition ==================
 _CHOSEONG  = [chr(x) for x in range(0x1100, 0x1113)]
 _JUNGSEONG = [chr(x) for x in range(0x1161, 0x1176)]
 _JONGSEONG = [""] + [chr(x) for x in range(0x11A8, 0x11C3)]
@@ -85,7 +89,7 @@ def decompose_hangul_to_jamo(s: str) -> List[str]:
             out.append(ch)
     return normalize_NFD_list(out)
 
-# -------- Window queries --------
+# ================== Window queries ==================
 def phones_in_window(phones_df, st_ms, en_ms):
     hit = phones_df[(phones_df["Begin"]*1000 < en_ms) & (phones_df["End"]*1000 > st_ms)]
     return [(sec_to_ms(r["Begin"]), sec_to_ms(r["End"]), r["Label"].strip())
@@ -96,14 +100,8 @@ def words_in_window(words_df, st_ms, en_ms):
     return [(sec_to_ms(r["Begin"]), sec_to_ms(r["End"]), r["Label"].strip())
             for _, r in hit.sort_values("Begin").iterrows() if r["Label"].strip()]
 
-# -------- Chunk builders --------
+# ================== Chunk builders ==================
 def build_chunks_by_phones_group(phones_df, min_ms=300, max_ms=700, min_phones=2, stride_phones=1):
-    """
-    Gộp các phones liên tiếp thành một đoạn [st,en] sao cho:
-      - Độ dài trong [min_ms, max_ms] (có co bớt cuối nếu vượt)
-      - Chứa ít nhất min_phones phones
-    Trượt cửa sổ theo chỉ số phone (stride_phones).
-    """
     out = []
     ph = phones_df.sort_values("Begin").reset_index(drop=True)
     n = len(ph)
@@ -129,7 +127,6 @@ def build_chunks_by_phones_group(phones_df, min_ms=300, max_ms=700, min_phones=2
     return out
 
 def build_phone_chunks_byword(words_df, min_ms=300):
-    """Dùng đúng khung thời gian word để cắt phones (giống word)."""
     out = []
     wd = words_df.sort_values("Begin").reset_index(drop=True)
     for _, w in wd.iterrows():
@@ -140,7 +137,6 @@ def build_phone_chunks_byword(words_df, min_ms=300):
     return out
 
 def build_chunks_sliding(start_ms, end_ms, win_ms=600, stride_ms=200):
-    """Cửa sổ trượt thời gian (dùng cho phones-mode=sliding và jamo-streaming)."""
     out = []
     cur = start_ms
     while cur < end_ms:
@@ -161,12 +157,51 @@ def build_chunks_by_words(words_df, min_ms=350):
         out.append((st, en, lab))
     return out
 
-# -------- Worker: process ONE CSV -> write tmp manifest --------
+# ================== Quality filters ==================
+_NONSPEECH = {"spn","sil","noise","pau","ns"}
+
+def ratio_nonspeech_in_window(phones_df, st_ms, en_ms) -> float:
+    """Ước lượng tỉ lệ thời lượng nonspeech trong cửa sổ dựa trên label phones."""
+    if phones_df is None or len(phones_df) == 0: return 0.0
+    win = phones_in_window(phones_df, st_ms, en_ms)
+    if not win: return 0.0
+    nons = 0
+    for b,e,l in win:
+        if l in _NONSPEECH:
+            # phần giao với [st_ms,en_ms]
+            bb = max(b, st_ms); ee = min(e, en_ms)
+            nons += max(0, ee - bb)
+    return nons / max(1, (en_ms - st_ms))
+
+def jamo_stats(seq: List[str]) -> Tuple[int,int]:
+    """(len(seq), số kí tự khác nhau)"""
+    return len(seq), len(set(seq))
+
+def is_similar_seq(a: List[str], b: List[str], thr: float) -> bool:
+    """Độ tương tự cosine trên one-hot tập ký tự hợp nhất (đơn giản, nhanh)."""
+    if not a or not b: return False
+    vocab = {ch:i for i,ch in enumerate(sorted(set(a) | set(b)))}
+    va = [0]*len(vocab); vb = [0]*len(vocab)
+    for ch in a: va[vocab[ch]] += 1
+    for ch in b: vb[vocab[ch]] += 1
+    dot = sum(x*y for x,y in zip(va,vb))
+    na = math.sqrt(sum(x*x for x in va)); nb = math.sqrt(sum(y*y for y in vb))
+    if na == 0 or nb == 0: return False
+    cos = dot/(na*nb)
+    return cos >= thr
+
+# ================== Worker: process ONE CSV ==================
 def process_one_csv(args_pack):
     (csvf, out_root, corpus_dir, make_jamo,
+     # phone params
      phone_min_ms, phone_max_ms, phone_min_phones, phone_stride_phones,
      phone_max_chunks_per_utt, phone_mode, phone_win_ms, phone_stride_ms,
-     no_phones) = args_pack
+     no_phones,
+     # word params
+     word_min_ms, word_max_ms, word_max_nonspeech_ratio, word_drop_long_to_jamo,
+     # jamo params
+     jamo_win_ms, jamo_stride_ms, jamo_min_len, jamo_min_uniq, jamo_dedupe_sim
+     ) = args_pack
 
     base = csvf.stem
     tmp_dir = out_root/"manifests"/"tmp"
@@ -190,9 +225,8 @@ def process_one_csv(args_pack):
     wd_df = df[df.Type=="words"].copy()
 
     # clean non-speech
-    nonspeech = {"spn","sil","noise","pau","ns"}
-    ph_df = ph_df[~ph_df["Label"].isin(nonspeech)]
-    wd_df = wd_df[~wd_df["Label"].isin(nonspeech)]
+    ph_df = ph_df[~ph_df["Label"].isin(_NONSPEECH)]
+    wd_df = wd_df[~wd_df["Label"].isin(_NONSPEECH)]
 
     if len(df)==0:
         return {"phonemes":[], "jamo":[], "words":[]}
@@ -209,7 +243,7 @@ def process_one_csv(args_pack):
 
     with open(tmp_manifest, "w", encoding="utf-8") as fout:
         # -------- (tùy chọn) phones --------
-        if not no_phones:
+        if not no_phones and len(ph_df) > 0:
             if phone_mode == "group":
                 phone_windows = build_chunks_by_phones_group(
                     ph_df,
@@ -248,8 +282,43 @@ def process_one_csv(args_pack):
                 fout.write(json.dumps(obj, ensure_ascii=False) + "\n")
                 count += 1
 
-        # -------- words (đính kèm phonemes cho co-supervise) --------
-        for st,en,lab in build_chunks_by_words(wd_df):
+        # -------- words (đính kèm phonemes + lọc chất lượng) --------
+        for st,en,lab in build_chunks_by_words(wd_df, min_ms=word_min_ms):
+            dur = en - st
+            # nếu quá dài
+            if dur > word_max_ms:
+                if word_drop_long_to_jamo and make_jamo:
+                    # rơi xuống jamo windows trên [st,en]
+                    last_kept = []
+                    for js, (wst,wen) in _gen_jamo_windows_and_labels(
+                        wd_df, st, en, jamo_win_ms, jamo_stride_ms
+                    ):
+                        L, U = jamo_stats(js)
+                        if L < jamo_min_len or U < jamo_min_uniq:
+                            continue
+                        if last_kept and is_similar_seq(last_kept[-1]["targets"]["jamo"], js, jamo_dedupe_sim):
+                            continue
+                        out = audio_jamo_dir/f"{base}_{wst:08d}_{wen:08d}.wav"
+                        ok, sr = slice_audio(wav, wst, wen, out)
+                        if not ok: continue
+                        ja_vocab.update(js)
+                        obj={
+                            "audio": str(out),
+                            "sr": sr,
+                            "dur_ms": wen-wst,
+                            "task": "jamo",
+                            "targets": {"jamo": js}
+                        }
+                        fout.write(json.dumps(obj, ensure_ascii=False) + "\n")
+                        last_kept.append(obj)
+                # bỏ word này
+                continue
+
+            # tỉ lệ nonspeech quá cao -> bỏ
+            ns_ratio = ratio_nonspeech_in_window(df[df.Type=="phones"], st, en)
+            if ns_ratio > word_max_nonspeech_ratio:
+                continue
+
             jams = decompose_hangul_to_jamo(lab)
             if jams: ja_vocab.update(jams)
             wd_vocab.add(lab)
@@ -268,14 +337,19 @@ def process_one_csv(args_pack):
             }
             fout.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
-        # -------- jamo streaming --------
+        # -------- jamo streaming toàn câu (tuỳ chọn) --------
         if make_jamo and len(wd_df)>0:
-            for st,en in build_chunks_sliding(g0,g1,win_ms=600, stride_ms=200):
+            last_kept = []
+            for st,en in build_chunks_sliding(g0,g1,win_ms=jamo_win_ms, stride_ms=jamo_stride_ms):
                 jams = []
                 for _,_,lab in words_in_window(wd_df, st, en):
                     js = decompose_hangul_to_jamo(lab)
                     if js: jams.extend(js)
-                if len(jams) < 2: continue
+                L, U = jamo_stats(jams)
+                if L < jamo_min_len or U < jamo_min_uniq:
+                    continue
+                if last_kept and is_similar_seq(last_kept[-1]["targets"]["jamo"], jams, jamo_dedupe_sim):
+                    continue
                 ja_vocab.update(jams)
                 out = audio_jamo_dir/f"{base}_{st:08d}_{en:08d}.wav"
                 ok, sr = slice_audio(wav, st, en, out)
@@ -288,21 +362,32 @@ def process_one_csv(args_pack):
                     "targets": {"jamo": jams}
                 }
                 fout.write(json.dumps(obj, ensure_ascii=False) + "\n")
+                last_kept.append(obj)
 
     done_flag.touch()
     return {"phonemes": sorted(ph_vocab), "jamo": sorted(ja_vocab), "words": sorted(wd_vocab)}
 
-# -------- Merge tmp manifests + write vocabs --------
+def _gen_jamo_windows_and_labels(wd_df, st, en, win_ms, stride_ms):
+    for wst, wen in build_chunks_sliding(st, en, win_ms=win_ms, stride_ms=stride_ms):
+        seq = []
+        for _,_,lab in words_in_window(wd_df, wst, wen):
+            seq.extend(decompose_hangul_to_jamo(lab))
+        yield seq, (wst, wen)
+
+# ================== Merge tmp manifests + write vocabs (with progress) ==================
 def merge_and_finalize(out_root: Path):
     mani_dir = out_root/"manifests"
     tmp_dir  = mani_dir/"tmp"
     final_mani = mani_dir/"multi_task.jsonl"
     ph_vocab, ja_vocab, wd_vocab = set(), set(), set()
 
-    with open(final_mani, "w", encoding="utf-8") as fout:
-        for f in sorted(tmp_dir.glob("*.jsonl")):
+    tmp_files = sorted(tmp_dir.glob("*.jsonl"))
+    with open(final_mani, "w", encoding="utf-8") as fout, tqdm(total=len(tmp_files), desc="Merging manifests") as pbar:
+        for f in tmp_files:
             with open(f, "r", encoding="utf-8") as fin:
                 for line in fin:
+                    if not line.strip():
+                        continue
                     obj = json.loads(line)
                     t = obj.get("task")
                     tg = obj.get("targets", {})
@@ -316,19 +401,27 @@ def merge_and_finalize(out_root: Path):
                     if t == "jamo":
                         for j in tg.get("jamo") or []: ja_vocab.add(j)
                     fout.write(line)
+            pbar.update(1)
 
-    # write vocabs
-    if ja_vocab:
-        with open(mani_dir/"vocab_jamo.txt","w",encoding="utf-8") as f:
-            for j in sorted(ja_vocab): f.write(j+"\n")
-    if ph_vocab:
-        with open(mani_dir/"vocab_phoneme.txt","w",encoding="utf-8") as f:
-            for p in sorted(ph_vocab): f.write(p+"\n")
-    if wd_vocab:
-        with open(mani_dir/"vocab_word.json","w",encoding="utf-8") as f:
-            json.dump({w:i for i,w in enumerate(sorted(wd_vocab))}, f, ensure_ascii=False, indent=2)
+    # write vocabs with small progress
+    todo = sum([1 if len(ja_vocab)>0 else 0,
+                1 if len(ph_vocab)>0 else 0,
+                1 if len(wd_vocab)>0 else 0])
+    with tqdm(total=todo if todo>0 else 1, desc="Writing vocabs") as pbar2:
+        if ja_vocab:
+            with open(mani_dir/"vocab_jamo.txt","w",encoding="utf-8") as f:
+                for j in sorted(ja_vocab): f.write(j+"\n")
+            pbar2.update(1)
+        if ph_vocab:
+            with open(mani_dir/"vocab_phoneme.txt","w",encoding="utf-8") as f:
+                for p in sorted(ph_vocab): f.write(p+"\n")
+            pbar2.update(1)
+        if wd_vocab:
+            with open(mani_dir/"vocab_word.json","w",encoding="utf-8") as f:
+                json.dump({w:i for i,w in enumerate(sorted(wd_vocab))}, f, ensure_ascii=False, indent=2)
+            pbar2.update(1)
 
-# -------- Main --------
+# ================== Main ==================
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out-align", required=True)
@@ -339,7 +432,7 @@ def main():
     ap.add_argument("--resume", action="store_true", help="Bỏ qua CSV đã có tmp .jsonl+.done")
     ap.add_argument("--no-phones", action="store_true", help="Bỏ qua hoàn toàn việc tạo clip task=phones")
 
-    # phones params (vẫn giữ, nhưng sẽ bị bỏ qua nếu --no-phones)
+    # phones params
     ap.add_argument("--phone-mode", choices=["group","byword","sliding"], default="byword",
                     help="Cách cắt phones: group (gom), byword (theo từ), sliding (cửa sổ trượt)")
     ap.add_argument("--phone-min-ms", type=int, default=300)
@@ -350,6 +443,22 @@ def main():
     ap.add_argument("--phone-stride-ms", type=int, default=200, help="Chỉ dùng cho phone-mode=sliding")
     ap.add_argument("--phone-max-chunks-per-utt", type=int, default=0,
                     help="0 = không giới hạn; >0 = tối đa N chunk phones mỗi CSV")
+
+    # word params
+    ap.add_argument("--word-min-ms", type=int, default=350)
+    ap.add_argument("--word-max-ms", type=int, default=1200)
+    ap.add_argument("--word-max-nonspeech-ratio", type=float, default=0.25,
+                    help="Tỉ lệ nonspeech tối đa trong word clip (0..1)")
+    ap.add_argument("--word-drop-long-to-jamo", action="store_true",
+                    help="Nếu word quá dài > word-max-ms, không tạo word clip mà rơi xuống jamo windows")
+
+    # jamo params
+    ap.add_argument("--jamo-win-ms", type=int, default=600)
+    ap.add_argument("--jamo-stride-ms", type=int, default=200)
+    ap.add_argument("--jamo-min-len", type=int, default=4)
+    ap.add_argument("--jamo-min-uniq", type=int, default=3)
+    ap.add_argument("--jamo-dedupe-sim", type=float, default=0.85,
+                    help="Ngưỡng cosine để coi là trùng (0..1)")
 
     args = ap.parse_args()
 
@@ -384,20 +493,29 @@ def main():
 
     tasks = [
         (c, out_root, Path(args.corpus), args.make_jamo_streaming,
+         # phone
          args.phone_min_ms, args.phone_max_ms, args.phone_min_phones, args.phone_stride_phones,
          args.phone_max_chunks_per_utt, args.phone_mode, args.phone_win_ms, args.phone_stride_ms,
-         args.no_phones)
+         args.no_phones,
+         # word
+         args.word_min_ms, args.word_max_ms, args.word_max_nonspeech_ratio, args.word_drop_long_to_jamo,
+         # jamo
+         args.jamo_win_ms, args.jamo_stride_ms, args.jamo_min_len, args.jamo_min_uniq, args.jamo_dedupe_sim
+        )
         for c in csvs
     ]
 
+    # ===== Progress bar for CSV processing =====
     if args.workers > 1:
-        with ProcessPoolExecutor(max_workers=args.workers) as ex:
+        with ProcessPoolExecutor(max_workers=args.workers) as ex, tqdm(total=len(tasks), desc="Processing CSVs") as pbar:
             futures = [ex.submit(process_one_csv, t) for t in tasks]
             for _ in as_completed(futures):
-                pass
+                pbar.update(1)
     else:
-        for t in tasks:
-            process_one_csv(t)
+        with tqdm(total=len(tasks), desc="Processing CSVs") as pbar:
+            for t in tasks:
+                process_one_csv(t)
+                pbar.update(1)
 
     merge_and_finalize(out_root)
     print("All done. Manifest & vocabs ready.")
