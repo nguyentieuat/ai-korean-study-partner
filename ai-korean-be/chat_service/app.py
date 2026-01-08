@@ -1,7 +1,7 @@
 # app.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api_conversation import router as conversation_router
+from routers.api_conversation import router as conversation_router
 
 app = FastAPI(title="Chat Service")
 

@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # from api_evaluateASRneedleman import router as evaluate_needleman
 # from api_evaluateMFAW2V import router as evaluate_mfa_w2v
-from api_evaluateW2v2Forced import router as evaluate_w2v_forced
-from api_pronunciationDataset import router as pronunciation_dataset_router
+from routers.api_evaluateW2v2Forced import router as evaluate_w2v_forced
+from routers.api_pronunciationDataset import router as pronunciation_dataset_router
 
 
 app = FastAPI(title="MFA/Needleman Evaluator")

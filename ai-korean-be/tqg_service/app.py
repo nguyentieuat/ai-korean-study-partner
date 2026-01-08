@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import httpx
 
-from api_topik_generate import router as topik_router
+from routers.api_topik_generate import router as topik_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

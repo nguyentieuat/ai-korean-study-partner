@@ -6,11 +6,11 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import httpx
 
-from api_conversation import router as conversation_router
-from api_pronunciation import router as pronunciation_router
-from api_topikgenerate import router as topik_router
-from api_cooperate import router as cooperate_router
-from app_tracking import router as tracking_router
+from routers.api_conversation import router as conversation_router
+from routers.api_pronunciation import router as pronunciation_router
+from routers.api_topikgenerate import router as topik_router
+from routers.api_cooperate import router as cooperate_router
+from routers.app_tracking import router as tracking_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
